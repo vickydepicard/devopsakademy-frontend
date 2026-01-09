@@ -1,0 +1,28 @@
+
+.admin-container {
+  @apply p-6 bg-white rounded-xl shadow-md border border-gray-200;
+}
+.admin-btn {
+  @apply px-4 py-2 rounded-md text-white font-medium transition-all duration-200;
+}
+.admin-btn-blue {
+  @apply bg-blue-600 hover:bg-blue-700;
+}
+.admin-btn-green {
+  @apply bg-green-600 hover:bg-green-700;
+}
+.admin-btn-red {
+  @apply bg-red-600 hover:bg-red-700;
+}
+.admin-btn-gray {
+  @apply bg-gray-400 hover:bg-gray-500;
+}
+.admin-table {
+  @apply w-full border rounded-lg overflow-hidden shadow-sm;
+}
+.admin-table th {
+  @apply bg-gray-100 text-left p-3;
+}
+.admin-table td {
+  @apply border-t p-3;
+}

@@ -1,0 +1,127 @@
+/* src/App.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* Navbar styles */
+.navbar {
+  background-color: #2c3e50;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-logo {
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.nav-link:hover {
+  background-color: #34495e;
+}
+
+/* Main content */
+.main-content {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+/* Card styles */
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+/* Dashboard and Courses pages */
+.page-header {
+  margin-bottom: 2rem;
+  color: #2c3e50;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.grid-item {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
