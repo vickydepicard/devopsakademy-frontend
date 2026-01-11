@@ -19,4 +19,6 @@ module.exports = {
     quotes: ["error", "single"],
     "no-unused-vars": ["warn"],
   },
+  ignorePatterns: ['dist/', 'node_modules/'],
+
 };
