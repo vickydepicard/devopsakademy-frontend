@@ -1,44 +1,33 @@
-name: CI - Develop Branch
+name: Frontend CI
 
 on:
   push:
-    branches:
-      - develop
+    branches: [develop]
   pull_request:
-    branches:
-      - develop
+    branches: [develop]
 
 jobs:
   ci:
-    name: Build & Test
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Récupération du code
-      - name: Checkout source code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: npm
+          node-version: 20
+          cache: 'npm'
 
-      # 3️⃣ Installation des dépendances
       - name: Install dependencies
         run: npm ci
 
-      # 4️⃣ Lint (si présent)
       - name: Run lint
         run: npm run lint
-        continue-on-error: false
 
-      # 5️⃣ Tests
       - name: Run tests
         run: npm test
-        continue-on-error: false
 
-      # 6️⃣ Build
       - name: Build application
         run: npm run build
