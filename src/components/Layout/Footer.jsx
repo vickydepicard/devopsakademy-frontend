@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Linkedin, Youtube, MapPin } from "lucide-react";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/logo2.png";
 
 const Footer = () => {
   return (
@@ -48,7 +48,7 @@ const Footer = () => {
               <li className="flex items-center gap-2">
                 <Mail size={16} className="text-accent" />
                 <a href="mailto:contact@devops-akademy.com" className="hover:text-accent transition">
-                  contact@devops-akademy.com
+                  contact@devopsakademy.cloud
                 </a>
               </li>
               <li className="flex items-center gap-2">
