@@ -65,10 +65,10 @@ export default function Contact() {
             <li className="flex items-center gap-3">
               <Mail className="text-accent" size={20} />
               <a
-                href="mailto:contact@devops-akademy.com"
+                href="mailto:contact@devopsakademy.cloud"
                 className="hover:text-accent transition"
               >
-                contact@devops-akademy.com
+                contact@devopsakademy.cloud
               </a>
             </li>
             <li className="flex items-center gap-3">
