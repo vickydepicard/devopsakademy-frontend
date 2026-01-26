@@ -47,8 +47,8 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
                 <Mail size={16} className="text-accent" />
-                <a href="mailto:contact@devopsakademy.cloud" className="hover:text-accent transition">
-                  contact@devopsakademy.cloud
+                <a href="mailto:devopseduque@gmail.com" className="hover:text-accent transition">
+                  devopseduque@gmail.com
                 </a>
               </li>
               <li className="flex items-center gap-2">
