@@ -1,24 +1,25 @@
-import axios from 'axios';
+import axios from "axios";
 
 class ApiService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL;
+    // ⚠️ BASE URL FIXE ET SAFE (Apache Proxy /api)
     this.instance = axios.create({
-      baseURL: this.baseURL,
+      baseURL: "/api",
       timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
-      }
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
     });
 
     this.setupInterceptors();
   }
 
   setupInterceptors() {
-    // Request interceptor
+    // 🔐 Intercepteur REQUEST
     this.instance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem("authToken");
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -27,70 +28,72 @@ class ApiService {
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor
+    // 🧯 Intercepteur RESPONSE (ANTI HTML)
     this.instance.interceptors.response.use(
       (response) => response,
       (error) => {
+        const contentType = error.response?.headers?.["content-type"];
+
+        // ❌ Cas critique : l’API retourne du HTML
+        if (contentType && contentType.includes("text/html")) {
+          console.error("❌ L’API a retourné du HTML au lieu de JSON");
+          return Promise.reject({
+            message: "Erreur serveur (HTML reçu au lieu de JSON)",
+            status: 500,
+          });
+        }
+
+        // 🔐 Non autorisé
         if (error.response?.status === 401) {
           this.handleUnauthorized();
         }
-        return Promise.reject(error);
+
+        return Promise.reject(this.formatError(error));
       }
     );
   }
 
   handleUnauthorized() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
   }
 
-  // Méthodes HTTP génériques
+  // ======================
+  // MÉTHODES HTTP
+  // ======================
+
   async get(endpoint, config = {}) {
-    try {
-      const response = await this.instance.get(endpoint, config);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await this.instance.get(endpoint, config);
+    return response.data;
   }
 
   async post(endpoint, data = {}, config = {}) {
-    try {
-      const response = await this.instance.post(endpoint, data, config);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await this.instance.post(endpoint, data, config);
+    return response.data;
   }
 
   async put(endpoint, data = {}, config = {}) {
-    try {
-      const response = await this.instance.put(endpoint, data, config);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await this.instance.put(endpoint, data, config);
+    return response.data;
   }
 
   async delete(endpoint, config = {}) {
-    try {
-      const response = await this.instance.delete(endpoint, config);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+    const response = await this.instance.delete(endpoint, config);
+    return response.data;
   }
 
-  handleError(error) {
-    if (import.meta.env.VITE_DEBUG === 'true') {
-      console.error('API Error:', error);
-    }
-    
+  // ======================
+  // FORMAT ERREUR GLOBAL
+  // ======================
+  formatError(error) {
     return {
-      message: error.response?.data?.message || 'Erreur de connexion',
-      status: error.response?.status,
-      data: error.response?.data
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        "Erreur de connexion",
+      status: error.response?.status || 500,
+      data: error.response?.data || null,
     };
   }
 }
