@@ -1,62 +1,83 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react"
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react"
 import { useNavigate } from "react-router-dom"
 
-const AuthContext = createContext()
-const API_URL = import.meta.env.VITE_API_URL
+const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  // ================= Charger user + token depuis localStorage =================
+  // ================= INIT STORAGE =================
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
     const storedToken = localStorage.getItem("token")
-    if (storedUser) setUser(JSON.parse(storedUser))
-    if (storedToken) setToken(storedToken)
+
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser))
+      setToken(storedToken)
+    }
+
+    setLoading(false)
   }, [])
 
-  // ================= Vérifier session =================
+  // ================= CHECK SESSION =================
   useEffect(() => {
-    const initAuth = async () => {
+    if (!token) return
+
+    const checkAuth = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/auth/me`, {
-          method: "GET",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        const res = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           credentials: "include",
         })
+
+        if (!res.ok) throw new Error("Session invalide")
+
         const data = await res.json()
-        if (res.ok && data.success) {
+        if (data?.success) {
           setUser(data.data)
         } else {
           logout()
         }
       } catch (err) {
-        console.error("Auth check failed:", err)
+        console.error("❌ Auth check failed:", err.message)
         logout()
       }
     }
-    if (token) {
-      initAuth()
-    }
+
+    checkAuth()
   }, [token])
 
   // ================= LOGIN =================
   const login = async (credentials) => {
     setLoading(true)
     setError("")
+
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(credentials),
       })
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || "Erreur de connexion")
+      }
+
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Erreur login")
 
       const loggedUser = data.data.user
       const newToken = data.data.accessToken
@@ -70,7 +91,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true }
     } catch (err) {
       setError(err.message)
-      return { success: false }
+      return { success: false, message: err.message }
     } finally {
       setLoading(false)
     }
@@ -80,15 +101,21 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setLoading(true)
     setError("")
+
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(userData),
       })
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || "Erreur inscription")
+      }
+
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Erreur inscription")
 
       const newUser = data.data.user
       const newToken = data.data.accessToken
@@ -102,7 +129,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true }
     } catch (err) {
       setError(err.message)
-      return { success: false }
+      return { success: false, message: err.message }
     } finally {
       setLoading(false)
     }
@@ -117,31 +144,30 @@ export const AuthProvider = ({ children }) => {
     navigate("/login")
   }, [navigate])
 
-  // ================= Auto-refresh token =================
+  // ================= REFRESH TOKEN =================
   useEffect(() => {
-    let interval
-    if (user) {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(`${API_URL}/api/auth/refresh-token`, {
-            method: "POST",
-            credentials: "include",
-          })
-          const data = await res.json()
-          if (res.ok && data.success) {
-            setToken(data.data.accessToken)
-            localStorage.setItem("token", data.data.accessToken)
-          } else {
-            logout()
-          }
-        } catch (err) {
-          console.error("Refresh token error:", err)
-          logout()
-        }
-      }, 10 * 60 * 1000)
-    }
+    if (!token) return
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/auth/refresh-token", {
+          method: "POST",
+          credentials: "include",
+        })
+
+        if (!res.ok) throw new Error("Refresh failed")
+
+        const data = await res.json()
+        setToken(data.data.accessToken)
+        localStorage.setItem("token", data.data.accessToken)
+      } catch (err) {
+        console.error("❌ Refresh token error:", err.message)
+        logout()
+      }
+    }, 10 * 60 * 1000)
+
     return () => clearInterval(interval)
-  }, [user, logout])
+  }, [token, logout])
 
   return (
     <AuthContext.Provider
@@ -153,9 +179,10 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        isAuthenticated: !!token,
       }}
     >
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   )
 }

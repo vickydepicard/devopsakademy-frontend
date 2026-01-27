@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import HeroSection from "../../components/UI/HeroSection";
 import FeaturesSection from "../../components/UI/FeaturesSection";
-import PopularCourses from "../../components/UI/PopularCourses";
+import PopularCourses from "../../components/UI/popularCourses";
 import Testimonials from "../../components/UI/Testimonials";
 import CallToAction from "../../components/UI/CallToAction";
 
