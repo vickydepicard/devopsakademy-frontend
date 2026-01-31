@@ -1,38 +1,22 @@
-name: Frontend CI/CD
+name: Frontend CD (Server Script)
 
 on:
   push:
-    branches: [develop]
+    branches:
+      - develop
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run lint
-        run: npm run lint
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Deploy to Apache server
-        uses: appleboy/scp-action@v0.1.7
+      - name: Deploy via SSH script
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "dist/*"
-          target: "/var/www/AKA/devopsakademy-frontend"
-          strip_components: 1
+          script: |
+            cd /var/www/AKA
+            chmod +x deploy_fo.sh
+            ./deploy_fo.sh
