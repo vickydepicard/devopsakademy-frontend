@@ -1,21 +1,57 @@
-# devopsakademy-frontend
-Frontend application for DevOpsAkademy. Built with modern frontend stack, integrated with a documented and tested REST API. Focus on quality, non-regression and production readiness.
+# DevOpsAkademy – Frontend
 
-## 🚀 CI/CD – Frontend Deployment
+Frontend de la plateforme **DevOpsAkademy**, construit avec **Vite + Node.js 20** et déployé automatiquement via un pipeline **CI/CD GitHub Actions** vers un serveur **Apache2**.
 
-This frontend application is automatically built and deployed using **GitHub Actions**.
+---
 
-### 🔁 Workflow
-- Triggered on every push to the `develop` branch
-- Runs linting, tests, and production build
-- Deploys the compiled frontend (`dist/`) directly to an **Apache2 server**
+## 🚀 Objectifs du projet
 
-### 🛠 Stack
-- GitHub Actions
-- Node.js 20
-- Vite
-- Apache2
-- SCP + SSH deployment
+- Mettre en place un **pipeline CI/CD de bout en bout**
+- Garantir un déploiement **automatisé, déterministe et reproductible**
+- Appliquer des **bonnes pratiques DevOps réelles**
+- Séparer clairement :
+  - le **build**
+  - le **runtime**
+  - le **serveur web**
 
-### 📂 Deployment Target
+---
+
+## 🧱 Stack technique
+
+- **Frontend** : Vite, JavaScript
+- **Qualité code** : ESLint
+- **CI/CD** : GitHub Actions
+- **Déploiement** : SSH + script serveur
+- **Serveur web** : Apache2
+- **OS serveur** : Ubuntu Linux
+
+---
+
+## 🌿 Branching strategy
+
+- `develop` : branche de développement actif  
+- Chaque push sur `develop` déclenche automatiquement le pipeline de déploiement
+
+---
+
+## 🔁 Pipeline CI/CD – Vue d’ensemble
+
+### Déclencheur
+- Push sur la branche `develop`
+
+### Étapes du pipeline
+1. Connexion SSH au serveur
+2. Exécution du script de déploiement serveur
+3. Synchronisation du code avec `origin/develop`
+4. Build du frontend
+5. Déploiement du build dans Apache
+6. Reload d’Apache
+
+👉 **Le serveur reflète toujours exactement l’état de la branche `develop`.**
+
+---
+
+## ⚙️ Script de déploiement serveur
+
+Le déploiement est centralisé dans un script exécuté sur le serveur :
 
