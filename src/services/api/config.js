@@ -1,14 +1,14 @@
-import axios from "axios";
+import axios from 'axios';
 
 class ApiService {
   constructor() {
     // ⚠️ BASE URL FIXE ET SAFE (Apache Proxy /api)
     this.instance = axios.create({
-      baseURL: "/api",
+      baseURL: '/api',
       timeout: 10000,
       headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     });
 
@@ -19,7 +19,7 @@ class ApiService {
     // 🔐 Intercepteur REQUEST
     this.instance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem('authToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -32,13 +32,13 @@ class ApiService {
     this.instance.interceptors.response.use(
       (response) => response,
       (error) => {
-        const contentType = error.response?.headers?.["content-type"];
+        const contentType = error.response?.headers?.['content-type'];
 
         // ❌ Cas critique : l’API retourne du HTML
-        if (contentType && contentType.includes("text/html")) {
-          console.error("❌ L’API a retourné du HTML au lieu de JSON");
+        if (contentType && contentType.includes('text/html')) {
+          console.error('❌ L’API a retourné du HTML au lieu de JSON');
           return Promise.reject({
-            message: "Erreur serveur (HTML reçu au lieu de JSON)",
+            message: 'Erreur serveur (HTML reçu au lieu de JSON)',
             status: 500,
           });
         }
@@ -54,9 +54,9 @@ class ApiService {
   }
 
   handleUnauthorized() {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
   }
 
   // ======================
@@ -91,7 +91,7 @@ class ApiService {
       message:
         error.response?.data?.message ||
         error.message ||
-        "Erreur de connexion",
+        'Erreur de connexion',
       status: error.response?.status || 500,
       data: error.response?.data || null,
     };
