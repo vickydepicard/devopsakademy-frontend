@@ -169,17 +169,88 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(interval)
   }, [token, logout])
 
+  // ================= FONCTIONS DE RÔLE =================
+  
+  const isAdmin = () => {
+    if (!user || !user.role) return false;
+    return user.role === 'admin' || user.role === 'administrator';
+  };
+
+  const isInstructor = () => {
+    if (!user || !user.role) return false;
+    return user.role === 'instructor' || user.role === 'teacher' || user.role === 'formateur';
+  };
+
+  const isStudent = () => {
+    if (!user) return false;
+    return !user.role || user.role === 'student' || user.role === 'learner' || user.role === 'étudiant';
+  };
+
+  const hasRole = (roles) => {
+    if (!user || !user.role) return false;
+    
+    if (Array.isArray(roles)) {
+      return roles.includes(user.role);
+    }
+    
+    return user.role === roles;
+  };
+
+  const isGuest = () => {
+    return !user || !token;
+  };
+
+  const updateUser = (updatedData) => {
+    const mergedUser = { ...user, ...updatedData };
+    setUser(mergedUser);
+    localStorage.setItem("user", JSON.stringify(mergedUser));
+  };
+
+  const getFullName = () => {
+    if (!user) return "";
+    
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+    
+    if (user.name) {
+      return user.name;
+    }
+    
+    if (user.email) {
+      return user.email.split('@')[0];
+    }
+    
+    return "Utilisateur";
+  };
+
   return (
     <AuthContext.Provider
       value={{
+        // États
         user,
         token,
         loading,
         error,
+        
+        // Authentification
+        isAuthenticated: !!token,
+        isGuest,
+        
+        // Rôles
+        isAdmin,
+        isInstructor,
+        isStudent,
+        hasRole,
+        
+        // Actions
         login,
         register,
         logout,
-        isAuthenticated: !!token,
+        updateUser,
+        
+        // Utilitaires
+        getFullName,
       }}
     >
       {!loading && children}
@@ -187,4 +258,10 @@ export const AuthProvider = ({ children }) => {
   )
 }
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
