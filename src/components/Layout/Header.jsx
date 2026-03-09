@@ -168,6 +168,8 @@ export default function Header() {
         <nav className="hidden md:flex items-center space-x-8">
           <NavLink to="/" className={navLinkClass}>Accueil</NavLink>
           <NavLink to="/courses" className={navLinkClass}>Cours</NavLink>
+          <NavLink to="/about" className={navLinkClass}>À propos</NavLink>
+          <NavLink to="/pricing" className={navLinkClass}>Tarifs</NavLink>
           
           {/* Menu Instructeurs visible pour tous */}
           <NavLink to="/instructors" className={navLinkClass}>Instructeurs</NavLink>
@@ -394,6 +396,12 @@ export default function Header() {
           </NavLink>
           <NavLink to="/courses" onClick={() => setMobileOpen(false)} className={navLinkClass}>
             Cours
+          </NavLink>
+          <NavLink to="/about" onClick={() => setMobileOpen(false)} className={navLinkClass}>
+            À propos
+          </NavLink>
+          <NavLink to="/pricing" onClick={() => setMobileOpen(false)} className={navLinkClass}>
+            Tarifs
           </NavLink>
           
           {/* Menu instructeurs */}

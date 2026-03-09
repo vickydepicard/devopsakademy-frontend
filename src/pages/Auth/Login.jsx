@@ -93,6 +93,13 @@ const Login = () => {
           </button>
         </form>
 
+        {/* Lien mot de passe oublié */}
+        <p className="text-center text-gray-400 text-xs">
+          <Link to="/forgot-password" className="hover:text-yellow-500 transition">
+            Mot de passe oublié ?
+          </Link>
+        </p>
+
         {/* Lien inscription */}
         <p className="text-center text-gray-500 text-sm">
           Pas encore de compte ?{" "}
