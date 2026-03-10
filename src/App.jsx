@@ -36,11 +36,11 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import UserProfile from './pages/Profile/UserProfile';
 
 // Pages étudiantes legacy
-import Leaderboard from './pages/Student/Leaderboard';
-import Notifications from './pages/Student/Notifications';
-import Subscriptions from './pages/Student/Subscriptions';
-import MyCourses from './pages/Student/MyCourses';
-import QuizPage from './pages/Student/QuizPage';
+import Leaderboard from './pages/student/Leaderboard';
+import Notifications from './pages/student/Notifications';
+import Subscriptions from './pages/student/Subscriptions';
+import MyCourses from './pages/student/MyCourses';
+import QuizPage from './pages/student/QuizPage';
 
 // Instructeur
 import InstructorLayout from './pages/Instructors/InstructorLayout';
