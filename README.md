@@ -1,4 +1,4 @@
-# DevOpsAkademy – Frontend
+# DevOpsAkademy – Frontend - Vicky
 
 Frontend de la plateforme **DevOpsAkademy**, construit avec **Vite + Node.js 20** et déployé automatiquement via un pipeline **CI/CD GitHub Actions** vers un serveur **Apache2**.
 
