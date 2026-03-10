@@ -36,7 +36,7 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import UserProfile from './pages/Profile/UserProfile';
 
 // Pages étudiantes legacy
-import Leaderboard from './pages/Student/Leaderboard';
+
 import Notifications from './pages/Student/Notifications';
 import Subscriptions from './pages/Student/Subscriptions';
 import MyCourses from './pages/Student/MyCourses';
