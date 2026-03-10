@@ -1,3 +1,4 @@
+// src/App.tsx — VERSION AVEC StudentLayout (espace étudiant avec sidebar)
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProfileProvider } from './contexts/ProfileContext';
@@ -24,23 +25,24 @@ import CoursesList from './pages/Courses/CoursesList';
 // Pages de cours
 import CourseDetails from './pages/Courses/CourseDetails';
 import CourseLearn from './pages/Courses/CourseLearn';
-import CourseProgress from './pages/Courses/CourseProgress'; // ✅ AJOUT
+import CourseProgress from './pages/Courses/CourseProgress';
 import CourseEnroll from './pages/Courses/CourseEnroll';
 import CoursePreview from './pages/Courses/CoursePreview';
 import LessonDetail from './pages/Courses/LessonDetail';
 
-// Dashboards
-import Dashboard from './pages/Dashboard/Dashboard';
-import ProfilePage from './pages/Profile/UserProfile';
+// 🆕 Espace étudiant avec sidebar
+import StudentLayout from './pages/student/StudentLayout';
+import StudentDashboard from './pages/student/StudentDashboard';
+import UserProfile from './pages/Profile/UserProfile';
 
-// Espace étudiant
-import MyCourses from './pages/Student/MyCourses';
-import QuizPage from './pages/Student/QuizPage';
+// Pages étudiantes legacy
 import Leaderboard from './pages/Student/Leaderboard';
 import Notifications from './pages/Student/Notifications';
 import Subscriptions from './pages/Student/Subscriptions';
+import MyCourses from './pages/Student/MyCourses';
+import QuizPage from './pages/Student/QuizPage';
 
-// Espace instructeur
+// Instructeur
 import InstructorLayout from './pages/Instructors/InstructorLayout';
 import InstructorDashboard from './pages/Instructors/InstructorDashboard';
 import InstructorCourses from './pages/Instructors/InstructorCourses';
@@ -72,7 +74,7 @@ import AdminSettings from "./pages/Admin/AdminSettings";
 import StudentSubmission from "./pages/Submissions/StudentSubmission";
 import AdminSubmissionReview from "./pages/Admin/AdminSubmissionReview";
 
-// Sécurité
+// Guards
 import ProtectedRoute from './components/Common/ProtectedRoute';
 import CourseContentRoute from './components/Common/CourseContentRoute';
 
@@ -88,9 +90,7 @@ function App() {
             <main className="flex-1">
               <Routes>
 
-                {/* ═══════════════════════════════════════
-                    🌍 PAGES PUBLIQUES
-                ═══════════════════════════════════════ */}
+                {/* ── PAGES PUBLIQUES ── */}
                 <Route path="/"                          element={<Home />} />
                 <Route path="/contact"                   element={<Contact />} />
                 <Route path="/contact/success"           element={<ContactSuccess />} />
@@ -107,187 +107,81 @@ function App() {
                 <Route path="/instructors"               element={<Instructors />} />
                 <Route path="/courses"                   element={<CoursesList />} />
 
-                {/* ═══════════════════════════════════════
-                    📚 PAGES DES COURS
-                ═══════════════════════════════════════ */}
+                {/* ── COURS ── */}
                 <Route path="/courses/:id"               element={<CourseDetails />} />
                 <Route path="/courses/:id/preview"       element={<CoursePreview />} />
+                <Route path="/courses/:id/learn"         element={<CourseContentRoute><CourseLearn /></CourseContentRoute>} />
+                <Route path="/courses/:id/progress"      element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><CourseProgress /></ProtectedRoute>} />
+                <Route path="/courses/:id/lessons/:lessonId" element={<CourseContentRoute><LessonDetail /></CourseContentRoute>} />
+                <Route path="/courses/:id/enroll"        element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><CourseEnroll /></ProtectedRoute>} />
+                <Route path="/courses/:courseId/submissions" element={<ProtectedRoute allowedRoles={['student']}><StudentSubmission /></ProtectedRoute>} />
 
-                {/* Contenu cours — accès restreint */}
-                <Route
-                  path="/courses/:id/learn"
-                  element={
-                    <CourseContentRoute>
-                      <CourseLearn />
-                    </CourseContentRoute>
-                  }
-                />
-
-                {/* ✅ NOUVELLE ROUTE — Progression détaillée */}
-                <Route
-                  path="/courses/:id/progress"
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                      <CourseProgress />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Leçon individuelle */}
-                <Route
-                  path="/courses/:id/lessons/:lessonId"
-                  element={
-                    <CourseContentRoute>
-                      <LessonDetail />
-                    </CourseContentRoute>
-                  }
-                />
-
-                {/* Inscription */}
-                <Route
-                  path="/courses/:id/enroll"
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                      <CourseEnroll />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* ═══════════════════════════════════════
-                    📤 SOUMISSIONS ÉTUDIANTS
-                ═══════════════════════════════════════ */}
-                <Route
-                  path="/courses/:courseId/submissions"
-                  element={
-                    <ProtectedRoute allowedRoles={['student']}>
-                      <StudentSubmission />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* ═══════════════════════════════════════
-                    🎓 DASHBOARD
-                ═══════════════════════════════════════ */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={['student']}>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* ═══════════════════════════════════════
-                    🎓 ESPACE ÉTUDIANT
-                ═══════════════════════════════════════ */}
-                <Route
-                  path="/my-courses"
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                      <MyCourses />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/courses/:courseId/quizzes/:quizId"
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                      <QuizPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route
-                  path="/notifications"
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                      <Notifications />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/subscriptions"
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                      <Subscriptions />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* ═══════════════════════════════════════
-                    👤 PROFIL
-                ═══════════════════════════════════════ */}
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* ═══════════════════════════════════════
-                    🎓 ESPACE INSTRUCTEUR
-                ═══════════════════════════════════════ */}
-                <Route
-                  path="/instructor"
-                  element={
-                    <ProtectedRoute allowedRoles={['instructor', 'admin']}>
-                      <InstructorLayout />
-                    </ProtectedRoute>
-                  }
+                {/* ── ESPACE ÉTUDIANT — sidebar layout ── */}
+                <Route path="/student"
+                  element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><StudentLayout /></ProtectedRoute>}
                 >
-                  <Route index                              element={<InstructorDashboard />} />
-                  <Route path="courses"                    element={<InstructorCourses />} />
-                  <Route path="courses/new"                element={<CourseForm />} />
-                  <Route path="courses/:id/edit"           element={<CourseForm />} />
-                  <Route path="courses/:id/modules"        element={<CourseModules />} />
-                  <Route path="courses/:id/quizzes"        element={<CourseQuizzes />} />
-                  <Route path="courses/:id/students"       element={<CourseStudents />} />
-                  <Route path="submissions"                element={<InstructorSubmissions />} />
-                  <Route path="analytics"                  element={<InstructorAnalytics />} />
+                  <Route index          element={<StudentDashboard />} />
+                  <Route path="active"      element={<StudentDashboard />} />
+                  <Route path="completed"   element={<StudentDashboard />} />
+                  <Route path="pending"     element={<StudentDashboard />} />
+                  <Route path="profile"     element={<UserProfile />} />
+                  {/* <Route path="certificates" element={<StudentCertificates />} /> */}
+                  {/* <Route path="payments"     element={<StudentPayments />} /> */}
                 </Route>
 
-                {/* ═══════════════════════════════════════
-                    🛠️ ESPACE ADMIN
-                ═══════════════════════════════════════ */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <AdminLayout />
-                    </ProtectedRoute>
-                  }
+                {/* ── REDIRECTIONS LEGACY ── */}
+                <Route path="/dashboard"
+                  element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><StudentLayout /></ProtectedRoute>}
                 >
-                  {/* Dashboard + Stats */}
-                  <Route index                             element={<AdminDashboard />} />
-                  <Route path="stats"                     element={<AdminStats />} />
+                  <Route index element={<StudentDashboard />} />
+                </Route>
 
-                  {/* Utilisateurs */}
-                  <Route path="users"                     element={<AdminUsers />} />
-                  <Route path="users/:id"                 element={<AdminUserProfile />} />
-                  <Route path="students/:userId"          element={<AdminStudentDetail />} />
+                <Route path="/profile"
+                  element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><UserProfile /></ProtectedRoute>}
+                />
 
-                  {/* Cours & Contenu */}
-                  <Route path="courses"                   element={<AdminCourses />} />
-                  <Route path="categories"                element={<AdminCategories />} />
+                {/* ── LEGACY sans sidebar ── */}
+                <Route path="/my-courses"    element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><MyCourses /></ProtectedRoute>} />
+                <Route path="/courses/:courseId/quizzes/:quizId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><QuizPage /></ProtectedRoute>} />
+                <Route path="/leaderboard"   element={<Leaderboard />} />
+                <Route path="/notifications" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><Notifications /></ProtectedRoute>} />
+                <Route path="/subscriptions" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><Subscriptions /></ProtectedRoute>} />
 
-                  {/* Inscriptions & Soumissions */}
-                  <Route path="enrollments"               element={<AdminEnrollments />} />
-                  <Route path="submissions"               element={<AdminSubmissionReview />} />
-                  <Route path="submissions/:id"           element={<AdminSubmissionReview />} />
+                {/* ── INSTRUCTEUR ── */}
+                <Route path="/instructor"
+                  element={<ProtectedRoute allowedRoles={['instructor','admin']}><InstructorLayout /></ProtectedRoute>}
+                >
+                  <Route index                        element={<InstructorDashboard />} />
+                  <Route path="courses"               element={<InstructorCourses />} />
+                  <Route path="courses/new"           element={<CourseForm />} />
+                  <Route path="courses/:id/edit"      element={<CourseForm />} />
+                  <Route path="courses/:id/modules"   element={<CourseModules />} />
+                  <Route path="courses/:id/quizzes"   element={<CourseQuizzes />} />
+                  <Route path="courses/:id/students"  element={<CourseStudents />} />
+                  <Route path="submissions"           element={<InstructorSubmissions />} />
+                  <Route path="analytics"             element={<InstructorAnalytics />} />
+                </Route>
 
-                  {/* Candidatures instructeurs */}
-                  <Route path="instructor-applications"   element={<AdminInstructorApplications />} />
-
-                  {/* Financier */}
-                  <Route path="subscriptions"             element={<AdminSubscriptions />} />
-
-                  {/* Plateforme */}
-                  <Route path="certificates"              element={<AdminCertificates />} />
-                  <Route path="leaderboard"               element={<AdminLeaderboard />} />
-                  <Route path="messages"                  element={<AdminMessages />} />
-                  <Route path="settings"                  element={<AdminSettings />} />
+                {/* ── ADMIN ── */}
+                <Route path="/admin"
+                  element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}
+                >
+                  <Route index                            element={<AdminDashboard />} />
+                  <Route path="stats"                    element={<AdminStats />} />
+                  <Route path="users"                    element={<AdminUsers />} />
+                  <Route path="users/:id"                element={<AdminUserProfile />} />
+                  <Route path="students/:userId"         element={<AdminStudentDetail />} />
+                  <Route path="courses"                  element={<AdminCourses />} />
+                  <Route path="categories"               element={<AdminCategories />} />
+                  <Route path="enrollments"              element={<AdminEnrollments />} />
+                  <Route path="submissions"              element={<AdminSubmissionReview />} />
+                  <Route path="submissions/:id"          element={<AdminSubmissionReview />} />
+                  <Route path="instructor-applications"  element={<AdminInstructorApplications />} />
+                  <Route path="subscriptions"            element={<AdminSubscriptions />} />
+                  <Route path="certificates"             element={<AdminCertificates />} />
+                  <Route path="leaderboard"              element={<AdminLeaderboard />} />
+                  <Route path="messages"                 element={<AdminMessages />} />
+                  <Route path="settings"                 element={<AdminSettings />} />
                 </Route>
 
               </Routes>

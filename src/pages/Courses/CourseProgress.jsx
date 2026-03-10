@@ -1,5 +1,6 @@
 // src/pages/Courses/CourseProgress.jsx
 import { useState, useEffect } from "react";
+import CourseReviews from "../../components/Reviews/CourseReviews";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { usePermissions } from "../../contexts/PermissionContext";
@@ -210,6 +211,12 @@ export default function CourseProgress() {
             ← Mon dashboard
           </button>
         </div>
+
+        {/* ── Section Avis ─────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <CourseReviews courseId={id} isEnrolled={true} />
+        </div>
+
       </div>
     </div>
   );

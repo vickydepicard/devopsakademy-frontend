@@ -18,6 +18,8 @@ import {
   Wifi, Check, X, AlertTriangle, Mail, Phone, CreditCard
 } from "lucide-react";
 
+import CourseReviews from "../../components/Reviews/CourseReviews";
+
 const CourseDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -663,7 +665,8 @@ const CourseDetails = () => {
                       { id: 'curriculum', label: isFrench ? 'Programme' : 'Curriculum', icon: <BookOpen className="w-4 h-4" /> },
                       { id: 'instructor', label: isFrench ? 'Instructeur' : 'Instructor', icon: <Users className="w-4 h-4" /> },
                       { id: 'outcomes', label: isFrench ? 'Compétences' : 'Skills', icon: <Target className="w-4 h-4" /> },
-                      { id: 'faq', label: 'FAQ', icon: <HelpCircle className="w-4 h-4" /> }
+                      { id: 'faq', label: 'FAQ', icon: <HelpCircle className="w-4 h-4" /> },
+                      { id: 'reviews', label: isFrench ? 'Avis' : 'Reviews', icon: <Star className="w-4 h-4" /> }
                     ].map((tab) => (
                       <button
                         key={tab.id}
@@ -1076,6 +1079,16 @@ const CourseDetails = () => {
                           </div>
                         ))}
                       </div>
+                    </div>
+
+                  )}
+
+                  {activeTab === 'reviews' && (
+                    <div className="p-2">
+                      <CourseReviews
+                        courseId={id}
+                        isEnrolled={isUserEnrolled(id) && isEnrollmentApproved(id)}
+                      />
                     </div>
                   )}
                 </div>
