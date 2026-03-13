@@ -13,6 +13,43 @@ import {
   GraduationCap, ShieldCheck, Lock, XCircle
 } from "lucide-react";
 
+/* ── Labels niveaux ── */
+const LEVEL_LABELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced: "Avancé" }
+const LEVEL_COLORS = {
+  beginner:     "bg-green-100 text-green-700",
+  intermediate: "bg-blue-100 text-blue-700",
+  advanced:     "bg-purple-100 text-purple-700",
+}
+
+/* ── Couleurs fallback thumbnails ── */
+const COURSE_COLORS = [
+  "from-indigo-500 to-purple-600",
+  "from-blue-500 to-cyan-500",
+  "from-emerald-500 to-teal-600",
+  "from-orange-500 to-red-500",
+  "from-pink-500 to-rose-600",
+  "from-yellow-500 to-orange-500",
+  "from-violet-500 to-indigo-600",
+  "from-cyan-500 to-blue-600",
+]
+
+function ThumbnailCard({ title, url, className = "" }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const colorIdx = (title?.charCodeAt(0) || 0) % COURSE_COLORS.length
+  const gradient = COURSE_COLORS[colorIdx]
+  const initials = (title || "?").split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase()
+  return (
+    <div className={`relative overflow-hidden bg-gradient-to-br ${gradient} ${className}`}>
+      {url && !imgFailed
+        ? <img src={url} alt={title} className="w-full h-full object-cover" onError={() => setImgFailed(true)} />
+        : <div className="w-full h-full flex items-center justify-center">
+            <span className="text-white font-bold text-xl drop-shadow">{initials}</span>
+          </div>
+      }
+    </div>
+  )
+}
+
 /* ── Palette ── */
 const C = {
   primary:  "#2d287f",
@@ -79,14 +116,8 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
       onMouseLeave={e => e.currentTarget.style.boxShadow="0 1px 4px rgba(45,40,127,0.06)"}
     >
       {/* Thumbnail */}
-      <div className="relative h-28 overflow-hidden bg-slate-100 flex-shrink-0">
-        {c.thumbnail_url
-          ? <img src={c.thumbnail_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              onError={e => e.target.style.display="none"} />
-          : <div className="w-full h-full flex items-center justify-center" style={{ background:"linear-gradient(135deg,#eeeeff,#e0e7ff)" }}>
-              <BookOpen className="w-8 h-8" style={{ color:"#c4b5fd" }} />
-            </div>
-        }
+      <div className="relative h-28 overflow-hidden flex-shrink-0">
+        <ThumbnailCard title={c.title} url={c.thumbnail_url} className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
         {/* Status badge */}
         <div className="absolute top-2 right-2">
           <span className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold border ${st.bg} ${st.tx} ${st.bd}`}>
@@ -166,7 +197,8 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
               <button onClick={() => onGo(`/courses/${c.id}/learn`)}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold text-white transition hover:opacity-90 flex items-center justify-center gap-1"
                 style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
-                <PlayCircle className="w-3.5 h-3.5" /> Continuer
+                <PlayCircle className="w-3.5 h-3.5" />
+                {(c.completed_lessons || 0) > 0 ? "Continuer" : "Commencer"}
               </button>
               <button onClick={() => onGo(`/courses/${c.id}/progress`)}
                 className="py-2 px-2.5 border border-slate-200 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition"
@@ -410,12 +442,7 @@ export default function StudentDashboard() {
         {lastAcc && (
           <div className="flex items-center gap-5 bg-white p-5 rounded-2xl border"
             style={{ border:`1px solid ${C.border}`, boxShadow:"0 1px 4px rgba(45,40,127,0.06)" }}>
-            <div className="w-16 h-12 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center">
-              {lastAcc.thumbnail_url
-                ? <img src={lastAcc.thumbnail_url} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display="none"} />
-                : <BookOpen className="w-5 h-5 text-slate-300" />
-              }
-            </div>
+            <ThumbnailCard title={lastAcc.title} url={lastAcc.thumbnail_url} className="w-16 h-12 rounded-xl flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <TrendingUp className="w-3.5 h-3.5" style={{ color:C.light }} />
@@ -432,7 +459,8 @@ export default function StudentDashboard() {
             <button onClick={() => navigate(`/courses/${lastAcc.id}/learn`)}
               className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
               style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
-              <PlayCircle className="w-4 h-4" /> Continuer
+              <PlayCircle className="w-4 h-4" />
+              {(lastAcc.completed_lessons || 0) > 0 ? "Continuer" : "Commencer"}
             </button>
           </div>
         )}

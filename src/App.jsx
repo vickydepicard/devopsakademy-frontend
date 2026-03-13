@@ -33,14 +33,15 @@ import LessonDetail from './pages/Courses/LessonDetail';
 // 🆕 Espace étudiant avec sidebar
 import StudentLayout from './pages/student/StudentLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
+import StudentCertificates from './pages/student/StudentCertificates';
 import UserProfile from './pages/Profile/UserProfile';
 
 // Pages étudiantes legacy
-import Leaderboard from './pages/student/Leaderboard';
-import Notifications from './pages/student/Notifications';
-import Subscriptions from './pages/student/Subscriptions';
-import MyCourses from './pages/student/MyCourses';
-import QuizPage from './pages/student/QuizPage';
+import Leaderboard from './pages/Student/Leaderboard';
+import Notifications from './pages/Student/Notifications';
+import Subscriptions from './pages/Student/Subscriptions';
+import MyCourses from './pages/Student/MyCourses';
+import QuizPage from './pages/Student/QuizPage';
 
 // Instructeur
 import InstructorLayout from './pages/Instructors/InstructorLayout';
@@ -125,7 +126,7 @@ function App() {
                   <Route path="completed"   element={<StudentDashboard />} />
                   <Route path="pending"     element={<StudentDashboard />} />
                   <Route path="profile"     element={<UserProfile />} />
-                  {/* <Route path="certificates" element={<StudentCertificates />} /> */}
+                  <Route path="certificates" element={<StudentCertificates />} />
                   {/* <Route path="payments"     element={<StudentPayments />} /> */}
                 </Route>
 
