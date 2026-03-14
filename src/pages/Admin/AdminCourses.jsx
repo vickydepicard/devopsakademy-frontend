@@ -1,1011 +1,1315 @@
-// ╔══════════════════════════════════════════════════════════════════════════╗
-// ║  AdminCourses.jsx  —  Gestion complète des cours DevOpsAkademy          ║
-// ║  Cours → Modules → Leçons → Ressources → Quiz → Questions → Projets     ║
-// ║  Utilise proxy Vite /api → localhost:5000  (pas de VITE_API_URL)        ║
-// ╚══════════════════════════════════════════════════════════════════════════╝
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  AdminCourses.jsx  —  DevOpsAkademy                             ║
+// ║  Gestion COMPLÈTE cours · modules · leçons · ressources         ║
+// ║  Upload vidéo depuis l'ordi · Publier/Dépublier partout         ║
+// ║  Intégré aux couleurs Tailwind du projet (#2d287f / #facc15)    ║
+// ╚══════════════════════════════════════════════════════════════════╝
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import {
+  BookOpen, Plus, Search, Filter, Eye, EyeOff, Edit3, Trash2,
+  ChevronDown, ChevronRight, Video, FileText, Brain, Zap, Download,
+  Upload, Link, Film, Paperclip, Star, Users, Clock, Tag,
+  Globe, Lock, CheckCircle, Circle, AlertCircle, X, Save,
+  Play, Pause, RefreshCw, Layers, Settings, Award, TrendingUp
+} from "lucide-react";
 
-/* ══════════════════════ CONSTANTES ══════════════════════ */
-const LEVEL_MAP   = { beginner:"Débutant", intermediate:"Intermédiaire", advanced:"Avancé" };
-const LEVEL_CLR   = { beginner:"#10b981",  intermediate:"#f59e0b",       advanced:"#ef4444" };
-const CTYPE_MAP   = { video:"Vidéo", article:"Article", quiz:"Quiz", exercise:"Exercice", download:"Téléchargement" };
-const CTYPE_ICO   = { video:"▶", article:"📄", quiz:"📝", exercise:"⚡", download:"📥" };
-const QTYPE_MAP   = { multiple_choice:"Choix unique", multiple_select:"Choix multiple", true_false:"Vrai/Faux", short_answer:"Réponse courte", code:"Code", ordering:"Ordre", matching:"Association" };
-const SUB_MAP     = { github_url:"GitHub URL", file_upload:"Fichier", both:"GitHub + Fichier" };
+/* ──────── CONSTANTES ──────── */
+const LEVEL_MAP  = { beginner:"Débutant",   intermediate:"Intermédiaire", advanced:"Avancé" };
+const LEVEL_CLR  = { beginner:"#10b981",    intermediate:"#f59e0b",       advanced:"#ef4444" };
+const LEVEL_BG   = { beginner:"#d1fae5",    intermediate:"#fef3c7",       advanced:"#fee2e2" };
+const TYPE_MAP   = { video:"Vidéo", article:"Article", quiz:"Quiz", exercise:"Exercice", download:"Téléchargement" };
+const TYPE_ICO   = { video:Film, article:FileText, quiz:Brain, exercise:Zap, download:Download };
+const TYPE_CLR   = { video:"#6366f1", article:"#0ea5e9", quiz:"#8b5cf6", exercise:"#f97316", download:"#059669" };
 
-const COURSE_BLANK = {
-  title:"", slug:"", short_description:"", description:"",
-  instructor_id:"", category_id:"", price:0, original_price:"",
-  duration_hours:"", level:"beginner", language:"fr",
-  thumbnail_url:"", video_preview_url:"",
-  is_published:false, is_featured:false, is_free:false,
-  is_subscription_included:false, is_forum_enabled:true,
-  sequential_mode:false, requires_approval:false,
-  instructor_commission_rate:70,
-  requirements:"", learning_outcomes:"",
-};
-const MODULE_BLANK  = { title:"", description:"", order_index:0, is_published:true };
-const LESSON_BLANK  = { title:"", content_type:"video", content_url:"", article_content:"", duration_minutes:0, order_index:0, is_published:true, is_preview:false, requires_completion:true, is_downloadable:false };
-const RESOURCE_BLANK = { title:"", file_url:"", file_type:"", order_index:0 };
-const QUIZ_BLANK    = { title:"", description:"", time_limit_minutes:0, pass_score:80, max_attempts:3, show_correct_answers:true, randomize_questions:false, is_mandatory:false, cooldown_minutes:0 };
-const QUESTION_BLANK = { question:"", question_type:"multiple_choice", options:"", correct_answer:"", explanation:"", points:1, order_index:0 };
-const PROJECT_BLANK  = { title:"", description:"", instructions:"", submission_type:"github_url", pass_score:70, sla_correction_hours:72, max_file_size_mb:50, is_active:true, evaluation_criteria:"" };
-
-/* ══════════════════════ API HELPER ══════════════════════ */
+/* ──────── API HELPER ──────── */
 async function api(token, method, path, body) {
   try {
     const r = await fetch(`/api/admin${path}`, {
       method,
-      headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: body ? JSON.stringify(body) : undefined,
     });
-    const txt = await r.text();
-    try { return JSON.parse(txt); }
-    catch { return { success:false, message:`Erreur ${r.status}: réponse non-JSON`, data:[] }; }
-  } catch(e) { return { success:false, message:"Erreur réseau", data:[] }; }
+    const t = await r.text();
+    try { return JSON.parse(t); }
+    catch { return { success: false, message: `HTTP ${r.status}` }; }
+  } catch(e) { return { success: false, message: "Réseau: " + e.message }; }
 }
 
-/* ══════════════════════ TOAST ══════════════════════ */
+/* ──────── TOAST ──────── */
 function Toast({ t }) {
   if (!t) return null;
   return (
-    <div style={{ position:"fixed", top:20, right:20, zIndex:9999, padding:"12px 20px", borderRadius:12, fontWeight:600, fontSize:13, color:"#fff", background:t.ok?"#059669":"#dc2626", boxShadow:"0 8px 32px rgba(0,0,0,.18)", display:"flex", alignItems:"center", gap:10, minWidth:260, animation:"slideIn .25s ease" }}>
-      <span style={{ fontSize:16 }}>{t.ok?"✓":"✗"}</span> {t.msg}
+    <div className={`fixed top-5 right-5 z-[9999] flex items-center gap-3 px-5 py-4 rounded-2xl font-semibold text-sm text-white shadow-2xl animate-slide-in-right min-w-[260px] ${t.ok ? "bg-emerald-600" : "bg-red-500"}`}>
+      {t.ok ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+      {t.msg}
     </div>
   );
 }
 
-/* ══════════════════════ CONFIRM DIALOG ══════════════════════ */
-function Confirm({ data, onClose }) {
-  if (!data) return null;
+/* ──────── CONFIRM DIALOG ──────── */
+function Confirm({ d, onClose }) {
+  if (!d) return null;
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(15,23,42,.6)", zIndex:9998, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(4px)" }}>
-      <div style={{ background:"#fff", borderRadius:18, padding:32, maxWidth:420, width:"90%", boxShadow:"0 24px 80px rgba(0,0,0,.2)" }}>
-        <div style={{ fontSize:32, marginBottom:16 }}>⚠️</div>
-        <p style={{ fontWeight:700, color:"#0f172a", marginBottom:8, fontSize:15 }}>{data.title||"Confirmer la suppression"}</p>
-        <p style={{ color:"#64748b", fontSize:13, marginBottom:24, lineHeight:1.6 }}>{data.msg}</p>
-        <div style={{ display:"flex", gap:10 }}>
-          <button onClick={onClose} style={{ flex:1, padding:"11px 0", background:"#f1f5f9", color:"#334155", border:"none", borderRadius:10, fontWeight:600, fontSize:13, cursor:"pointer" }}>Annuler</button>
-          <button onClick={data.onOk} style={{ flex:1, padding:"11px 0", background:"#dc2626", color:"#fff", border:"none", borderRadius:10, fontWeight:600, fontSize:13, cursor:"pointer" }}>Supprimer</button>
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[9998] flex items-center justify-center p-5">
+      <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in-up">
+        <div className="text-5xl mb-4">⚠️</div>
+        <p className="font-bold text-slate-900 text-lg mb-2">{d.title}</p>
+        <p className="text-slate-500 text-sm leading-relaxed mb-7">{d.msg}</p>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition">Annuler</button>
+          <button onClick={d.ok} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition">Supprimer</button>
         </div>
       </div>
     </div>
   );
 }
 
-/* ══════════════════════ UI ATOMS ══════════════════════ */
-const S = {
-  inp: { width:"100%", border:"1.5px solid #e2e8f0", borderRadius:10, padding:"9px 13px", fontSize:13, color:"#1e293b", outline:"none", background:"#fff", boxSizing:"border-box", fontFamily:"inherit", transition:"border-color .15s" },
-  card: (accent="#4f46e5") => ({ background:"#fff", borderRadius:16, border:`1px solid #e2e8f0`, borderTop:`3px solid ${accent}`, padding:20, boxShadow:"0 2px 12px rgba(0,0,0,.04)" }),
-  tag: (bg, color) => ({ fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:20, background:bg, color }),
-};
-
-function Field({ label, required, hint, children, col }) {
+/* ──────── MODAL ──────── */
+function Modal({ open, onClose, title, children, wide }) {
+  if (!open) return null;
   return (
-    <div style={{ gridColumn: col ? `span ${col}` : undefined, display:"flex", flexDirection:"column", gap:5 }}>
-      <label style={{ fontSize:11, fontWeight:700, color:"#64748b", textTransform:"uppercase", letterSpacing:.5, display:"flex", gap:6, alignItems:"center" }}>
-        {label}{required && <span style={{ color:"#ef4444" }}>*</span>}
-        {hint && <span style={{ fontSize:10, fontWeight:400, color:"#94a3b8", textTransform:"none", letterSpacing:0 }}>— {hint}</span>}
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[9990] flex items-center justify-center p-4">
+      <div className={`bg-white rounded-3xl w-full ${wide ? "max-w-3xl" : "max-w-lg"} max-h-[94vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in-up`}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 flex-shrink-0">
+          <h2 className="font-bold text-slate-900 text-base">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200 transition text-sm">✕</button>
+        </div>
+        <div className="px-6 py-5 overflow-y-auto flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ──────── TOGGLE ──────── */
+function Toggle({ label, checked, on, color = "#2d287f" }) {
+  return (
+    <label className="flex items-center gap-3 cursor-pointer select-none">
+      <div
+        onClick={() => on(!checked)}
+        className="relative flex-shrink-0"
+        style={{ width: 44, height: 24, borderRadius: 12, background: checked ? color : "#cbd5e1", transition: "background .2s" }}
+      >
+        <div style={{ position:"absolute", top:3, width:18, height:18, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,.22)", transition:"left .2s", left: checked ? 23 : 3 }} />
+      </div>
+      <span className="text-sm text-slate-600 font-medium">{label}</span>
+    </label>
+  );
+}
+
+/* ──────── BADGE ──────── */
+function Badge({ children, color = "#2d287f", bg }) {
+  return (
+    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: bg || (color + "18"), color }}>
+      {children}
+    </span>
+  );
+}
+
+/* ──────── FIELD ──────── */
+function Field({ label, required, hint, children, col2 }) {
+  return (
+    <div className="flex flex-col gap-1.5" style={{ gridColumn: col2 ? "span 2" : undefined }}>
+      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+        {hint && <span className="font-normal normal-case tracking-normal text-slate-300 ml-1">— {hint}</span>}
       </label>
       {children}
     </div>
   );
 }
 
-function Toggle({ label, checked, onChange, color="#4f46e5" }) {
+/* ──────── INPUT STYLE ──────── */
+const IS = "w-full border-[1.5px] border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 outline-none bg-white font-[inherit] focus:border-primary focus:ring-2 focus:ring-primary/10 transition";
+
+/* ──────── SPINNER ──────── */
+const Spin = ({ sm }) => (
+  <div className={`rounded-full border-4 border-slate-200 border-t-primary animate-spin ${sm ? "w-5 h-5 border-[3px]" : "w-9 h-9"}`} style={{ borderTopColor: "#2d287f" }} />
+);
+
+/* ──────── UPLOAD VIDÉO ──────── */
+function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
+  const [tab,       setTab]       = useState(currentUrl?.includes("/uploads/") ? "file" : "url");
+  const [urlVal,    setUrlVal]    = useState(currentUrl || "");
+  const [uploading, setUploading] = useState(false);
+  const [progress,  setProgress]  = useState(null);
+  const [dragging,  setDragging]  = useState(false);
+  const inputRef = useRef(null);
+
+  const doUpload = (file) => {
+    if (!file) return;
+    setUploading(true); setProgress(2);
+    const fd = new FormData(); fd.append("video", file);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/admin/lessons/${lessonId}/upload-video`);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.upload.onprogress = e => { if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 95)); };
+    xhr.onload = () => {
+      setProgress(100);
+      try {
+        const r = JSON.parse(xhr.responseText);
+        if (r.success) onSuccess(r.data.file_url);
+        else alert("Erreur: " + r.message);
+      } catch { alert("Erreur serveur"); }
+      setTimeout(() => { setUploading(false); setProgress(null); }, 800);
+    };
+    xhr.onerror = () => { setUploading(false); setProgress(null); alert("Erreur réseau"); };
+    xhr.send(fd);
+  };
+
+  const getYoutubeId = (url) => {
+    const m = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+    return m ? m[1] : null;
+  };
+
   return (
-    <label style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", userSelect:"none" }}>
-      <div onClick={() => onChange(!checked)} style={{ width:46, height:25, borderRadius:13, position:"relative", cursor:"pointer", background:checked?color:"#cbd5e1", transition:"background .2s", flexShrink:0 }}>
-        <div style={{ position:"absolute", top:3, width:19, height:19, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,.25)", transition:"left .2s", left:checked?24:3 }} />
+    <div className="flex flex-col gap-4">
+      {/* Onglets */}
+      <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+        {[["url", Link, "URL externe"], ["file", Upload, "Depuis mon ordi"]].map(([v, Icon, l]) => (
+          <button key={v} onClick={() => setTab(v)} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition ${tab === v ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`} style={tab === v ? { color: "#2d287f" } : {}}>
+            <Icon size={15} /> {l}
+          </button>
+        ))}
       </div>
-      <span style={{ fontSize:13, color:"#334155", fontWeight:500 }}>{label}</span>
-    </label>
-  );
-}
 
-function Btn({ children, onClick, color="#4f46e5", light, sm, disabled, style={} }) {
-  const bg = light ? color+"18" : color;
-  const tc = light ? color : "#fff";
-  return (
-    <button onClick={onClick} disabled={disabled} style={{ padding: sm?"6px 14px":"10px 20px", background:disabled?"#e2e8f0":bg, color:disabled?"#94a3b8":tc, border:"none", borderRadius:10, fontWeight:600, fontSize:sm?12:13, cursor:disabled?"not-allowed":"pointer", transition:"opacity .15s", ...style }}>
-      {children}
-    </button>
-  );
-}
+      {/* URL externe */}
+      {tab === "url" && (
+        <div className="flex flex-col gap-3">
+          <Field label="URL de la vidéo" hint="YouTube, Vimeo, MP4 direct…">
+            <input className={IS} value={urlVal} onChange={e => { setUrlVal(e.target.value); onSuccess(e.target.value); }} placeholder="https://youtube.com/watch?v=… ou https://…/video.mp4" />
+          </Field>
+          {urlVal && (
+            <div className="rounded-2xl overflow-hidden bg-black aspect-video">
+              {getYoutubeId(urlVal) ? (
+                <iframe src={`https://www.youtube.com/embed/${getYoutubeId(urlVal)}`} className="w-full h-full border-none" allowFullScreen title="preview" />
+              ) : urlVal.match(/\.(mp4|webm|ogg)$/i) ? (
+                <video src={urlVal} controls className="w-full max-h-48" />
+              ) : (
+                <div className="flex items-center justify-center h-32 text-slate-400 text-sm">🔗 {urlVal.slice(0, 80)}</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
-function Pill({ children, color="#4f46e5" }) {
-  return <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:20, background:color+"22", color, whiteSpace:"nowrap" }}>{children}</span>;
-}
+      {/* Upload depuis ordi */}
+      {tab === "file" && (
+        <div>
+          <div
+            onDragOver={e => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={e => { e.preventDefault(); setDragging(false); doUpload(e.dataTransfer.files[0]); }}
+            onClick={() => !uploading && inputRef.current?.click()}
+            className={`border-2 border-dashed rounded-2xl p-8 text-center transition cursor-pointer ${dragging ? "border-primary bg-primary/5" : "border-slate-300 hover:border-primary/50 hover:bg-slate-50"}`}
+            style={dragging ? { borderColor: "#2d287f" } : {}}
+          >
+            {uploading ? (
+              <div>
+                <div className="flex justify-center mb-3"><Spin sm /></div>
+                <p className="text-sm font-bold mb-3" style={{ color: "#2d287f" }}>Upload en cours…</p>
+                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: "linear-gradient(90deg,#2d287f,#5653e1)" }} />
+                </div>
+                <p className="text-xs text-slate-400 mt-2">{progress}%</p>
+              </div>
+            ) : (
+              <>
+                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#2d287f18" }}>
+                  <Film size={26} style={{ color: "#2d287f" }} />
+                </div>
+                <p className="font-bold text-slate-700 mb-1">Glissez votre vidéo ici</p>
+                <p className="text-xs text-slate-400">ou cliquez pour sélectionner · MP4, MKV, AVI, MOV, WebM · max 2 Go</p>
+              </>
+            )}
+          </div>
+          <input ref={inputRef} type="file" accept="video/*" className="hidden" onChange={e => doUpload(e.target.files?.[0])} />
 
-function Section({ icon, title, count, accent="#4f46e5", children, defaultOpen=false }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div style={{ border:"1px solid #e2e8f0", borderRadius:14, overflow:"hidden", boxShadow:"0 1px 6px rgba(0,0,0,.04)" }}>
-      <div onClick={() => setOpen(!open)} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 18px", background:"#f8fafc", cursor:"pointer", userSelect:"none", borderLeft:`4px solid ${accent}` }}>
-        <span style={{ fontSize:18 }}>{icon}</span>
-        <span style={{ flex:1, fontWeight:700, fontSize:14, color:"#1e293b" }}>{title}</span>
-        {count !== undefined && <Pill color={accent}>{count} élément{count!==1?"s":""}</Pill>}
-        <span style={{ color:"#94a3b8", fontSize:12, transition:"transform .2s", display:"inline-block", transform:open?"rotate(180deg)":"rotate(0deg)" }}>▼</span>
-      </div>
-      {open && <div style={{ padding:"18px 18px 20px" }}>{children}</div>}
+          {/* Prévisualisation vidéo uploadée */}
+          {currentUrl?.includes("/uploads/") && (
+            <video src={currentUrl} controls className="w-full rounded-xl mt-3 max-h-40" />
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function InlineForm({ title, onSave, onCancel, children, saving }) {
+/* ──────── UPLOAD RESSOURCE ──────── */
+function ResourceUploader({ token, lessonId, onSuccess }) {
+  const [fileType, setFileType] = useState("pdf");
+  const [title,    setTitle]    = useState("");
+  const [urlVal,   setUrlVal]   = useState("");
+  const [file,     setFile]     = useState(null);
+  const [uploading,setUploading]= useState(false);
+  const [progress, setProgress] = useState(null);
+  const inputRef = useRef(null);
+
+  const isLink = fileType === "link";
+
+  const submit = async () => {
+    if (isLink) {
+      if (!urlVal.trim()) { alert("URL requise"); return; }
+      const r = await api(token, "POST", "/lessons/resources", { lesson_id: lessonId, title: title || urlVal, file_url: urlVal, file_type: "link" });
+      if (r.success) { onSuccess(); setUrlVal(""); setTitle(""); }
+      else alert(r.message);
+      return;
+    }
+    if (!file) { alert("Choisissez un fichier"); return; }
+    setUploading(true); setProgress(5);
+    const fd = new FormData(); fd.append("file", file);
+    if (title) fd.append("title", title);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/admin/lessons/${lessonId}/upload-resource`);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.upload.onprogress = e => { if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 95)); };
+    xhr.onload = () => {
+      setProgress(100);
+      try {
+        const r = JSON.parse(xhr.responseText);
+        if (r.success) { onSuccess(); setFile(null); setTitle(""); }
+        else alert("Erreur: " + r.message);
+      } catch { alert("Erreur serveur"); }
+      setTimeout(() => { setUploading(false); setProgress(null); }, 800);
+    };
+    xhr.onerror = () => { setUploading(false); setProgress(null); alert("Erreur réseau"); };
+    xhr.send(fd);
+  };
+
+  const FILE_TYPES = [
+    ["pdf", "📄", "PDF"], ["mp4", "🎬", "Vidéo"],
+    ["pptx", "📊", "Slides"], ["docx", "📝", "Word"],
+    ["zip", "🗜", "ZIP"], ["code", "💻", "Code"],
+    ["link", "🔗", "Lien"],
+  ];
+
   return (
-    <div style={{ background:"#f0f4ff", border:"1px solid #c7d2fe", borderRadius:12, padding:16, marginBottom:14 }}>
-      <p style={{ margin:"0 0 14px", fontSize:11, fontWeight:700, color:"#4f46e5", textTransform:"uppercase", letterSpacing:.5 }}>{title}</p>
-      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>{children}</div>
-      <div style={{ display:"flex", gap:8, marginTop:16 }}>
-        <Btn onClick={onSave} disabled={saving}>{saving ? "Enregistrement..." : "✓ Enregistrer"}</Btn>
-        <Btn onClick={onCancel} color="#64748b" light>Annuler</Btn>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        {FILE_TYPES.map(([v, ic, l]) => (
+          <button key={v} onClick={() => setFileType(v)} className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition ${fileType === v ? "border-primary/50 bg-primary/8 text-primary" : "border-slate-200 text-slate-500 hover:border-slate-300"}`} style={fileType === v ? { borderColor: "#2d287f50", background: "#2d287f10", color: "#2d287f" } : {}}>
+            <span>{ic}</span>{l}
+          </button>
+        ))}
       </div>
+
+      <Field label="Titre" hint="optionnel">
+        <input className={IS} value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Slides cours Docker…" />
+      </Field>
+
+      {isLink ? (
+        <Field label="URL externe">
+          <input className={IS} value={urlVal} onChange={e => setUrlVal(e.target.value)} placeholder="https://…" />
+        </Field>
+      ) : (
+        <div>
+          <div
+            onClick={() => !uploading && inputRef.current?.click()}
+            className="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center cursor-pointer hover:border-primary/50 hover:bg-slate-50 transition"
+          >
+            {uploading ? (
+              <div>
+                <div className="flex justify-center mb-2"><Spin sm /></div>
+                <p className="text-xs font-bold mb-2" style={{ color: "#2d287f" }}>Envoi…</p>
+                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "#2d287f" }} />
+                </div>
+              </div>
+            ) : file ? (
+              <p className="text-sm text-slate-700 font-medium">📎 {file.name} ({(file.size / 1024 / 1024).toFixed(1)} Mo)</p>
+            ) : (
+              <p className="text-sm text-slate-400">Cliquez pour choisir un fichier</p>
+            )}
+          </div>
+          <input ref={inputRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} />
+        </div>
+      )}
+
+      <button onClick={submit} disabled={uploading} className="w-full py-3 rounded-xl font-bold text-sm text-white transition" style={{ background: uploading ? "#a5b4fc" : "#059669" }}>
+        {uploading ? "Envoi…" : "✓ Ajouter la ressource"}
+      </button>
     </div>
   );
 }
 
-/* ══════════════════════ COMPOSANT PRINCIPAL ══════════════════════ */
+/* ══════════════════════════════════════════════════
+   COMPOSANT PRINCIPAL
+══════════════════════════════════════════════════ */
 export default function AdminCourses() {
   const { token } = useAuth();
 
-  /* — Données globales — */
-  const [courses,      setCourses]      = useState([]);
-  const [categories,   setCategories]   = useState([]);
-  const [instructors,  setInstructors]  = useState([]);
+  const [courses,     setCourses]    = useState([]);
+  const [categories,  setCategories] = useState([]);
+  const [instructors, setInstructors]= useState([]);
+  const [loading,     setLoading]    = useState(true);
 
-  /* — Données d'un cours sélectionné — */
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [modules,        setModules]         = useState([]);
-  const [lessons,        setLessons]         = useState({});   // { [moduleId]: [...] }
-  const [resources,      setResources]       = useState({});   // { [lessonId]: [...] }
-  const [quizData,       setQuizData]        = useState({});   // { [lessonId]: quiz }
-  const [questions,      setQuestions]       = useState({});   // { [quizId]: [...] }
-  const [projects,       setProjects]        = useState([]);
+  const [view,   setView]   = useState("list"); // list | form | editor
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
 
-  /* — Navigation — */
-  const [view,    setView]    = useState("list"); // "list" | "form" | "detail"
-  const [loading, setLoading] = useState(true);
-  const [search,  setSearch]  = useState("");
-  const [filterSt, setFilterSt] = useState("all");
+  const [course, setCourse] = useState(null);
+  const [cForm,  setCForm]  = useState({});
+  const [isNew,  setIsNew]  = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  /* — Formulaire cours — */
-  const [courseForm,  setCourseForm]  = useState(COURSE_BLANK);
-  const [isNewCourse, setIsNewCourse] = useState(true);
-  const [saving,      setSaving]      = useState(false);
+  const [modules,   setModules]  = useState([]);
+  const [lessons,   setLessons]  = useState({});
+  const [resources, setResources]= useState({});
+  const [expanded,  setExpanded] = useState({});
+  const [edLoad,    setEdLoad]   = useState(false);
+  const [edError,   setEdError]  = useState(null);
 
-  /* — États formulaires inline — */
-  const [editingModule,   setEditingModule]   = useState(null);
-  const [moduleForm,      setModuleForm]       = useState(MODULE_BLANK);
-  const [showModForm,     setShowModForm]      = useState(false);
-  const [savingMod,       setSavingMod]        = useState(false);
+  // Modals
+  const [modM,   setModM]  = useState(null);
+  const [modSv,  setModSv] = useState(false);
+  const [lesM,   setLesM]  = useState(null);
+  const [lesSv,  setLesSv] = useState(false);
+  const [upVid,     setUpVid]     = useState(null);  // leçon pour upload vidéo
+  const [resM,      setResM]      = useState(null);  // { lesId, les }
+  const [dlCourse,  setDlCourse]  = useState(false); // téléchargement cours en local
 
-  const [openModId,       setOpenModId]        = useState(null);
-  const [editingLesson,   setEditingLesson]     = useState(null);
-  const [lessonForm,      setLessonForm]        = useState(LESSON_BLANK);
-  const [showLessonForm,  setShowLessonForm]    = useState(null); // moduleId
-  const [savingLesson,    setSavingLesson]      = useState(false);
-
-  const [editingResource, setEditingResource]   = useState(null);
-  const [resourceForm,    setResourceForm]      = useState(RESOURCE_BLANK);
-  const [showResForm,     setShowResForm]       = useState(null); // lessonId
-  const [savingRes,       setSavingRes]         = useState(false);
-
-  const [editingQuiz,     setEditingQuiz]       = useState(null);
-  const [quizForm,        setQuizForm]          = useState(QUIZ_BLANK);
-  const [showQuizForm,    setShowQuizForm]      = useState(null); // lessonId
-  const [savingQuiz,      setSavingQuiz]        = useState(false);
-
-  const [editingQuestion, setEditingQuestion]   = useState(null);
-  const [questionForm,    setQuestionForm]      = useState(QUESTION_BLANK);
-  const [showQForm,       setShowQForm]         = useState(null); // quizId
-  const [savingQ,         setSavingQ]           = useState(false);
-  const [openQuizId,      setOpenQuizId]        = useState(null);
-
-  const [editingProject,  setEditingProject]    = useState(null);
-  const [projectForm,     setProjectForm]       = useState(PROJECT_BLANK);
-  const [showProjForm,    setShowProjForm]      = useState(false);
-  const [savingProj,      setSavingProj]        = useState(false);
-
-  /* — Toast & Confirm — */
-  const [toast,   setToast]   = useState(null);
-  const [confirm, setConfirm] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [dlg,   setDlg]   = useState(null);
   const tmr = useRef(null);
 
-  /* ——— Helpers ——— */
-  const t$ = (msg, ok=true) => { clearTimeout(tmr.current); setToast({msg,ok}); tmr.current = setTimeout(()=>setToast(null),3500); };
-  const ask = (title, msg, fn) => setConfirm({ title, msg, onOk:()=>{ setConfirm(null); fn(); } });
+  const t$ = (msg, ok = true) => { clearTimeout(tmr.current); setToast({ msg, ok }); tmr.current = setTimeout(() => setToast(null), 3500); };
+  const ask = (title, msg, ok) => setDlg({ title, msg, ok: () => { setDlg(null); ok(); } });
 
-  const cf = (setter) => (e) => {
-    const { name, value, type, checked } = e.target;
-    setter(p => ({ ...p, [name]: type==="checkbox" ? checked : value }));
-  };
-
-  /* ══════════ CHARGEMENT INITIAL ══════════ */
-  const loadCourses = useCallback(async () => {
+  /* ── Load ── */
+  const loadAll = useCallback(async () => {
     setLoading(true);
     const [rC, rCat, rI] = await Promise.all([
-      api(token,"GET","/courses"),
-      api(token,"GET","/categories"),
-      api(token,"GET","/instructors"),
+      api(token, "GET", "/courses"),
+      api(token, "GET", "/categories"),
+      api(token, "GET", "/instructors"),
     ]);
-    setCourses(rC.data||[]);
-    setCategories(rCat.data||[]);
-    setInstructors(rI.data||[]);
+    setCourses(rC.data || []);
+    setCategories(rCat.data || []);
+    setInstructors(rI.data || []);
     setLoading(false);
   }, [token]);
 
-  useEffect(() => { if (token) loadCourses(); }, [token, loadCourses]);
+  useEffect(() => { if (token) loadAll(); }, [token, loadAll]);
 
-  /* ══════════ LOADERS PROFONDS ══════════ */
-  const loadModules  = async (cid)  => { const r = await api(token,"GET",`/courses/${cid}/modules`);  setModules(r.data||[]); };
-  const loadLessons  = async (mid)  => { const r = await api(token,"GET",`/modules/${mid}/lessons`);  setLessons(p=>({...p,[mid]:r.data||[]})); };
-  const loadResources= async (lid)  => { const r = await api(token,"GET",`/lessons/${lid}/resources`);setResources(p=>({...p,[lid]:r.data||[]})); };
-  const loadQuiz     = async (lid)  => { const r = await api(token,"GET",`/lessons/${lid}/quiz`);     setQuizData(p=>({...p,[lid]:r.data||null})); return r.data||null; };
-  const loadQuestions= async (qid)  => { const r = await api(token,"GET",`/quizzes/${qid}/questions`);setQuestions(p=>({...p,[qid]:r.data||[]})); };
-  const loadProjects = async (cid)  => { const r = await api(token,"GET",`/courses/${cid}/projects`); setProjects(r.data||[]); };
-
-  const openDetail = async (course) => {
-    setSelectedCourse(course);
-    setModules([]); setLessons({}); setResources({}); setQuizData({}); setQuestions({}); setProjects([]);
-    setOpenModId(null); setShowModForm(false); setShowProjForm(false);
-    setView("detail");
-    await Promise.all([loadModules(course.id), loadProjects(course.id)]);
+  const openEditor = async (c) => {
+    setCourse(c); setModules([]); setLessons({}); setResources({});
+    setExpanded({}); setEdError(null);
+    setModM(null); setLesM(null); setResM(null); setUpVid(null);
+    setView("editor"); setEdLoad(true);
+    const rM = await api(token, "GET", `/courses/${c.id}/modules`);
+    if (!rM.success) { setEdError(rM.message); setEdLoad(false); return; }
+    const mods = rM.data || [];
+    setModules(mods);
+    const lesMap = {};
+    if (mods.length > 0) {
+      const res = await Promise.all(mods.map(m => api(token, "GET", `/modules/${m.id}/lessons`)));
+      mods.forEach((m, i) => { lesMap[m.id] = res[i].data || []; });
+    }
+    setLessons(lesMap);
+    const exp = {};
+    mods.forEach(m => exp[m.id] = true);
+    setExpanded(exp);
+    setEdLoad(false);
   };
 
-  const toggleModule = async (mid) => {
-    if (openModId===mid) { setOpenModId(null); return; }
-    setOpenModId(mid);
-    if (!lessons[mid]) await loadLessons(mid);
+  const reloadMod = async (mid) => {
+    const r = await api(token, "GET", `/modules/${mid}/lessons`);
+    setLessons(p => ({ ...p, [mid]: r.data || [] }));
   };
 
-  const openQuiz = async (lid, qid) => {
-    if (openQuizId===qid) { setOpenQuizId(null); return; }
-    setOpenQuizId(qid);
-    if (!questions[qid]) await loadQuestions(qid);
+  const reloadAllMods = async () => {
+    if (!course) return;
+    const rM = await api(token, "GET", `/courses/${course.id}/modules`);
+    const mods = rM.data || [];
+    setModules(mods);
+    const lesMap = {};
+    if (mods.length > 0) {
+      const res = await Promise.all(mods.map(m => api(token, "GET", `/modules/${m.id}/lessons`)));
+      mods.forEach((m, i) => { lesMap[m.id] = res[i].data || []; });
+    }
+    setLessons(lesMap);
+    const exp = {};
+    mods.forEach(m => { exp[m.id] = expanded[m.id] !== false; });
+    setExpanded(exp);
   };
 
-  /* ══════════ COURS CRUD ══════════ */
-  const startCreate = () => { setIsNewCourse(true); setCourseForm(COURSE_BLANK); setView("form"); };
-  const startEdit   = (c) => {
-    setIsNewCourse(false);
-    setCourseForm({
-      title:c.title||"", slug:c.slug||"", short_description:c.short_description||"",
-      description:c.description||"", instructor_id:c.instructor_id||"", category_id:c.category_id||"",
-      price:c.price??0, original_price:c.original_price||"", duration_hours:c.duration_hours||"",
-      level:c.level||"beginner", language:c.language||"fr",
-      thumbnail_url:c.thumbnail_url||"", video_preview_url:c.video_preview_url||"",
-      is_published:!!c.is_published, is_featured:!!c.is_featured, is_free:!!c.is_free,
-      is_subscription_included:!!c.is_subscription_included, is_forum_enabled:!!c.is_forum_enabled,
-      sequential_mode:!!c.sequential_mode, requires_approval:!!c.requires_approval,
+  const loadRes = async (lid) => {
+    const r = await api(token, "GET", `/lessons/${lid}/resources`);
+    setResources(p => ({ ...p, [lid]: r.data || [] }));
+  };
+
+  /* ═══ COURS ═══ */
+  const BLANK = {
+    title:"",slug:"",short_description:"",description:"",
+    instructor_id:"",category_id:"",price:0,original_price:"",duration_hours:"",
+    level:"beginner",language:"fr",thumbnail_url:"",video_preview_url:"",
+    is_published:false,is_featured:false,is_free:false,
+    is_subscription_included:false,is_forum_enabled:true,
+    sequential_mode:false,requires_approval:false,
+    instructor_commission_rate:70,requirements:"",learning_outcomes:"",
+  };
+
+  const openCreate = () => { setIsNew(true); setCourse(null); setCForm(BLANK); setView("form"); };
+  const openEdit = (c, e) => {
+    e?.stopPropagation(); setIsNew(false); setCourse(c);
+    setCForm({
+      title:c.title||"",slug:c.slug||"",short_description:c.short_description||"",
+      description:c.description||"",instructor_id:c.instructor_id||"",
+      category_id:c.category_id||"",price:c.price??0,
+      original_price:c.original_price||"",duration_hours:c.duration_hours||"",
+      level:c.level||"beginner",language:c.language||"fr",
+      thumbnail_url:c.thumbnail_url||"",video_preview_url:c.video_preview_url||"",
+      is_published:!!c.is_published,is_featured:!!c.is_featured,is_free:!!c.is_free,
+      is_subscription_included:!!c.is_subscription_included,
+      is_forum_enabled:c.is_forum_enabled!==false,
+      sequential_mode:!!c.sequential_mode,requires_approval:!!c.requires_approval,
       instructor_commission_rate:c.instructor_commission_rate||70,
-      requirements: Array.isArray(c.requirements) ? c.requirements.join("\n") : (c.requirements||""),
-      learning_outcomes: Array.isArray(c.learning_outcomes) ? c.learning_outcomes.join("\n") : (c.learning_outcomes||""),
+      requirements:Array.isArray(c.requirements)?c.requirements.join("\n"):(c.requirements||""),
+      learning_outcomes:Array.isArray(c.learning_outcomes)?c.learning_outcomes.join("\n"):(c.learning_outcomes||""),
     });
-    setSelectedCourse(c);
     setView("form");
   };
 
   const saveCourse = async () => {
-    if (!courseForm.title.trim())  { t$("Titre requis",false); return; }
-    if (!courseForm.instructor_id) { t$("Instructeur requis",false); return; }
+    if (!cForm.title?.trim()) { t$("Titre requis", false); return; }
+    if (!cForm.instructor_id) { t$("Instructeur requis", false); return; }
     setSaving(true);
     const payload = {
-      ...courseForm,
-      price: Number(courseForm.price)||0,
-      requirements: courseForm.requirements ? courseForm.requirements.split("\n").filter(Boolean) : [],
-      learning_outcomes: courseForm.learning_outcomes ? courseForm.learning_outcomes.split("\n").filter(Boolean) : [],
+      ...cForm, price: Number(cForm.price) || 0,
+      requirements: cForm.requirements ? cForm.requirements.split("\n").filter(Boolean) : [],
+      learning_outcomes: cForm.learning_outcomes ? cForm.learning_outcomes.split("\n").filter(Boolean) : [],
     };
-    const r = isNewCourse
-      ? await api(token,"POST","/courses",payload)
-      : await api(token,"PATCH",`/courses/${selectedCourse.id}`,payload);
+    const r = isNew
+      ? await api(token, "POST", "/courses", payload)
+      : await api(token, "PATCH", `/courses/${course.id}`, payload);
     setSaving(false);
-    if (r.success) { t$(r.message||"Cours enregistré ✓"); loadCourses(); setView("list"); }
-    else t$(r.message||"Erreur",false);
+    if (r.success) { t$(r.message || "Cours enregistré ✓"); await loadAll(); setView("list"); }
+    else t$(r.message || "Erreur", false);
   };
 
-  const togglePublish = async (c,e) => {
+  const togglePublishCourse = async (c, e) => {
     e?.stopPropagation();
-    const r = await api(token,"PATCH",`/courses/${c.id}/publish`,{is_published:!c.is_published});
-    if (r.success) { t$(r.message); loadCourses(); if(selectedCourse?.id===c.id) setSelectedCourse({...selectedCourse,is_published:!c.is_published}); }
-    else t$(r.message||"Erreur",false);
+    const r = await api(token, "PATCH", `/courses/${c.id}/publish`, { is_published: !c.is_published });
+    if (r.success) { t$(r.message); loadAll(); }
+    else t$(r.message, false);
   };
 
-  const deleteCourse = (c) => ask("Supprimer ce cours", `"${c.title}" et tout son contenu (modules, leçons, quiz, projets) sera définitivement supprimé.`, async () => {
-    const r = await api(token,"DELETE",`/courses/${c.id}`);
-    if (r.success) { t$("Cours supprimé"); loadCourses(); if(view!=="list") setView("list"); }
-    else t$(r.message||"Erreur",false);
-  });
-
-  /* ══════════ MODULES CRUD ══════════ */
-  const startModEdit = (mod) => { setEditingModule(mod); setModuleForm({title:mod.title,description:mod.description||"",order_index:mod.order_index||0,is_published:!!mod.is_published}); setShowModForm(false); };
-  const cancelModEdit = () => { setEditingModule(null); setModuleForm(MODULE_BLANK); };
-
-  const saveModule = async () => {
-    if (!moduleForm.title.trim()) { t$("Titre du module requis",false); return; }
-    setSavingMod(true);
-    const r = editingModule
-      ? await api(token,"PATCH",`/modules/${editingModule.id}`,moduleForm)
-      : await api(token,"POST","/modules",{...moduleForm,course_id:selectedCourse.id});
-    setSavingMod(false);
-    if (r.success) { t$(r.message||"Module enregistré"); cancelModEdit(); setShowModForm(false); setModuleForm(MODULE_BLANK); loadModules(selectedCourse.id); }
-    else t$(r.message||"Erreur",false);
-  };
-
-  const deleteModule = (mod) => ask("Supprimer ce module", `"${mod.title}" et toutes ses leçons seront supprimés.`, async () => {
-    const r = await api(token,"DELETE",`/modules/${mod.id}`);
-    if (r.success) { t$("Module supprimé"); loadModules(selectedCourse.id); }
-    else t$(r.message||"Erreur",false);
-  });
-
-  /* ══════════ LEÇONS CRUD ══════════ */
-  const startLessonEdit = (lesson, mid) => {
-    setEditingLesson(lesson);
-    setLessonForm({
-      title:lesson.title||"", content_type:lesson.content_type||"video",
-      content_url:lesson.content_url||"", article_content:lesson.article_content||"",
-      duration_minutes:lesson.duration_minutes||0, order_index:lesson.order_index||0,
-      is_published:lesson.is_published!==0, is_preview:!!lesson.is_preview,
-      requires_completion:!!lesson.requires_completion, is_downloadable:!!lesson.is_downloadable,
+  const deleteCourse = (c, e) => {
+    e?.stopPropagation();
+    ask("Supprimer ce cours ?", `"${c.title}" et tout son contenu sera supprimé.`, async () => {
+      const r = await api(token, "DELETE", `/courses/${c.id}`);
+      if (r.success) { t$("Cours supprimé"); loadAll(); if (view !== "list") setView("list"); }
+      else t$(r.message, false);
     });
-    setShowLessonForm(mid);
   };
 
-  const cancelLessonEdit = () => { setEditingLesson(null); setLessonForm(LESSON_BLANK); setShowLessonForm(null); };
-
-  const saveLesson = async (mid) => {
-    if (!lessonForm.title.trim()) { t$("Titre de la leçon requis",false); return; }
-    setSavingLesson(true);
-    const r = editingLesson
-      ? await api(token,"PATCH",`/lessons/${editingLesson.id}`,lessonForm)
-      : await api(token,"POST","/lessons",{...lessonForm,module_id:mid});
-    setSavingLesson(false);
-    if (r.success) { t$(r.message||"Leçon enregistrée"); cancelLessonEdit(); loadLessons(mid); }
-    else t$(r.message||"Erreur",false);
+  /* ═══ TÉLÉCHARGER COURS EN LOCAL ═══ */
+  const downloadCourse = async () => {
+    if (!course) return;
+    setDlCourse(true);
+    try {
+      // Charger modules + leçons + ressources
+      const rM = await api(token, "GET", `/courses/${course.id}/modules`);
+      const mods = rM.data || [];
+      const full = [];
+      for (const mod of mods) {
+        const rL = await api(token, "GET", `/modules/${mod.id}/lessons`);
+        const lessFull = [];
+        for (const les of (rL.data || [])) {
+          const rR = await api(token, "GET", `/lessons/${les.id}/resources`);
+          lessFull.push({ ...les, resources: rR.data || [] });
+        }
+        full.push({ ...mod, lessons: lessFull });
+      }
+      const payload = {
+        exported_at: new Date().toISOString(),
+        course: { ...course },
+        modules: full,
+        stats: {
+          total_modules: full.length,
+          total_lessons: full.flatMap(m => m.lessons).length,
+          total_resources: full.flatMap(m => m.lessons).flatMap(l => l.resources).length,
+        }
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      const slug = course.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+      a.href     = url;
+      a.download = `cours-${slug}-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      t$("📥 Cours téléchargé !");
+    } catch(e) {
+      t$("Erreur export: " + e.message, false);
+    } finally {
+      setDlCourse(false);
+    }
   };
 
-  const deleteLesson = (l, mid) => ask("Supprimer cette leçon", `"${l.title}" et ses ressources/quiz seront supprimés.`, async () => {
-    const r = await api(token,"DELETE",`/lessons/${l.id}`);
-    if (r.success) { t$("Leçon supprimée"); loadLessons(mid); }
-    else t$(r.message||"Erreur",false);
+  /* ═══ MODULES ═══ */
+  const openModM = (mod = null) => setModM(mod || { _new: true, title: "", description: "", order_index: modules.length, is_published: true });
+
+  const saveMod = async () => {
+    if (!modM?.title?.trim()) { t$("Titre requis", false); return; }
+    setModSv(true);
+    const payload = { title: modM.title, description: modM.description || "", order_index: +modM.order_index || 0, is_published: modM.is_published !== false };
+    const r = modM._new
+      ? await api(token, "POST", "/modules", { ...payload, course_id: course.id })
+      : await api(token, "PATCH", `/modules/${modM.id}`, payload);
+    setModSv(false);
+    if (r.success) { t$(r.message || "Module enregistré"); setModM(null); await reloadAllMods(); }
+    else t$(r.message, false);
+  };
+
+  const togglePublishMod = async (mod) => {
+    const r = await api(token, "PATCH", `/modules/${mod.id}/publish`, { is_published: !mod.is_published });
+    if (r.success) { t$(r.message); await reloadAllMods(); }
+    else t$(r.message, false);
+  };
+
+  const deleteMod = (mod) => ask("Supprimer ce module ?", `"${mod.title}" et toutes ses leçons seront supprimés.`, async () => {
+    const r = await api(token, "DELETE", `/modules/${mod.id}`);
+    if (r.success) { t$("Module supprimé"); await reloadAllMods(); }
+    else t$(r.message, false);
   });
 
-  /* ══════════ RESSOURCES CRUD ══════════ */
-  const startResEdit = (res, lid) => { setEditingResource(res); setResourceForm({title:res.title,file_url:res.file_url,file_type:res.file_type||"",order_index:res.order_index||0}); setShowResForm(lid); };
-  const cancelResEdit = () => { setEditingResource(null); setResourceForm(RESOURCE_BLANK); setShowResForm(null); };
-
-  const saveResource = async (lid) => {
-    if (!resourceForm.title.trim() || !resourceForm.file_url.trim()) { t$("Titre et URL requis",false); return; }
-    setSavingRes(true);
-    const r = editingResource
-      ? await api(token,"PATCH",`/lesson-resources/${editingResource.id}`,resourceForm)
-      : await api(token,"POST","/lessons/resources",{...resourceForm,lesson_id:lid});
-    setSavingRes(false);
-    if (r.success) { t$(r.message||"Ressource enregistrée"); cancelResEdit(); loadResources(lid); }
-    else t$(r.message||"Erreur",false);
-  };
-
-  const deleteResource = (res, lid) => ask("Supprimer cette ressource", `"${res.title}" sera supprimée.`, async () => {
-    const r = await api(token,"DELETE",`/lesson-resources/${res.id}`);
-    if (r.success) { t$("Ressource supprimée"); loadResources(lid); }
-    else t$(r.message||"Erreur",false);
+  /* ═══ LEÇONS ═══ */
+  const openLesM = (mid, les = null) => setLesM({
+    modId: mid, les,
+    title: les?.title || "", content_type: les?.content_type || "video",
+    content_url: les?.content_url || "", article_content: les?.article_content || "",
+    duration_minutes: les?.duration_minutes || 0, order_index: les?.order_index || 0,
+    is_published: les ? les.is_published !== 0 : true,
+    is_preview: !!les?.is_preview,
+    requires_completion: les ? les.requires_completion !== 0 : true,
+    is_downloadable: !!les?.is_downloadable,
   });
 
-  /* ══════════ QUIZ CRUD ══════════ */
-  const startQuizEdit = (quiz, lid) => { setEditingQuiz({...quiz,lid}); setQuizForm({title:quiz.title,description:quiz.description||"",time_limit_minutes:quiz.time_limit_minutes||0,pass_score:quiz.pass_score||80,max_attempts:quiz.max_attempts||3,show_correct_answers:!!quiz.show_correct_answers,randomize_questions:!!quiz.randomize_questions,is_mandatory:!!quiz.is_mandatory,cooldown_minutes:quiz.cooldown_minutes||0}); setShowQuizForm(lid); };
-  const cancelQuizEdit = () => { setEditingQuiz(null); setQuizForm(QUIZ_BLANK); setShowQuizForm(null); };
-
-  const saveQuiz = async (lid) => {
-    if (!quizForm.title.trim()) { t$("Titre du quiz requis",false); return; }
-    setSavingQuiz(true);
-    const r = editingQuiz
-      ? await api(token,"PATCH",`/quizzes/${editingQuiz.id}`,quizForm)
-      : await api(token,"POST","/quizzes",{...quizForm,lesson_id:lid});
-    setSavingQuiz(false);
-    if (r.success) { t$(r.message||"Quiz enregistré"); cancelQuizEdit(); const q = await loadQuiz(lid); if(q) await loadQuestions(q.id); }
-    else t$(r.message||"Erreur",false);
+  const saveLes = async () => {
+    if (!lesM?.title?.trim()) { t$("Titre requis", false); return; }
+    setLesSv(true);
+    const { modId, les, title, content_type, content_url, article_content, duration_minutes, order_index, is_published, is_preview, requires_completion, is_downloadable } = lesM;
+    const payload = { title, content_type, content_url: content_url || null, article_content: article_content || null, duration_minutes: +duration_minutes || 0, order_index: +order_index || 0, is_published, is_preview, requires_completion, is_downloadable };
+    const r = les
+      ? await api(token, "PATCH", `/lessons/${les.id}`, payload)
+      : await api(token, "POST", "/lessons", { ...payload, module_id: modId });
+    setLesSv(false);
+    if (r.success) { t$(r.message || "Leçon enregistrée"); setLesM(null); await reloadMod(modId); }
+    else t$(r.message, false);
   };
 
-  /* ══════════ QUESTIONS CRUD ══════════ */
-  const startQEdit = (q, qid) => { setEditingQuestion({...q,qid}); setQuestionForm({question:q.question,question_type:q.question_type||"multiple_choice",options:typeof q.options==="string"?q.options:JSON.stringify(q.options||""),correct_answer:typeof q.correct_answer==="string"?q.correct_answer:JSON.stringify(q.correct_answer),explanation:q.explanation||"",points:q.points||1,order_index:q.order_index||0}); setShowQForm(qid); };
-  const cancelQEdit = () => { setEditingQuestion(null); setQuestionForm(QUESTION_BLANK); setShowQForm(null); };
-
-  const saveQuestion = async (qid) => {
-    if (!questionForm.question.trim()) { t$("Question requise",false); return; }
-    setSavingQ(true);
-    let payload = { ...questionForm };
-    try { payload.options = JSON.parse(questionForm.options); } catch {}
-    try { payload.correct_answer = JSON.parse(questionForm.correct_answer); } catch {}
-    const r = editingQuestion
-      ? await api(token,"PATCH",`/quiz-questions/${editingQuestion.id}`,payload)
-      : await api(token,"POST","/quiz-questions",{...payload,quiz_id:qid});
-    setSavingQ(false);
-    if (r.success) { t$(r.message||"Question enregistrée"); cancelQEdit(); loadQuestions(qid); }
-    else t$(r.message||"Erreur",false);
+  const togglePublishLes = async (les, mid) => {
+    const r = await api(token, "PATCH", `/lessons/${les.id}/publish`, { is_published: !les.is_published });
+    if (r.success) { t$(r.message); await reloadMod(mid); }
+    else t$(r.message, false);
   };
 
-  const deleteQuestion = (q, qid) => ask("Supprimer cette question", `Cette question sera supprimée définitivement.`, async () => {
-    const r = await api(token,"DELETE",`/quiz-questions/${q.id}`);
-    if (r.success) { t$("Question supprimée"); loadQuestions(qid); }
-    else t$(r.message||"Erreur",false);
+  const deleteLes = (les, mid) => ask("Supprimer cette leçon ?", `"${les.title}" sera supprimée.`, async () => {
+    const r = await api(token, "DELETE", `/lessons/${les.id}`);
+    if (r.success) { t$("Leçon supprimée"); await reloadMod(mid); }
+    else t$(r.message, false);
   });
 
-  /* ══════════ PROJETS CRUD ══════════ */
-  const startProjEdit = (proj) => { setEditingProject(proj); setProjectForm({title:proj.title,description:proj.description,instructions:proj.instructions||"",submission_type:proj.submission_type||"github_url",pass_score:proj.pass_score||70,sla_correction_hours:proj.sla_correction_hours||72,max_file_size_mb:proj.max_file_size_mb||50,is_active:!!proj.is_active,evaluation_criteria:typeof proj.evaluation_criteria==="string"?proj.evaluation_criteria:JSON.stringify(proj.evaluation_criteria||"")}); setShowProjForm(false); };
-  const cancelProjEdit = () => { setEditingProject(null); setProjectForm(PROJECT_BLANK); };
-
-  const saveProject = async () => {
-    if (!projectForm.title.trim()) { t$("Titre du projet requis",false); return; }
-    setSavingProj(true);
-    let payload = { ...projectForm };
-    try { payload.evaluation_criteria = JSON.parse(projectForm.evaluation_criteria); } catch {}
-    const r = editingProject
-      ? await api(token,"PATCH",`/projects/${editingProject.id}`,payload)
-      : await api(token,"POST","/projects",{...payload,course_id:selectedCourse.id});
-    setSavingProj(false);
-    if (r.success) { t$(r.message||"Projet enregistré"); cancelProjEdit(); setShowProjForm(false); loadProjects(selectedCourse.id); }
-    else t$(r.message||"Erreur",false);
-  };
-
-  const deleteProject = (proj) => ask("Supprimer ce projet", `"${proj.title}" sera supprimé.`, async () => {
-    const r = await api(token,"DELETE",`/projects/${proj.id}`);
-    if (r.success) { t$("Projet supprimé"); loadProjects(selectedCourse.id); }
-    else t$(r.message||"Erreur",false);
+  /* ═══ RESSOURCES ═══ */
+  const deleteRes = (res, lid) => ask("Supprimer ?", `"${res.title}" sera supprimée.`, async () => {
+    const r = await api(token, "DELETE", `/lesson-resources/${res.id}`);
+    if (r.success) { t$("Supprimé"); await loadRes(lid); }
+    else t$(r.message, false);
   });
 
-  /* ══════════ FILTRES ══════════ */
+  /* ═══ FILTRES ═══ */
   const filtered = courses.filter(c => {
-    const s = c.title?.toLowerCase().includes(search.toLowerCase());
-    if (filterSt==="published") return s && c.is_published;
-    if (filterSt==="draft")     return s && !c.is_published;
-    if (filterSt==="free")      return s && c.is_free;
-    if (filterSt==="featured")  return s && c.is_featured;
+    const s = (c.title + (c.instructor_name || "") + (c.category_name || "")).toLowerCase().includes(search.toLowerCase());
+    if (filter === "published") return s && c.is_published;
+    if (filter === "draft")     return s && !c.is_published;
+    if (filter === "free")      return s && c.is_free;
+    if (filter === "featured")  return s && c.is_featured;
     return s;
   });
 
-  const totalLessons = (courseId) => {
-    const mods = modules.filter ? modules : [];
-    return Object.values(lessons).flat().length;
-  };
+  const totalLessons = Object.values(lessons).flat().length;
 
-  /* ══════════════════════════════════════════════════════
-     ██████  RENDER
-  ══════════════════════════════════════════════════════ */
+  /* ════════════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════════════ */
   return (
-    <div style={{ padding:"24px 28px", maxWidth:1280, margin:"0 auto", fontFamily:"system-ui, -apple-system, sans-serif" }}>
+    <div className="p-6 max-w-screen-xl mx-auto">
       <Toast t={toast} />
-      <Confirm data={confirm} onClose={() => setConfirm(null)} />
-      <style>{`
-        @keyframes slideIn { from { transform:translateX(100%); opacity:0 } to { transform:translateX(0); opacity:1 } }
-        @keyframes spin { to { transform:rotate(360deg) } }
-        .row-hover:hover { background:#f8fafc !important; }
-        input:focus, select:focus, textarea:focus { border-color:#6366f1 !important; box-shadow:0 0 0 3px #6366f122 !important; }
-      `}</style>
+      <Confirm d={dlg} onClose={() => setDlg(null)} />
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━ VUE LISTE ━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {view==="list" && <>
-        {/* Header */}
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:28, flexWrap:"wrap", gap:16 }}>
-          <div>
-            <h1 style={{ margin:0, fontSize:26, fontWeight:800, color:"#0f172a", letterSpacing:-0.5 }}>🎓 Cours</h1>
-            <p style={{ margin:"4px 0 0", color:"#64748b", fontSize:13 }}>{courses.length} cours · {courses.filter(c=>c.is_published).length} publiés · {courses.filter(c=>c.is_featured).length} mis en avant</p>
-          </div>
-          <Btn onClick={startCreate}>＋ Nouveau cours</Btn>
-        </div>
-
-        {/* Filtres */}
-        <div style={{ display:"flex", gap:10, marginBottom:20, flexWrap:"wrap" }}>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Rechercher par titre…" style={{ ...S.inp, flex:1, minWidth:220 }} />
-          {["all","published","draft","free","featured"].map(v=>(
-            <button key={v} onClick={()=>setFilterSt(v)} style={{ padding:"8px 16px", background:filterSt===v?"#4f46e5":"#f1f5f9", color:filterSt===v?"#fff":"#64748b", border:"none", borderRadius:10, fontWeight:600, fontSize:12, cursor:"pointer" }}>
-              {v==="all"?"Tous":v==="published"?"✅ Publiés":v==="draft"?"○ Brouillons":v==="free"?"🆓 Gratuits":"⭐ Vedette"}
+      {/* ════ LISTE DES COURS ════ */}
+      {view === "list" && (
+        <>
+          {/* Header */}
+          <div className="flex items-end justify-between mb-7 flex-wrap gap-4">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <BookOpen size={26} style={{ color: "#2d287f" }} /> Gestion des cours
+              </h1>
+              <p className="text-sm text-slate-400 mt-1">{courses.length} cours · {courses.filter(c => c.is_published).length} publiés · {courses.filter(c => c.is_free).length} gratuits</p>
+            </div>
+            <button onClick={openCreate} className="flex items-center gap-2 px-5 py-2.5 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              <Plus size={16} /> Nouveau cours
             </button>
-          ))}
-        </div>
+          </div>
 
-        {/* Table */}
-        {loading ? (
-          <div style={{ display:"flex", justifyContent:"center", padding:"80px 0" }}>
-            <div style={{ width:40, height:40, border:"4px solid #e0e7ff", borderTopColor:"#4f46e5", borderRadius:"50%", animation:"spin 1s linear infinite" }} />
-          </div>
-        ) : filtered.length===0 ? (
-          <div style={{ textAlign:"center", padding:"80px 0", color:"#94a3b8" }}>
-            <div style={{ fontSize:56, marginBottom:12 }}>📭</div>
-            <p style={{ fontWeight:600, fontSize:15 }}>Aucun cours trouvé</p>
-          </div>
-        ) : (
-          <div style={{ background:"#fff", borderRadius:18, border:"1px solid #e2e8f0", overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,.06)" }}>
-            {/* Thead */}
-            <div style={{ display:"grid", gridTemplateColumns:"2.5fr 1.2fr 1fr 140px 160px 170px", padding:"10px 18px", background:"#f8fafc", borderBottom:"2px solid #e2e8f0" }}>
-              {["Cours","Instructeur","Catégorie","Prix / Niveau","Statut","Actions"].map(h=>(
-                <span key={h} style={{ fontSize:10, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:1 }}>{h}</span>
+          {/* Filtres */}
+          <div className="flex gap-3 mb-5 flex-wrap">
+            <div className="flex-1 min-w-[200px] relative">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par titre, instructeur…" className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10" style={{ "--tw-ring-color": "#2d287f20" }} />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {[["all","Tous"],["published","✅ Publiés"],["draft","○ Brouillons"],["free","🆓 Gratuits"],["featured","⭐ Vedette"]].map(([v, l]) => (
+                <button key={v} onClick={() => setFilter(v)} className={`px-4 py-2.5 rounded-xl text-xs font-bold transition ${filter === v ? "text-white shadow-sm" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`} style={filter === v ? { background: "#2d287f" } : {}}>
+                  {l}
+                </button>
               ))}
             </div>
-            {/* Rows */}
-            {filtered.map((c, i) => (
-              <div key={c.id} className="row-hover" onClick={()=>openDetail(c)} style={{ display:"grid", gridTemplateColumns:"2.5fr 1.2fr 1fr 140px 160px 170px", padding:"13px 18px", alignItems:"center", borderBottom:i<filtered.length-1?"1px solid #f1f5f9":"none", cursor:"pointer", transition:"background .12s" }}>
-                {/* Cours */}
-                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                  <div style={{ width:44, height:36, borderRadius:10, overflow:"hidden", flexShrink:0, background:`linear-gradient(135deg,${LEVEL_CLR[c.level]||"#4f46e5"}88,${LEVEL_CLR[c.level]||"#7c3aed"})`, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,.1)" }}>
-                    {c.thumbnail_url
-                      ? <img src={c.thumbnail_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}} />
-                      : <span style={{ color:"#fff", fontWeight:800, fontSize:15 }}>{c.title?.charAt(0)}</span>
-                    }
-                  </div>
-                  <div>
-                    <p style={{ margin:0, fontWeight:700, color:"#1e293b", fontSize:13 }}>{c.title}</p>
-                    <p style={{ margin:0, fontSize:11, color:"#94a3b8", maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{c.short_description||"—"}</p>
-                  </div>
-                </div>
-                {/* Instructeur */}
-                <span style={{ fontSize:13, color:"#475569" }}>{c.instructor_name||"—"}</span>
-                {/* Catégorie */}
-                <span style={{ fontSize:12, color:"#475569" }}>{c.category_name||"—"}</span>
-                {/* Prix / Niveau */}
-                <div>
-                  <p style={{ margin:0, fontWeight:700, fontSize:13, color:c.is_free?"#059669":"#1e293b" }}>
-                    {c.is_free?"GRATUIT":`${Number(c.price||0).toLocaleString()} XAF`}
-                  </p>
-                  <span style={{ ...S.tag(LEVEL_CLR[c.level]+"22", LEVEL_CLR[c.level]||"#6b7280") }}>{LEVEL_MAP[c.level]||c.level}</span>
-                </div>
-                {/* Statut */}
-                <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-                  <Pill color={c.is_published?"#059669":"#94a3b8"}>{c.is_published?"✓ Publié":"○ Brouillon"}</Pill>
-                  {c.is_featured && <Pill color="#d97706">⭐ Vedette</Pill>}
-                  {c.is_subscription_included && <Pill color="#7c3aed">📦 Abonnement</Pill>}
-                </div>
-                {/* Actions */}
-                <div style={{ display:"flex", gap:5 }} onClick={e=>e.stopPropagation()}>
-                  <IcoBtn onClick={()=>openDetail(c)} color="#3b82f6" title="Voir le contenu">👁</IcoBtn>
-                  <IcoBtn onClick={()=>togglePublish(c)} color={c.is_published?"#f97316":"#10b981"} title={c.is_published?"Dépublier":"Publier"}>{c.is_published?"⊘":"▶"}</IcoBtn>
-                  <IcoBtn onClick={()=>startEdit(c)} color="#6366f1" title="Modifier">✏️</IcoBtn>
-                  <IcoBtn onClick={()=>deleteCourse(c)} color="#ef4444" title="Supprimer">🗑</IcoBtn>
-                </div>
-              </div>
-            ))}
           </div>
-        )}
-      </>}
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━ VUE FORMULAIRE COURS ━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {view==="form" && (
-        <div>
-          <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:28 }}>
-            <Btn onClick={()=>setView(selectedCourse&&!isNewCourse?"detail":"list")} color="#64748b" light>← Retour</Btn>
+          {/* Grille */}
+          {loading ? (
+            <div className="flex justify-center py-20"><Spin /></div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 text-slate-400">
+              <div className="text-6xl mb-3">📭</div>
+              <p className="font-bold text-base">Aucun cours trouvé</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
+              {filtered.map(c => {
+                const lc = LEVEL_CLR[c.level] || "#2d287f";
+                return (
+                  <div key={c.id} onClick={() => openEditor(c)} className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-200 shadow-sm">
+                    {/* Bannière */}
+                    <div className="h-28 relative overflow-hidden" style={{ background: `linear-gradient(135deg,${lc}30,${lc}88)` }}>
+                      {c.thumbnail_url && <img src={c.thumbnail_url} alt="" className="w-full h-full object-cover opacity-80" onError={e => e.target.style.display = "none"} />}
+                      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55))" }} />
+                      <div className="absolute top-2.5 left-3 flex gap-1.5">
+                        <Badge color={lc} bg={lc + "30"}>{LEVEL_MAP[c.level]}</Badge>
+                        <Badge color="#fff" bg="rgba(0,0,0,.35)">{(c.language || "fr").toUpperCase()}</Badge>
+                      </div>
+                      <div className="absolute top-2.5 right-2.5 flex gap-1.5">
+                        {c.is_featured && <Badge color="#facc15" bg="rgba(0,0,0,.4)">⭐</Badge>}
+                        <Badge color={c.is_published ? "#4ade80" : "#fca5a5"} bg="rgba(0,0,0,.4)">{c.is_published ? "✓ Publié" : "○ Brouillon"}</Badge>
+                      </div>
+                      <p className="absolute bottom-2 left-3 right-3 font-bold text-white text-sm leading-tight" style={{ textShadow: "0 1px 5px rgba(0,0,0,.6)" }}>{c.title}</p>
+                    </div>
+                    {/* Corps */}
+                    <div className="p-4">
+                      <p className="text-xs text-slate-400 mb-2 truncate">{c.instructor_name || "—"} · {c.category_name || "—"}</p>
+                      <div className="flex gap-1.5 flex-wrap mb-3">
+                        <Badge color="#2d287f">{c.is_free ? "GRATUIT" : `${Number(c.price || 0).toLocaleString()} XAF`}</Badge>
+                        <Badge color="#64748b">⏱ {c.duration_hours || 0}h</Badge>
+                        <Badge color="#64748b">👥 {(c.student_count || 0).toLocaleString()}</Badge>
+                        <Badge color="#d97706">⭐ {Number(c.rating || 0).toFixed(1)}</Badge>
+                      </div>
+                      <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => openEditor(c)} className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition flex items-center justify-center gap-1">
+                          <Layers size={12} /> Contenu
+                        </button>
+                        <button onClick={e => openEdit(c, e)} className="flex-1 py-2 bg-violet-50 text-violet-700 rounded-lg text-xs font-bold hover:bg-violet-100 transition flex items-center justify-center gap-1">
+                          <Edit3 size={12} /> Modifier
+                        </button>
+                        <button onClick={e => togglePublishCourse(c, e)} className={`px-3 py-2 rounded-lg text-xs font-bold transition ${c.is_published ? "bg-orange-50 text-orange-500 hover:bg-orange-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}>
+                          {c.is_published ? <EyeOff size={13} /> : <Eye size={13} />}
+                        </button>
+                        <button onClick={e => deleteCourse(c, e)} className="px-3 py-2 bg-red-50 text-red-500 rounded-lg text-xs font-bold hover:bg-red-100 transition">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ════ FORMULAIRE COURS ════ */}
+      {view === "form" && (
+        <div className="animate-fade-in-up">
+          <div className="flex items-center gap-4 mb-7">
+            <button onClick={() => setView("list")} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">
+              ← Retour
+            </button>
             <div>
-              <h1 style={{ margin:0, fontSize:22, fontWeight:800, color:"#0f172a" }}>{isNewCourse?"🆕 Nouveau cours":`✏️ ${selectedCourse?.title}`}</h1>
-              {!isNewCourse && <p style={{ margin:"3px 0 0", fontSize:12, color:"#94a3b8" }}>ID #{selectedCourse?.id} · Modifié le {new Date(selectedCourse?.updated_at).toLocaleDateString("fr-FR")}</p>}
+              <h1 className="text-xl font-black text-slate-900">{isNew ? "🆕 Nouveau cours" : `✏️ ${course?.title}`}</h1>
+              {!isNew && <p className="text-xs text-slate-400 mt-0.5">ID #{course?.id}</p>}
             </div>
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:20, alignItems:"start" }}>
-            {/* ── Colonne principale ── */}
-            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-
-              <div style={S.card("#4f46e5")}>
-                <p style={{ margin:"0 0 14px", fontSize:12, fontWeight:700, color:"#4f46e5", textTransform:"uppercase", letterSpacing:.5 }}>📋 Informations générales</p>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <Field label="Titre" required><input name="title" style={S.inp} value={courseForm.title} onChange={cf(setCourseForm)} placeholder="Ex: Docker Fondamentaux" /></Field>
-                  <Field label="Slug URL"><input name="slug" style={S.inp} value={courseForm.slug} onChange={cf(setCourseForm)} placeholder="docker-fondamentaux" /></Field>
-                  <Field label="Résumé court" col={2}><input name="short_description" style={S.inp} value={courseForm.short_description} onChange={cf(setCourseForm)} placeholder="Description affichée dans les listes" /></Field>
-                  <Field label="Description complète" col={2}><textarea name="description" style={{...S.inp,resize:"vertical"}} rows={5} value={courseForm.description} onChange={cf(setCourseForm)} placeholder="Description détaillée du cours…" /></Field>
+          <div className="grid grid-cols-[1fr_290px] gap-5 items-start">
+            {/* Gauche */}
+            <div className="flex flex-col gap-4">
+              {[
+                ["📋 Informations générales", "#2d287f", () => (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Titre" required><input className={IS} value={cForm.title || ""} onChange={e => setCForm(p => ({ ...p, title: e.target.value }))} placeholder="Docker Fondamentaux" /></Field>
+                    <Field label="Slug"><input className={IS} value={cForm.slug || ""} onChange={e => setCForm(p => ({ ...p, slug: e.target.value }))} placeholder="docker-fondamentaux" /></Field>
+                    <Field label="Résumé court" col2><input className={IS} value={cForm.short_description || ""} onChange={e => setCForm(p => ({ ...p, short_description: e.target.value }))} placeholder="Description affichée dans les listes" /></Field>
+                    <Field label="Description complète" col2><textarea className={`${IS} resize-y`} rows={5} value={cForm.description || ""} onChange={e => setCForm(p => ({ ...p, description: e.target.value }))} /></Field>
+                  </div>
+                )],
+                ["📝 Pédagogie", "#0ea5e9", () => (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Prérequis" hint="1 par ligne" col2><textarea className={`${IS} resize-y`} rows={3} value={cForm.requirements || ""} onChange={e => setCForm(p => ({ ...p, requirements: e.target.value }))} placeholder={"Bases de Linux\nConnaissance Docker"} /></Field>
+                    <Field label="Objectifs d'apprentissage" hint="1 par ligne" col2><textarea className={`${IS} resize-y`} rows={3} value={cForm.learning_outcomes || ""} onChange={e => setCForm(p => ({ ...p, learning_outcomes: e.target.value }))} placeholder={"Déployer des conteneurs\nMaîtriser Docker Compose"} /></Field>
+                  </div>
+                )],
+                ["🖼 Médias", "#f59e0b", () => (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="URL Image de couverture">
+                      <input className={IS} value={cForm.thumbnail_url || ""} onChange={e => setCForm(p => ({ ...p, thumbnail_url: e.target.value }))} placeholder="https://…" />
+                      {cForm.thumbnail_url && <img src={cForm.thumbnail_url} alt="" className="mt-2 h-16 rounded-lg object-cover" onError={e => e.target.style.display = "none"} />}
+                    </Field>
+                    <Field label="URL Vidéo de prévisualisation"><input className={IS} value={cForm.video_preview_url || ""} onChange={e => setCForm(p => ({ ...p, video_preview_url: e.target.value }))} placeholder="https://youtube.com/…" /></Field>
+                  </div>
+                )],
+              ].map(([title, accent, render]) => (
+                <div key={title} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm" style={{ borderLeft: `4px solid ${accent}` }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: accent }}>{title}</p>
+                  {render()}
                 </div>
-              </div>
-
-              <div style={S.card("#0ea5e9")}>
-                <p style={{ margin:"0 0 14px", fontSize:12, fontWeight:700, color:"#0ea5e9", textTransform:"uppercase", letterSpacing:.5 }}>📝 Contenu pédagogique</p>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <Field label="Prérequis" hint="1 par ligne" col={2}><textarea name="requirements" style={{...S.inp,resize:"vertical"}} rows={3} value={courseForm.requirements} onChange={cf(setCourseForm)} placeholder="Bases de Linux&#10;Connaissance Docker" /></Field>
-                  <Field label="Objectifs d'apprentissage" hint="1 par ligne" col={2}><textarea name="learning_outcomes" style={{...S.inp,resize:"vertical"}} rows={3} value={courseForm.learning_outcomes} onChange={cf(setCourseForm)} placeholder="Déployer des conteneurs&#10;Maîtriser Docker Compose" /></Field>
-                </div>
-              </div>
-
-              <div style={S.card("#f59e0b")}>
-                <p style={{ margin:"0 0 14px", fontSize:12, fontWeight:700, color:"#d97706", textTransform:"uppercase", letterSpacing:.5 }}>🖼 Médias</p>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <Field label="URL Image de couverture">
-                    <input name="thumbnail_url" style={S.inp} value={courseForm.thumbnail_url} onChange={cf(setCourseForm)} placeholder="https://…" />
-                    {courseForm.thumbnail_url && <img src={courseForm.thumbnail_url} alt="" style={{ marginTop:8, height:70, borderRadius:8, objectFit:"cover", border:"1px solid #e2e8f0" }} onError={e=>e.target.style.display="none"} />}
-                  </Field>
-                  <Field label="URL Vidéo de prévisualisation"><input name="video_preview_url" style={S.inp} value={courseForm.video_preview_url} onChange={cf(setCourseForm)} placeholder="https://youtube.com/…" /></Field>
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* ── Colonne latérale ── */}
-            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-
-              <div style={S.card("#8b5cf6")}>
-                <p style={{ margin:"0 0 14px", fontSize:12, fontWeight:700, color:"#8b5cf6", textTransform:"uppercase", letterSpacing:.5 }}>👤 Assignation</p>
-                <Field label="Instructeur" required>
-                  <select name="instructor_id" style={S.inp} value={courseForm.instructor_id} onChange={cf(setCourseForm)}>
-                    <option value="">— Sélectionner —</option>
-                    {instructors.map(i=><option key={i.id} value={i.id}>{i.first_name} {i.last_name}</option>)}
-                  </select>
-                </Field>
-                <Field label="Catégorie">
-                  <select name="category_id" style={S.inp} value={courseForm.category_id} onChange={cf(setCourseForm)}>
-                    <option value="">— Aucune —</option>
-                    {categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </Field>
-              </div>
-
-              <div style={S.card("#10b981")}>
-                <p style={{ margin:"0 0 14px", fontSize:12, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:.5 }}>⚙️ Paramètres</p>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                  <Field label="Niveau"><select name="level" style={S.inp} value={courseForm.level} onChange={cf(setCourseForm)}>{Object.entries(LEVEL_MAP).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></Field>
-                  <Field label="Langue"><select name="language" style={S.inp} value={courseForm.language} onChange={cf(setCourseForm)}><option value="fr">🇫🇷 Français</option><option value="en">🇬🇧 Anglais</option><option value="ar">🇸🇦 Arabe</option></select></Field>
-                  <Field label="Durée (h)"><input type="number" name="duration_hours" min="0" style={S.inp} value={courseForm.duration_hours} onChange={cf(setCourseForm)} /></Field>
-                  <Field label="Commission %"><input type="number" name="instructor_commission_rate" min="0" max="100" style={S.inp} value={courseForm.instructor_commission_rate} onChange={cf(setCourseForm)} /></Field>
-                </div>
-              </div>
-
-              <div style={S.card("#f97316")}>
-                <p style={{ margin:"0 0 14px", fontSize:12, fontWeight:700, color:"#ea580c", textTransform:"uppercase", letterSpacing:.5 }}>💰 Tarification</p>
-                <Toggle label="Cours gratuit" checked={courseForm.is_free} onChange={v=>setCourseForm(p=>({...p,is_free:v,price:v?0:p.price}))} color="#059669" />
-                {!courseForm.is_free && (
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:12 }}>
-                    <Field label="Prix XAF"><input type="number" name="price" min="0" style={S.inp} value={courseForm.price} onChange={cf(setCourseForm)} /></Field>
-                    <Field label="Prix barré"><input type="number" name="original_price" min="0" style={S.inp} value={courseForm.original_price} onChange={cf(setCourseForm)} /></Field>
+            {/* Droite */}
+            <div className="flex flex-col gap-3">
+              {[
+                ["👤 Assignation", "#8b5cf6", () => (
+                  <div className="flex flex-col gap-3">
+                    <Field label="Instructeur" required>
+                      <select className={IS} value={cForm.instructor_id || ""} onChange={e => setCForm(p => ({ ...p, instructor_id: e.target.value }))}>
+                        <option value="">— Sélectionner —</option>
+                        {instructors.map(i => <option key={i.id} value={i.id}>{i.first_name} {i.last_name}</option>)}
+                      </select>
+                    </Field>
+                    <Field label="Catégorie">
+                      <select className={IS} value={cForm.category_id || ""} onChange={e => setCForm(p => ({ ...p, category_id: e.target.value }))}>
+                        <option value="">— Aucune —</option>
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </Field>
                   </div>
-                )}
-              </div>
-
-              <div style={S.card("#6366f1")}>
-                <p style={{ margin:"0 0 14px", fontSize:12, fontWeight:700, color:"#4f46e5", textTransform:"uppercase", letterSpacing:.5 }}>👁 Visibilité & Options</p>
-                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                  <Toggle label="Publié" checked={courseForm.is_published} onChange={v=>setCourseForm(p=>({...p,is_published:v}))} />
-                  <Toggle label="Mis en avant" checked={courseForm.is_featured} onChange={v=>setCourseForm(p=>({...p,is_featured:v}))} color="#d97706" />
-                  <Toggle label="Dans l'abonnement" checked={courseForm.is_subscription_included} onChange={v=>setCourseForm(p=>({...p,is_subscription_included:v}))} color="#7c3aed" />
-                  <Toggle label="Forum activé" checked={courseForm.is_forum_enabled} onChange={v=>setCourseForm(p=>({...p,is_forum_enabled:v}))} color="#0ea5e9" />
-                  <Toggle label="Mode séquentiel" checked={courseForm.sequential_mode} onChange={v=>setCourseForm(p=>({...p,sequential_mode:v}))} color="#f59e0b" />
-                  <Toggle label="Approbation requise" checked={courseForm.requires_approval} onChange={v=>setCourseForm(p=>({...p,requires_approval:v}))} color="#ef4444" />
+                )],
+                ["⚙️ Paramètres", "#10b981", () => (
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Field label="Niveau"><select className={IS} value={cForm.level || "beginner"} onChange={e => setCForm(p => ({ ...p, level: e.target.value }))}>{Object.entries(LEVEL_MAP).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
+                    <Field label="Langue"><select className={IS} value={cForm.language || "fr"} onChange={e => setCForm(p => ({ ...p, language: e.target.value }))}><option value="fr">🇫🇷 Français</option><option value="en">🇬🇧 Anglais</option><option value="ar">🇸🇦 Arabe</option></select></Field>
+                    <Field label="Durée (h)"><input type="number" min="0" className={IS} value={cForm.duration_hours || ""} onChange={e => setCForm(p => ({ ...p, duration_hours: e.target.value }))} /></Field>
+                    <Field label="Commission %"><input type="number" min="0" max="100" className={IS} value={cForm.instructor_commission_rate || 70} onChange={e => setCForm(p => ({ ...p, instructor_commission_rate: e.target.value }))} /></Field>
+                  </div>
+                )],
+                ["💰 Prix", "#f97316", () => (
+                  <div className="flex flex-col gap-3">
+                    <Toggle label="Cours gratuit" checked={!!cForm.is_free} on={v => setCForm(p => ({ ...p, is_free: v, price: v ? 0 : p.price }))} color="#059669" />
+                    {!cForm.is_free && (
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <Field label="Prix XAF"><input type="number" min="0" className={IS} value={cForm.price || 0} onChange={e => setCForm(p => ({ ...p, price: e.target.value }))} /></Field>
+                        <Field label="Prix barré"><input type="number" min="0" className={IS} value={cForm.original_price || ""} onChange={e => setCForm(p => ({ ...p, original_price: e.target.value }))} /></Field>
+                      </div>
+                    )}
+                  </div>
+                )],
+                ["👁 Visibilité & Options", "#6366f1", () => (
+                  <div className="flex flex-col gap-3">
+                    <Toggle label="Publié" checked={!!cForm.is_published} on={v => setCForm(p => ({ ...p, is_published: v }))} />
+                    <Toggle label="Mis en avant" checked={!!cForm.is_featured} on={v => setCForm(p => ({ ...p, is_featured: v }))} color="#d97706" />
+                    <Toggle label="Inclus dans l'abonnement" checked={!!cForm.is_subscription_included} on={v => setCForm(p => ({ ...p, is_subscription_included: v }))} color="#7c3aed" />
+                    <Toggle label="Forum activé" checked={!!cForm.is_forum_enabled} on={v => setCForm(p => ({ ...p, is_forum_enabled: v }))} color="#0ea5e9" />
+                    <Toggle label="Mode séquentiel" checked={!!cForm.sequential_mode} on={v => setCForm(p => ({ ...p, sequential_mode: v }))} color="#f59e0b" />
+                    <Toggle label="Approbation requise" checked={!!cForm.requires_approval} on={v => setCForm(p => ({ ...p, requires_approval: v }))} color="#ef4444" />
+                  </div>
+                )],
+              ].map(([title, accent, render]) => (
+                <div key={title} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm" style={{ borderLeft: `4px solid ${accent}` }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: accent }}>{title}</p>
+                  {render()}
                 </div>
-              </div>
+              ))}
 
-              <button onClick={saveCourse} disabled={saving} style={{ width:"100%", padding:14, background:saving?"#a5b4fc":"#4f46e5", color:"#fff", border:"none", borderRadius:12, fontWeight:700, fontSize:15, cursor:saving?"not-allowed":"pointer", boxShadow:"0 4px 14px #4f46e566" }}>
-                {saving ? "Enregistrement…" : isNewCourse ? "✓ Créer le cours" : "✓ Mettre à jour"}
+              <button onClick={saveCourse} disabled={saving} className="w-full py-3.5 text-white font-bold text-sm rounded-2xl transition shadow-lg hover:shadow-xl hover:-translate-y-0.5" style={{ background: saving ? "#a5b4fc" : "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                {saving ? "Enregistrement…" : isNew ? "✓ Créer le cours" : "✓ Mettre à jour"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━ VUE DÉTAIL COURS ━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {view==="detail" && selectedCourse && (
-        <div>
-          {/* Header cours */}
-          <div style={{ display:"flex", alignItems:"flex-start", gap:16, marginBottom:24, padding:20, background:"#fff", borderRadius:18, border:"1px solid #e2e8f0", boxShadow:"0 4px 20px rgba(0,0,0,.06)", flexWrap:"wrap" }}>
-            <button onClick={()=>setView("list")} style={{ padding:"8px 14px", background:"#f1f5f9", border:"none", borderRadius:10, cursor:"pointer", color:"#475569", fontWeight:600, fontSize:13, flexShrink:0 }}>← Retour</button>
-            <div style={{ width:60, height:48, borderRadius:12, overflow:"hidden", flexShrink:0, background:`linear-gradient(135deg,${LEVEL_CLR[selectedCourse.level]||"#4f46e5"}88,${LEVEL_CLR[selectedCourse.level]||"#7c3aed"})` }}>
-              {selectedCourse.thumbnail_url && <img src={selectedCourse.thumbnail_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>e.target.style.display="none"} />}
+      {/* ════ ÉDITEUR DE CONTENU ════ */}
+      {view === "editor" && course && (
+        <div className="animate-fade-in-up">
+          {/* Bandeau cours */}
+          <div className="flex items-center gap-4 mb-5 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex-wrap">
+            <button onClick={() => setView("list")} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition flex-shrink-0">
+              ← Retour
+            </button>
+            <div className="w-12 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: `linear-gradient(135deg,${LEVEL_CLR[course.level] || "#2d287f"}50,${LEVEL_CLR[course.level] || "#2d287f"})` }}>
+              {course.thumbnail_url && <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />}
             </div>
-            <div style={{ flex:1 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
-                <h1 style={{ margin:0, fontSize:20, fontWeight:800, color:"#0f172a" }}>{selectedCourse.title}</h1>
-                <Pill color={selectedCourse.is_published?"#059669":"#94a3b8"}>{selectedCourse.is_published?"✓ Publié":"○ Brouillon"}</Pill>
-                {selectedCourse.is_featured && <Pill color="#d97706">⭐ Vedette</Pill>}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-black text-slate-900 text-lg">{course.title}</h1>
+                <Badge color={course.is_published ? "#059669" : "#94a3b8"}>{course.is_published ? "✓ Publié" : "○ Brouillon"}</Badge>
+                {course.is_featured && <Badge color="#d97706">⭐ Vedette</Badge>}
               </div>
-              <p style={{ margin:"4px 0 8px", fontSize:12, color:"#64748b" }}>ID #{selectedCourse.id} · {selectedCourse.instructor_name||"—"} · {selectedCourse.category_name||"—"} · {LEVEL_MAP[selectedCourse.level]} · {selectedCourse.language?.toUpperCase()}</p>
-              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                <Pill color="#1e293b">{selectedCourse.is_free?"GRATUIT":`${Number(selectedCourse.price||0).toLocaleString()} XAF`}</Pill>
-                <Pill color="#475569">⏱ {selectedCourse.duration_hours||0}h</Pill>
-                <Pill color="#475569">👥 {selectedCourse.student_count||0} étudiants</Pill>
-                <Pill color="#d97706">⭐ {selectedCourse.rating||0} ({selectedCourse.review_count||0} avis)</Pill>
-              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {course.instructor_name} · {LEVEL_MAP[course.level]} · {(course.language || "fr").toUpperCase()}
+                {" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{modules.length}</strong> module{modules.length !== 1 ? "s" : ""}
+                {" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{totalLessons}</strong> leçon{totalLessons !== 1 ? "s" : ""}
+              </p>
             </div>
-            <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-              <Btn onClick={()=>togglePublish(selectedCourse)} color={selectedCourse.is_published?"#f97316":"#10b981"} sm>{selectedCourse.is_published?"⊘ Dépublier":"▶ Publier"}</Btn>
-              <Btn onClick={()=>startEdit(selectedCourse)} color="#6366f1" sm>✏️ Modifier</Btn>
-              <Btn onClick={()=>deleteCourse(selectedCourse)} color="#ef4444" sm>🗑 Supprimer</Btn>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={e => openEdit(course, e)} className="flex items-center gap-1.5 px-4 py-2 bg-violet-50 text-violet-700 rounded-xl text-sm font-bold hover:bg-violet-100 transition">
+                <Edit3 size={14} /> Modifier
+              </button>
+              <button onClick={downloadCourse} disabled={dlCourse} title="Télécharger le cours en JSON" className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition disabled:opacity-60">
+                {dlCourse ? <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <Download size={14} />}
+                {dlCourse ? "Export…" : "Export"}
+              </button>
+              <button onClick={() => openModM()} className="flex items-center gap-1.5 px-4 py-2 text-white rounded-xl text-sm font-bold hover:opacity-90 transition shadow-md" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                <Plus size={15} /> Module
+              </button>
             </div>
           </div>
 
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {/* Erreur */}
+          {edError && (
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 text-red-600 text-sm font-medium">
+              <AlertCircle size={16} /> {edError}
+            </div>
+          )}
 
-            {/* ════════ SECTION MODULES ════════ */}
-            <Section icon="📦" title="Modules" count={modules.length} accent="#4f46e5" defaultOpen={true}>
-
-              {/* Formulaire ajout/édition module */}
-              {(showModForm || editingModule) && (
-                <InlineForm title={editingModule?`Modifier : ${editingModule.title}`:"Nouveau module"} onSave={saveModule} onCancel={()=>{setShowModForm(false);cancelModEdit();}} saving={savingMod}>
-                  <div style={{ display:"grid", gridTemplateColumns:"2fr 80px", gap:10 }}>
-                    <Field label="Titre *"><input style={S.inp} value={moduleForm.title} onChange={e=>setModuleForm(p=>({...p,title:e.target.value}))} placeholder="Ex: Introduction et Prérequis" autoFocus /></Field>
-                    <Field label="Ordre"><input type="number" min="0" style={S.inp} value={moduleForm.order_index} onChange={e=>setModuleForm(p=>({...p,order_index:e.target.value}))} /></Field>
-                  </div>
-                  <Field label="Description"><input style={S.inp} value={moduleForm.description} onChange={e=>setModuleForm(p=>({...p,description:e.target.value}))} placeholder="Description du module" /></Field>
-                  <Toggle label="Module publié" checked={moduleForm.is_published} onChange={v=>setModuleForm(p=>({...p,is_published:v}))} />
-                </InlineForm>
-              )}
-
-              {!showModForm && !editingModule && (
-                <Btn onClick={()=>{setShowModForm(true);cancelModEdit();}} color="#4f46e5" light sm style={{ marginBottom:14 }}>＋ Ajouter un module</Btn>
-              )}
-
-              {/* Liste modules */}
-              {modules.length===0 ? (
-                <div style={{ textAlign:"center", padding:"30px 0", color:"#94a3b8" }}>
-                  <div style={{ fontSize:32, marginBottom:8 }}>📦</div>
-                  <p style={{ fontWeight:500, fontSize:13 }}>Aucun module — ajoutez le premier</p>
+          {edLoad ? (
+            <div className="flex justify-center py-16"><Spin /></div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {modules.length === 0 && (
+                <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+                  <div className="text-5xl mb-4">📦</div>
+                  <p className="font-bold text-slate-700 text-base mb-2">Ce cours n'a pas encore de modules</p>
+                  <p className="text-sm text-slate-400 mb-5">Vérifiez que le backend est rebuild · npm run build && pm2 restart 0</p>
+                  <button onClick={() => openModM()} className="px-7 py-3 text-white rounded-2xl font-bold text-sm shadow-lg" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                    + Créer le premier module
+                  </button>
                 </div>
-              ) : modules.map((mod, mi) => (
-                <div key={mod.id} style={{ border:"1px solid #e2e8f0", borderRadius:14, overflow:"hidden", marginBottom:10 }}>
+              )}
 
-                  {/* Header module */}
-                  <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background: openModId===mod.id?"#eff6ff":"#f8fafc", borderBottom:openModId===mod.id?"1px solid #e2e8f0":"none" }}>
-                    <div style={{ width:30, height:30, borderRadius:8, background:"#dbeafe", color:"#2563eb", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:12, flexShrink:0 }}>{mi+1}</div>
-                    <div style={{ flex:1 }}>
-                      <p style={{ margin:0, fontWeight:700, color:"#1e293b", fontSize:13 }}>{mod.title}</p>
-                      {mod.description && <p style={{ margin:0, fontSize:11, color:"#94a3b8" }}>{mod.description}</p>}
-                    </div>
-                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <Pill color={mod.is_published?"#059669":"#94a3b8"}>{mod.is_published?"✓":"○"}</Pill>
-                      <Btn onClick={()=>toggleModule(mod.id)} color="#2563eb" light sm>{openModId===mod.id?"▲ Masquer":"▼ Leçons"}</Btn>
-                      <IcoBtn onClick={()=>startModEdit(mod)} color="#6366f1" title="Modifier">✏️</IcoBtn>
-                      <IcoBtn onClick={()=>deleteModule(mod)} color="#ef4444" title="Supprimer">🗑</IcoBtn>
-                    </div>
-                  </div>
+              {modules.map((mod, mi) => {
+                const isOpen = expanded[mod.id];
+                const modLes = lessons[mod.id] || [];
+                const totMin = modLes.reduce((s, l) => s + (+l.duration_minutes || 0), 0);
 
-                  {/* Formulaire édition module inline */}
-                  {editingModule?.id===mod.id && (
-                    <div style={{ padding:"14px 16px", background:"#f0f4ff", borderBottom:"1px solid #e2e8f0" }}>
-                      <InlineForm title={`✏️ Modifier : ${editingModule.title}`} onSave={saveModule} onCancel={cancelModEdit} saving={savingMod}>
-                        <div style={{ display:"grid", gridTemplateColumns:"2fr 80px", gap:10 }}>
-                          <Field label="Titre *"><input style={S.inp} value={moduleForm.title} onChange={e=>setModuleForm(p=>({...p,title:e.target.value}))} autoFocus /></Field>
-                          <Field label="Ordre"><input type="number" min="0" style={S.inp} value={moduleForm.order_index} onChange={e=>setModuleForm(p=>({...p,order_index:e.target.value}))} /></Field>
+                return (
+                  <div key={mod.id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                    {/* Header module */}
+                    <div
+                      onClick={() => setExpanded(p => ({ ...p, [mod.id]: !p[mod.id] }))}
+                      className={`flex items-center gap-3 px-5 py-4 cursor-pointer transition-colors ${isOpen ? "bg-gradient-to-r from-blue-50 to-violet-50" : "bg-slate-50 hover:bg-slate-100"}`}
+                      style={{ borderBottom: isOpen ? "1px solid #e2e8f0" : "none" }}
+                    >
+                      {/* Numéro */}
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm text-white flex-shrink-0" style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>{mi + 1}</div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-slate-900 text-sm">{mod.title}</p>
+                          {/* Statut publié MODULE */}
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${mod.is_published ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                            {mod.is_published ? "✓ Publié" : "○ Brouillon"}
+                          </span>
                         </div>
-                        <Field label="Description"><input style={S.inp} value={moduleForm.description} onChange={e=>setModuleForm(p=>({...p,description:e.target.value}))} /></Field>
-                        <Toggle label="Publié" checked={moduleForm.is_published} onChange={v=>setModuleForm(p=>({...p,is_published:v}))} />
-                      </InlineForm>
+                        {mod.description && <p className="text-xs text-slate-400 mt-0.5">{mod.description}</p>}
+                        <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                          <Badge color="#2d287f">{modLes.length} leçon{modLes.length !== 1 ? "s" : ""}</Badge>
+                          {totMin > 0 && <Badge color="#64748b">⏱ {totMin} min</Badge>}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => openLesM(mod.id)} className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition">
+                          <Plus size={11} /> Leçon
+                        </button>
+                        {/* Publier/Dépublier MODULE */}
+                        <button onClick={() => togglePublishMod(mod)} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition ${mod.is_published ? "bg-orange-50 text-orange-500 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100"}`}>
+                          {mod.is_published ? <><EyeOff size={11} /> Dépublier</> : <><Eye size={11} /> Publier</>}
+                        </button>
+                        <button onClick={() => openModM(mod)} className="w-8 h-8 flex items-center justify-center bg-violet-50 text-violet-600 rounded-lg hover:bg-violet-100 transition"><Edit3 size={13} /></button>
+                        <button onClick={() => deleteMod(mod)} className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition"><Trash2 size={13} /></button>
+                        <ChevronDown size={14} className="text-slate-400 transition-transform" style={{ transform: isOpen ? "rotate(180deg)" : "none" }} />
+                      </div>
                     </div>
-                  )}
 
-                  {/* ════ PANEL LEÇONS ════ */}
-                  {openModId===mod.id && (
-                    <div style={{ padding:"16px 16px 20px", background:"#fff" }}>
-
-                      {/* Formulaire leçon */}
-                      {showLessonForm===mod.id && (
-                        <InlineForm title={editingLesson?`✏️ Modifier : ${editingLesson.title}`:"Nouvelle leçon"} onSave={()=>saveLesson(mod.id)} onCancel={cancelLessonEdit} saving={savingLesson}>
-                          <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:10 }}>
-                            <Field label="Titre *"><input style={S.inp} value={lessonForm.title} onChange={e=>setLessonForm(p=>({...p,title:e.target.value}))} placeholder="Titre de la leçon" autoFocus /></Field>
-                            <Field label="Type de contenu">
-                              <select style={S.inp} value={lessonForm.content_type} onChange={e=>setLessonForm(p=>({...p,content_type:e.target.value}))}>
-                                {Object.entries(CTYPE_MAP).map(([v,l])=><option key={v} value={v}>{CTYPE_ICO[v]} {l}</option>)}
-                              </select>
-                            </Field>
+                    {/* Corps leçons */}
+                    {isOpen && (
+                      <div className="p-4 pb-5">
+                        {modLes.length === 0 ? (
+                          <div className="text-center py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                            <p className="text-sm text-slate-400 font-medium mb-2">Aucune leçon dans ce module</p>
+                            <button onClick={() => openLesM(mod.id)} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition">+ Ajouter la première leçon</button>
                           </div>
-                          <Field label="URL vidéo / lien"><input style={S.inp} value={lessonForm.content_url} onChange={e=>setLessonForm(p=>({...p,content_url:e.target.value}))} placeholder="https://…" /></Field>
-                          {lessonForm.content_type==="article" && <Field label="Contenu article (HTML)"><textarea style={{...S.inp,resize:"vertical"}} rows={4} value={lessonForm.article_content} onChange={e=>setLessonForm(p=>({...p,article_content:e.target.value}))} placeholder="<p>Contenu…</p>" /></Field>}
-                          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                            <Field label="Durée (min)"><input type="number" min="0" style={S.inp} value={lessonForm.duration_minutes} onChange={e=>setLessonForm(p=>({...p,duration_minutes:e.target.value}))} /></Field>
-                            <Field label="Ordre"><input type="number" min="0" style={S.inp} value={lessonForm.order_index} onChange={e=>setLessonForm(p=>({...p,order_index:e.target.value}))} /></Field>
-                          </div>
-                          <div style={{ display:"flex", gap:20, flexWrap:"wrap" }}>
-                            <Toggle label="Publiée" checked={lessonForm.is_published} onChange={v=>setLessonForm(p=>({...p,is_published:v}))} />
-                            <Toggle label="Aperçu gratuit" checked={lessonForm.is_preview} onChange={v=>setLessonForm(p=>({...p,is_preview:v}))} color="#d97706" />
-                            <Toggle label="Complétion requise" checked={lessonForm.requires_completion} onChange={v=>setLessonForm(p=>({...p,requires_completion:v}))} color="#0ea5e9" />
-                            <Toggle label="Téléchargeable" checked={lessonForm.is_downloadable} onChange={v=>setLessonForm(p=>({...p,is_downloadable:v}))} color="#7c3aed" />
-                          </div>
-                        </InlineForm>
-                      )}
-
-                      {!showLessonForm && (
-                        <Btn onClick={()=>{setShowLessonForm(mod.id);setEditingLesson(null);setLessonForm(LESSON_BLANK);}} color="#2563eb" light sm style={{ marginBottom:12 }}>＋ Ajouter une leçon</Btn>
-                      )}
-
-                      {/* Liste leçons */}
-                      {lessons[mod.id]===undefined ? (
-                        <div style={{ textAlign:"center", padding:12 }}><div style={{ width:20, height:20, border:"3px solid #dbeafe", borderTopColor:"#2563eb", borderRadius:"50%", animation:"spin 1s linear infinite", margin:"0 auto" }} /></div>
-                      ) : lessons[mod.id].length===0 ? (
-                        <p style={{ textAlign:"center", color:"#94a3b8", fontSize:13, padding:"8px 0" }}>Aucune leçon dans ce module</p>
-                      ) : lessons[mod.id].map((l, li) => (
-                        <div key={l.id} style={{ border:"1px solid #f1f5f9", borderRadius:12, marginBottom:8, overflow:"hidden" }}>
-                          {/* Leçon header */}
-                          <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"#fafafa" }}>
-                            <span style={{ width:22, height:22, borderRadius:"50%", background:"#f1f5f9", color:"#64748b", fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{li+1}</span>
-                            <span style={{ fontSize:16, flexShrink:0 }}>{CTYPE_ICO[l.content_type]||"▶"}</span>
-                            <div style={{ flex:1, minWidth:0 }}>
-                              <p style={{ margin:0, fontWeight:600, color:"#1e293b", fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.title}</p>
-                              <p style={{ margin:0, fontSize:11, color:"#94a3b8" }}>{CTYPE_MAP[l.content_type]} · {l.duration_minutes||0} min{l.content_url?` · 🔗`:""}</p>
-                            </div>
-                            <div style={{ display:"flex", gap:5, alignItems:"center", flexShrink:0 }}>
-                              {l.is_preview && <Pill color="#d97706">Aperçu</Pill>}
-                              {!l.is_published && <Pill color="#94a3b8">Brouillon</Pill>}
-                              {l.is_downloadable && <Pill color="#7c3aed">📥</Pill>}
-                              <IcoBtn onClick={()=>{ loadResources(l.id); loadQuiz(l.id); }} color="#0ea5e9" title="Voir ressources & quiz">📎</IcoBtn>
-                              <IcoBtn onClick={()=>startLessonEdit(l,mod.id)} color="#6366f1" title="Modifier">✏️</IcoBtn>
-                              <IcoBtn onClick={()=>deleteLesson(l,mod.id)} color="#ef4444" title="Supprimer">🗑</IcoBtn>
-                            </div>
-                          </div>
-
-                          {/* Ressources & Quiz de la leçon */}
-                          {(resources[l.id]!==undefined || quizData[l.id]!==undefined) && (
-                            <div style={{ padding:"12px 14px", background:"#fff", borderTop:"1px solid #f1f5f9" }}>
-
-                              {/* ── Ressources ── */}
-                              {resources[l.id]!==undefined && (
-                                <div style={{ marginBottom:12 }}>
-                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                                    <span style={{ fontSize:11, fontWeight:700, color:"#64748b", textTransform:"uppercase", letterSpacing:.5 }}>📎 Ressources ({resources[l.id]?.length||0})</span>
-                                    <Btn onClick={()=>{setShowResForm(l.id);setEditingResource(null);setResourceForm(RESOURCE_BLANK);}} color="#0ea5e9" light sm>＋ Ajouter</Btn>
-                                  </div>
-
-                                  {showResForm===l.id && (
-                                    <InlineForm title={editingResource?"✏️ Modifier la ressource":"Nouvelle ressource"} onSave={()=>saveResource(l.id)} onCancel={cancelResEdit} saving={savingRes}>
-                                      <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:10 }}>
-                                        <Field label="Titre *"><input style={S.inp} value={resourceForm.title} onChange={e=>setResourceForm(p=>({...p,title:e.target.value}))} placeholder="Ex: Slides du cours" autoFocus /></Field>
-                                        <Field label="Type"><input style={S.inp} value={resourceForm.file_type} onChange={e=>setResourceForm(p=>({...p,file_type:e.target.value}))} placeholder="pdf, zip, png…" /></Field>
-                                      </div>
-                                      <Field label="URL du fichier *"><input style={S.inp} value={resourceForm.file_url} onChange={e=>setResourceForm(p=>({...p,file_url:e.target.value}))} placeholder="https://…" /></Field>
-                                      <Field label="Ordre"><input type="number" min="0" style={{...S.inp,width:100}} value={resourceForm.order_index} onChange={e=>setResourceForm(p=>({...p,order_index:e.target.value}))} /></Field>
-                                    </InlineForm>
-                                  )}
-
-                                  {resources[l.id]?.map(res=>(
-                                    <div key={res.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"7px 12px", borderRadius:8, background:"#f8fafc", marginBottom:5 }}>
-                                      <span style={{ fontSize:14 }}>📎</span>
-                                      <div style={{ flex:1 }}>
-                                        <p style={{ margin:0, fontWeight:600, fontSize:12, color:"#1e293b" }}>{res.title}</p>
-                                        <p style={{ margin:0, fontSize:10, color:"#94a3b8" }}>{res.file_type||"fichier"}{res.file_size?` · ${(res.file_size/1024/1024).toFixed(1)}Mo`:""} · {res.download_count||0} téléch.</p>
-                                      </div>
-                                      <IcoBtn onClick={()=>startResEdit(res,l.id)} color="#6366f1" title="Modifier" small>✏️</IcoBtn>
-                                      <IcoBtn onClick={()=>deleteResource(res,l.id)} color="#ef4444" title="Supprimer" small>🗑</IcoBtn>
+                        ) : (
+                          <>
+                            {modLes.map((les, li) => {
+                              const tc = TYPE_CLR[les.content_type] || "#64748b";
+                              const TIcon = TYPE_ICO[les.content_type] || Film;
+                              const rc = les.resource_count || 0;
+                              return (
+                                <div key={les.id} className="border border-slate-100 rounded-2xl mb-2 overflow-hidden">
+                                  {/* Ligne leçon */}
+                                  <div className="flex items-center gap-2.5 px-4 py-3 bg-slate-50/80">
+                                    <span className="text-[8px] text-slate-300 flex-shrink-0">⠿</span>
+                                    <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0" style={{ background: "#e0e7ff", color: "#4f46e5" }}>{li + 1}</span>
+                                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: tc + "18", color: tc }}>
+                                      <TIcon size={13} />
                                     </div>
-                                  ))}
-                                </div>
-                              )}
 
-                              {/* ── Quiz ── */}
-                              {quizData[l.id]!==undefined && (
-                                <div>
-                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                                    <span style={{ fontSize:11, fontWeight:700, color:"#64748b", textTransform:"uppercase", letterSpacing:.5 }}>📝 Quiz</span>
-                                    {!quizData[l.id] && <Btn onClick={()=>{setShowQuizForm(l.id);setEditingQuiz(null);setQuizForm(QUIZ_BLANK);}} color="#7c3aed" light sm>＋ Créer un quiz</Btn>}
-                                  </div>
-
-                                  {showQuizForm===l.id && (
-                                    <InlineForm title={editingQuiz?"✏️ Modifier le quiz":"Nouveau quiz"} onSave={()=>saveQuiz(l.id)} onCancel={cancelQuizEdit} saving={savingQuiz}>
-                                      <Field label="Titre *"><input style={S.inp} value={quizForm.title} onChange={e=>setQuizForm(p=>({...p,title:e.target.value}))} placeholder="Ex: Quiz de compréhension" autoFocus /></Field>
-                                      <Field label="Description"><input style={S.inp} value={quizForm.description} onChange={e=>setQuizForm(p=>({...p,description:e.target.value}))} /></Field>
-                                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
-                                        <Field label="Score min (%)"><input type="number" min="0" max="100" style={S.inp} value={quizForm.pass_score} onChange={e=>setQuizForm(p=>({...p,pass_score:e.target.value}))} /></Field>
-                                        <Field label="Tentatives max"><input type="number" min="0" style={S.inp} value={quizForm.max_attempts} onChange={e=>setQuizForm(p=>({...p,max_attempts:e.target.value}))} /></Field>
-                                        <Field label="Limite temps (min)"><input type="number" min="0" style={S.inp} value={quizForm.time_limit_minutes} onChange={e=>setQuizForm(p=>({...p,time_limit_minutes:e.target.value}))} /></Field>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-bold text-slate-900 text-sm truncate">{les.title}</p>
+                                      <div className="flex gap-1.5 mt-1 flex-wrap">
+                                        <Badge color={tc}>{TYPE_MAP[les.content_type]}</Badge>
+                                        {les.duration_minutes > 0 && <Badge color="#64748b">⏱ {les.duration_minutes}min</Badge>}
+                                        {les.is_preview === 1 && <Badge color="#d97706">👁 Aperçu</Badge>}
+                                        {les.is_downloadable === 1 && <Badge color="#7c3aed">📥 Offline</Badge>}
+                                        {les.content_url && <Badge color="#0ea5e9">🔗 URL</Badge>}
+                                        {rc > 0 && <Badge color="#059669">📎 {rc}</Badge>}
+                                        {/* Statut LEÇON */}
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${les.is_published ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                                          {les.is_published ? "✓" : "○ Brouillon"}
+                                        </span>
                                       </div>
-                                      <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
-                                        <Toggle label="Afficher réponses" checked={quizForm.show_correct_answers} onChange={v=>setQuizForm(p=>({...p,show_correct_answers:v}))} />
-                                        <Toggle label="Questions aléatoires" checked={quizForm.randomize_questions} onChange={v=>setQuizForm(p=>({...p,randomize_questions:v}))} />
-                                        <Toggle label="Obligatoire" checked={quizForm.is_mandatory} onChange={v=>setQuizForm(p=>({...p,is_mandatory:v}))} color="#ef4444" />
-                                      </div>
-                                    </InlineForm>
-                                  )}
+                                    </div>
 
-                                  {quizData[l.id] && (
-                                    <div style={{ border:"1px solid #ede9fe", borderRadius:12, overflow:"hidden" }}>
-                                      {/* Quiz info */}
-                                      <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"#faf5ff", cursor:"pointer" }} onClick={()=>openQuiz(l.id, quizData[l.id].id)}>
-                                        <span style={{ fontSize:16 }}>📝</span>
-                                        <div style={{ flex:1 }}>
-                                          <p style={{ margin:0, fontWeight:700, color:"#1e293b", fontSize:13 }}>{quizData[l.id].title}</p>
-                                          <p style={{ margin:0, fontSize:11, color:"#94a3b8" }}>Score min: {quizData[l.id].pass_score}% · Max {quizData[l.id].max_attempts} essais{quizData[l.id].time_limit_minutes?" · ⏱"+quizData[l.id].time_limit_minutes+"min":""}</p>
-                                        </div>
-                                        <div style={{ display:"flex", gap:5 }}>
-                                          {quizData[l.id].is_mandatory && <Pill color="#ef4444">Obligatoire</Pill>}
-                                          <Btn onClick={e=>{e.stopPropagation();openQuiz(l.id,quizData[l.id].id);}} color="#7c3aed" light sm>{openQuizId===quizData[l.id].id?"▲":"▼ Questions"}</Btn>
-                                          <IcoBtn onClick={e=>{e.stopPropagation();startQuizEdit(quizData[l.id],l.id);}} color="#6366f1" title="Modifier">✏️</IcoBtn>
-                                        </div>
-                                      </div>
-
-                                      {/* Questions */}
-                                      {openQuizId===quizData[l.id].id && (
-                                        <div style={{ padding:"12px 14px", background:"#fff", borderTop:"1px solid #ede9fe" }}>
-                                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                                            <span style={{ fontSize:11, fontWeight:700, color:"#7c3aed", textTransform:"uppercase", letterSpacing:.5 }}>Questions ({questions[quizData[l.id].id]?.length||0})</span>
-                                            <Btn onClick={()=>{setShowQForm(quizData[l.id].id);setEditingQuestion(null);setQuestionForm(QUESTION_BLANK);}} color="#7c3aed" light sm>＋ Question</Btn>
-                                          </div>
-
-                                          {showQForm===quizData[l.id].id && (
-                                            <InlineForm title={editingQuestion?"✏️ Modifier la question":"Nouvelle question"} onSave={()=>saveQuestion(quizData[l.id].id)} onCancel={cancelQEdit} saving={savingQ}>
-                                              <Field label="Question *"><textarea style={{...S.inp,resize:"vertical"}} rows={2} value={questionForm.question} onChange={e=>setQuestionForm(p=>({...p,question:e.target.value}))} placeholder="Quelle commande Docker permet de…" autoFocus /></Field>
-                                              <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:10 }}>
-                                                <Field label="Type">
-                                                  <select style={S.inp} value={questionForm.question_type} onChange={e=>setQuestionForm(p=>({...p,question_type:e.target.value}))}>
-                                                    {Object.entries(QTYPE_MAP).map(([v,l])=><option key={v} value={v}>{l}</option>)}
-                                                  </select>
-                                                </Field>
-                                                <Field label="Points"><input type="number" min="1" style={S.inp} value={questionForm.points} onChange={e=>setQuestionForm(p=>({...p,points:e.target.value}))} /></Field>
-                                              </div>
-                                              <Field label="Options (JSON)" hint='[{"id":"a","text":"Opt A"},...]'><textarea style={{...S.inp,resize:"vertical",fontFamily:"monospace",fontSize:12}} rows={3} value={questionForm.options} onChange={e=>setQuestionForm(p=>({...p,options:e.target.value}))} placeholder='[{"id":"a","text":"Option A"},{"id":"b","text":"Option B"}]' /></Field>
-                                              <Field label="Bonne réponse (JSON)" hint='"a" ou ["a","b"] ou true'><input style={{...S.inp,fontFamily:"monospace"}} value={questionForm.correct_answer} onChange={e=>setQuestionForm(p=>({...p,correct_answer:e.target.value}))} placeholder='"a"' /></Field>
-                                              <Field label="Explication"><textarea style={{...S.inp,resize:"vertical"}} rows={2} value={questionForm.explanation} onChange={e=>setQuestionForm(p=>({...p,explanation:e.target.value}))} placeholder="Explication de la réponse…" /></Field>
-                                            </InlineForm>
-                                          )}
-
-                                          {questions[quizData[l.id].id]?.map((q,qi)=>(
-                                            <div key={q.id} style={{ display:"flex", gap:10, padding:"9px 12px", borderRadius:8, background:"#f5f3ff", marginBottom:6 }}>
-                                              <span style={{ width:22, height:22, borderRadius:"50%", background:"#ede9fe", color:"#7c3aed", fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{qi+1}</span>
-                                              <div style={{ flex:1 }}>
-                                                <p style={{ margin:0, fontWeight:600, fontSize:12, color:"#1e293b" }}>{q.question}</p>
-                                                <p style={{ margin:0, fontSize:10, color:"#94a3b8" }}>{QTYPE_MAP[q.question_type]} · {q.points} pt{q.points>1?"s":""}</p>
-                                              </div>
-                                              <IcoBtn onClick={()=>startQEdit(q,quizData[l.id].id)} color="#6366f1" title="Modifier" small>✏️</IcoBtn>
-                                              <IcoBtn onClick={()=>deleteQuestion(q,quizData[l.id].id)} color="#ef4444" title="Supprimer" small>🗑</IcoBtn>
-                                            </div>
-                                          ))}
-                                        </div>
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                      {/* Bouton vidéo upload */}
+                                      {les.content_type === "video" && (
+                                        <button onClick={() => setUpVid(les)} className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
+                                          <Film size={11} /> Vidéo
+                                        </button>
                                       )}
+                                      {/* Ressources */}
+                                      <button onClick={async () => { await loadRes(les.id); setResM({ lesId: les.id, les }); }} className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">
+                                        <Paperclip size={11} /> Fichiers
+                                      </button>
+                                      {/* Publier/Dépublier LEÇON */}
+                                      <button onClick={() => togglePublishLes(les, mod.id)} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${les.is_published ? "bg-orange-50 text-orange-500 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100"}`}>
+                                        {les.is_published ? <EyeOff size={11} /> : <Eye size={11} />}
+                                      </button>
+                                      <button onClick={() => openLesM(mod.id, les)} className="w-7 h-7 flex items-center justify-center bg-violet-50 text-violet-600 rounded-lg hover:bg-violet-100 transition"><Edit3 size={12} /></button>
+                                      <button onClick={() => deleteLes(les, mod.id)} className="w-7 h-7 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition"><Trash2 size={12} /></button>
+                                    </div>
+                                  </div>
+
+                                  {/* Ressources inline */}
+                                  {resources[les.id] !== undefined && (
+                                    <div className="px-4 pb-3 pt-2.5 bg-white border-t border-slate-50">
+                                      {resources[les.id].length === 0 ? (
+                                        <p className="text-xs text-slate-400 italic">Aucun fichier attaché</p>
+                                      ) : resources[les.id].map(r => (
+                                        <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 bg-slate-50 rounded-xl mb-1.5 border border-slate-100">
+                                          <span className="text-sm">{r.file_type === "pdf" ? "📄" : r.file_type === "mp4" ? "🎬" : r.file_type === "zip" ? "🗜" : r.file_type === "pptx" ? "📊" : "📎"}</span>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-xs text-slate-800">{r.title}</p>
+                                            <a href={r.file_url} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-500 truncate block">{(r.file_url || "").slice(0, 60)}{(r.file_url || "").length > 60 ? "…" : ""}</a>
+                                          </div>
+                                          {r.file_size && <Badge color="#64748b">{(r.file_size / 1024 / 1024).toFixed(1)}Mo</Badge>}
+                                          <button onClick={() => deleteRes(r, les.id)} className="w-6 h-6 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-100 transition"><Trash2 size={10} /></button>
+                                        </div>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </Section>
-
-            {/* ════════ SECTION PROJETS ════════ */}
-            <Section icon="🚀" title="Projets pratiques" count={projects.length} accent="#f97316">
-
-              {(showProjForm || editingProject) && (
-                <InlineForm title={editingProject?`✏️ Modifier : ${editingProject.title}`:"Nouveau projet"} onSave={saveProject} onCancel={()=>{setShowProjForm(false);cancelProjEdit();}} saving={savingProj}>
-                  <Field label="Titre *"><input style={S.inp} value={projectForm.title} onChange={e=>setProjectForm(p=>({...p,title:e.target.value}))} placeholder="Ex: Déploiement d'une app en production" autoFocus /></Field>
-                  <Field label="Description *"><textarea style={{...S.inp,resize:"vertical"}} rows={2} value={projectForm.description} onChange={e=>setProjectForm(p=>({...p,description:e.target.value}))} /></Field>
-                  <Field label="Instructions complètes"><textarea style={{...S.inp,resize:"vertical"}} rows={4} value={projectForm.instructions} onChange={e=>setProjectForm(p=>({...p,instructions:e.target.value}))} placeholder="Instructions détaillées pour les étudiants…" /></Field>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10 }}>
-                    <Field label="Type de soumission"><select style={S.inp} value={projectForm.submission_type} onChange={e=>setProjectForm(p=>({...p,submission_type:e.target.value}))}>{Object.entries(SUB_MAP).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></Field>
-                    <Field label="Score min /100"><input type="number" min="0" max="100" style={S.inp} value={projectForm.pass_score} onChange={e=>setProjectForm(p=>({...p,pass_score:e.target.value}))} /></Field>
-                    <Field label="SLA correction (h)"><input type="number" min="0" style={S.inp} value={projectForm.sla_correction_hours} onChange={e=>setProjectForm(p=>({...p,sla_correction_hours:e.target.value}))} /></Field>
-                    <Field label="Taille max (Mo)"><input type="number" min="1" style={S.inp} value={projectForm.max_file_size_mb} onChange={e=>setProjectForm(p=>({...p,max_file_size_mb:e.target.value}))} /></Field>
+                              );
+                            })}
+                            <button onClick={() => openLesM(mod.id)} className="w-full mt-2 py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-sm font-bold text-slate-400 hover:border-indigo-400 hover:text-indigo-500 transition">
+                              + Ajouter une leçon
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <Field label="Critères d'évaluation (JSON)" hint='[{"criterion":"Architecture","weight":30,"description":"..."}]'>
-                    <textarea style={{...S.inp,resize:"vertical",fontFamily:"monospace",fontSize:11}} rows={3} value={projectForm.evaluation_criteria} onChange={e=>setProjectForm(p=>({...p,evaluation_criteria:e.target.value}))} />
-                  </Field>
-                  <Toggle label="Projet actif" checked={projectForm.is_active} onChange={v=>setProjectForm(p=>({...p,is_active:v}))} />
-                </InlineForm>
+                );
+              })}
+
+              {modules.length > 0 && (
+                <button onClick={() => openModM()} className="w-full py-3.5 border-2 border-dashed border-slate-200 rounded-2xl text-sm font-bold text-slate-400 hover:border-primary/40 hover:text-primary transition-all">
+                  + Ajouter un module
+                </button>
               )}
-
-              {!showProjForm && !editingProject && (
-                <Btn onClick={()=>{setShowProjForm(true);cancelProjEdit();}} color="#f97316" light sm style={{ marginBottom:12 }}>＋ Ajouter un projet</Btn>
-              )}
-
-              {projects.length===0 ? (
-                <div style={{ textAlign:"center", padding:"20px 0", color:"#94a3b8", fontSize:13 }}>Aucun projet pratique pour ce cours</div>
-              ) : projects.map(proj=>(
-                <div key={proj.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", borderRadius:12, border:"1px solid #fed7aa", background:"#fff7ed", marginBottom:8 }}>
-                  <span style={{ fontSize:20 }}>🚀</span>
-                  <div style={{ flex:1 }}>
-                    <p style={{ margin:0, fontWeight:700, color:"#1e293b", fontSize:13 }}>{proj.title}</p>
-                    <p style={{ margin:0, fontSize:11, color:"#94a3b8" }}>{SUB_MAP[proj.submission_type]} · Score min: {proj.pass_score}/100 · SLA: {proj.sla_correction_hours}h</p>
-                  </div>
-                  <Pill color={proj.is_active?"#059669":"#94a3b8"}>{proj.is_active?"Actif":"Inactif"}</Pill>
-                  <IcoBtn onClick={()=>startProjEdit(proj)} color="#6366f1" title="Modifier">✏️</IcoBtn>
-                  <IcoBtn onClick={()=>deleteProject(proj)} color="#ef4444" title="Supprimer">🗑</IcoBtn>
-                </div>
-              ))}
-            </Section>
-
-          </div>
+            </div>
+          )}
         </div>
       )}
-    </div>
-  );
-}
 
-/* ══════════════════════ ICONE BTN ══════════════════════ */
-function IcoBtn({ onClick, color, title, children }) {
-  return (
-    <button onClick={onClick} title={title} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:color+"18", color, border:"none", borderRadius:8, cursor:"pointer", fontSize:13, flexShrink:0, transition:"background .15s" }}
-      onMouseEnter={e=>e.currentTarget.style.background=color+"33"}
-      onMouseLeave={e=>e.currentTarget.style.background=color+"18"}>
-      {children}
-    </button>
+      {/* ════ MODAL MODULE ════ */}
+      <Modal open={!!modM} onClose={() => setModM(null)} title={modM?._new ? "➕ Nouveau module" : `✏️ ${modM?.title || ""}`}>
+        {modM && (
+          <>
+            <div className="flex flex-col gap-4">
+              <Field label="Titre" required><input className={IS} value={modM.title || ""} onChange={e => setModM(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Introduction et Prérequis" autoFocus onKeyDown={e => e.key === "Enter" && saveMod()} /></Field>
+              <Field label="Description"><input className={IS} value={modM.description || ""} onChange={e => setModM(p => ({ ...p, description: e.target.value }))} placeholder="Description courte du module" /></Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Ordre"><input type="number" min="0" className={IS} value={modM.order_index ?? 0} onChange={e => setModM(p => ({ ...p, order_index: +e.target.value }))} /></Field>
+                <div className="flex items-end pb-2"><Toggle label="Module publié" checked={modM.is_published !== false} on={v => setModM(p => ({ ...p, is_published: v }))} color="#059669" /></div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6 pt-5 border-t border-slate-100">
+              <button onClick={() => setModM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Annuler</button>
+              <button onClick={saveMod} disabled={modSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: modSv ? "#a5b4fc" : "#2d287f" }}>
+                {modSv ? "Enregistrement…" : modM._new ? "✓ Créer le module" : "✓ Mettre à jour"}
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
+
+      {/* ════ MODAL LEÇON ════ */}
+      <Modal open={!!lesM} onClose={() => setLesM(null)} title={lesM?.les ? `✏️ ${lesM.les.title}` : "➕ Nouvelle leçon"} wide>
+        {lesM && (
+          <>
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-[1fr_90px] gap-3">
+                <Field label="Titre" required><input className={IS} value={lesM.title || ""} onChange={e => setLesM(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Introduction à Docker" autoFocus /></Field>
+                <Field label="Ordre"><input type="number" min="0" className={IS} value={lesM.order_index ?? 0} onChange={e => setLesM(p => ({ ...p, order_index: +e.target.value }))} /></Field>
+              </div>
+
+              {/* Type de contenu */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2.5">Type de contenu *</label>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.entries(TYPE_MAP).map(([v, l]) => {
+                    const sel = (lesM.content_type || "video") === v;
+                    const tc = TYPE_CLR[v];
+                    const TIcon = TYPE_ICO[v] || Film;
+                    return (
+                      <button key={v} onClick={() => setLesM(p => ({ ...p, content_type: v }))} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 font-bold text-xs transition" style={{ borderColor: sel ? tc : "#e2e8f0", background: sel ? tc + "14" : "#fff", color: sel ? tc : "#64748b" }}>
+                        <TIcon size={13} /> {l}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* URL vidéo + Upload inline */}
+              {["video", "exercise", "download"].includes(lesM.content_type || "video") && (
+                <div className="bg-slate-50 rounded-2xl p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#2d287f" }}>
+                    {lesM.content_type === "video" ? "🎬 Contenu vidéo" : lesM.content_type === "download" ? "📥 URL du fichier" : "⚡ URL de l'exercice"}
+                  </p>
+
+                  {/* Onglets URL / Upload — uniquement pour vidéo */}
+                  {lesM.content_type === "video" && (
+                    <>
+                      <div className="flex gap-2 p-1 bg-white rounded-xl mb-3 border border-slate-200">
+                        {[["url", "🔗 URL externe"], ["upload", "💾 Depuis mon PC"]].map(([v, l]) => (
+                          <button key={v} onClick={() => setLesM(p => ({ ...p, _vidTab: v }))} className="flex-1 py-2 rounded-lg text-xs font-bold transition" style={{ background: (lesM._vidTab||"url")===v ? "#2d287f" : "transparent", color: (lesM._vidTab||"url")===v ? "#fff" : "#64748b" }}>
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Tab URL */}
+                      {(lesM._vidTab||"url") === "url" && (
+                        <>
+                          <Field label="URL YouTube / Vimeo / MP4 direct" hint="optionnel">
+                            <input className={IS} value={lesM.content_url || ""} onChange={e => setLesM(p => ({ ...p, content_url: e.target.value }))} placeholder="https://youtube.com/watch?v=…" />
+                          </Field>
+                          {lesM.content_url && (
+                            <div className="mt-3 rounded-2xl overflow-hidden bg-black max-h-44" style={{ aspectRatio:"16/9" }}>
+                              {(lesM.content_url.includes("youtube") || lesM.content_url.includes("youtu.be")) ? (
+                                <iframe src={`https://www.youtube.com/embed/${lesM.content_url.includes("v=") ? lesM.content_url.split("v=")[1]?.split("&")[0] : lesM.content_url.split("/").pop()}`} className="w-full h-full border-none" allowFullScreen title="preview" />
+                              ) : lesM.content_url.match(/\.(mp4|webm|ogg)$/i) ? (
+                                <video src={lesM.content_url} controls className="w-full max-h-44" />
+                              ) : <div className="flex items-center justify-center h-32 text-slate-400 text-xs">🔗 {lesM.content_url.slice(0,60)}</div>}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Tab Upload PC — seulement si leçon existante (a un ID) */}
+                      {(lesM._vidTab||"url") === "upload" && (
+                        lesM.les?.id ? (
+                          <div>
+                            <VideoUploader
+                              token={token}
+                              lessonId={lesM.les.id}
+                              currentUrl={lesM.content_url || ""}
+                              onSuccess={(url) => {
+                                setLesM(p => ({ ...p, content_url: url, _vidTab: "url" }));
+                                t$("🎬 Vidéo uploadée !");
+                                // Mettre à jour la leçon dans la liste
+                                setLessons(prev => {
+                                  const map = { ...prev };
+                                  for (const [mid, arr] of Object.entries(map)) {
+                                    map[mid] = arr.map(l => l.id === lesM.les.id ? { ...l, content_url: url } : l);
+                                  }
+                                  return map;
+                                });
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="border-2 border-dashed border-amber-300 rounded-xl p-4 text-center bg-amber-50">
+                            <p className="text-amber-700 font-bold text-sm mb-1">⚠️ Créez d'abord la leçon</p>
+                            <p className="text-amber-600 text-xs">L'upload depuis PC n'est disponible qu'après la création de la leçon.</p>
+                            <p className="text-amber-600 text-xs mt-1">Créez la leçon, puis cliquez sur le bouton <strong>🎬 Vidéo</strong> sur la ligne de la leçon.</p>
+                          </div>
+                        )
+                      )}
+                    </>
+                  )}
+
+                  {/* Pour exercice et téléchargement : juste l'URL */}
+                  {lesM.content_type !== "video" && (
+                    <Field label={lesM.content_type === "download" ? "URL du fichier" : "URL du Lab / exercice"} hint="optionnel">
+                      <input className={IS} value={lesM.content_url || ""} onChange={e => setLesM(p => ({ ...p, content_url: e.target.value }))} placeholder="https://…" />
+                    </Field>
+                  )}
+                </div>
+              )}
+
+              {/* Contenu article */}
+              {lesM.content_type === "article" && (
+                <div className="rounded-2xl overflow-hidden border-2 border-red-200">
+                  {/* Bandeau rouge */}
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border-b border-red-200">
+                    <FileText size={14} className="text-red-500" />
+                    <span className="text-xs font-bold text-red-600 uppercase tracking-wider">📝 Contenu de l'article</span>
+                    <span className="text-xs text-red-400 ml-1">— HTML accepté</span>
+                  </div>
+                  <textarea
+                    className="w-full resize-y font-mono text-xs text-red-900 bg-red-50/40 border-none outline-none p-4 placeholder:text-red-300"
+                    rows={9}
+                    value={lesM.article_content || ""}
+                    onChange={e => setLesM(p => ({ ...p, article_content: e.target.value }))}
+                    placeholder={"<h2>Introduction</h2>\n<p>Dans cette leçon…</p>\n\n<h3>Section 1</h3>\n<p>Contenu de la section</p>"}
+                    style={{ fontFamily: "'Fira Code', 'JetBrains Mono', monospace", lineHeight: 1.6 }}
+                  />
+                  {/* Aperçu rendu */}
+                  {lesM.article_content && (
+                    <div className="border-t border-red-200">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-red-50">
+                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Aperçu rendu</span>
+                      </div>
+                      <div
+                        className="px-5 py-4 bg-white text-sm text-slate-700 leading-7
+                          [&_h2]:text-slate-900 [&_h2]:font-bold [&_h2]:text-base [&_h2]:mb-2 [&_h2]:mt-3 [&_h2]:border-b [&_h2]:border-slate-200 [&_h2]:pb-1
+                          [&_h3]:text-slate-800 [&_h3]:font-semibold [&_h3]:text-sm [&_h3]:mb-1.5 [&_h3]:mt-2
+                          [&_p]:mb-2 [&_p]:text-slate-600
+                          [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_li]:text-slate-600 [&_li]:mb-0.5
+                          [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2
+                          [&_strong]:font-bold [&_strong]:text-slate-900
+                          [&_code]:bg-slate-100 [&_code]:text-red-600 [&_code]:px-1 [&_code]:rounded [&_code]:text-xs
+                          [&_blockquote]:border-l-4 [&_blockquote]:border-red-300 [&_blockquote]:pl-3 [&_blockquote]:text-slate-500 [&_blockquote]:italic"
+                        dangerouslySetInnerHTML={{ __html: lesM.article_content }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Durée */}
+              <div className="flex items-end gap-4">
+                <div className="w-40">
+                  <Field label="Durée (minutes)"><input type="number" min="0" className={IS} value={lesM.duration_minutes ?? 0} onChange={e => setLesM(p => ({ ...p, duration_minutes: +e.target.value }))} /></Field>
+                </div>
+                {lesM.duration_minutes > 0 && <p className="text-sm text-slate-400 pb-2">≈ {Math.floor(lesM.duration_minutes / 60) > 0 ? `${Math.floor(lesM.duration_minutes / 60)}h ` : ""}{lesM.duration_minutes % 60 > 0 ? `${lesM.duration_minutes % 60}min` : ""}</p>}
+              </div>
+
+              {/* Options */}
+              <div className="bg-slate-50 rounded-2xl p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4">⚙️ Options</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <Toggle label="Leçon publiée" checked={lesM.is_published !== false} on={v => setLesM(p => ({ ...p, is_published: v }))} />
+                  <Toggle label="Aperçu gratuit" checked={!!lesM.is_preview} on={v => setLesM(p => ({ ...p, is_preview: v }))} color="#d97706" />
+                  <Toggle label="Complétion requise" checked={lesM.requires_completion !== false} on={v => setLesM(p => ({ ...p, requires_completion: v }))} color="#0ea5e9" />
+                  <Toggle label="Téléchargeable offline" checked={!!lesM.is_downloadable} on={v => setLesM(p => ({ ...p, is_downloadable: v }))} color="#7c3aed" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6 pt-5 border-t border-slate-100">
+              <button onClick={() => setLesM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Annuler</button>
+              <button onClick={saveLes} disabled={lesSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: lesSv ? "#a5b4fc" : "#2d287f" }}>
+                {lesSv ? "Enregistrement…" : lesM.les ? "✓ Mettre à jour la leçon" : "✓ Créer la leçon"}
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
+
+      {/* ════ MODAL UPLOAD VIDÉO ════ */}
+      <Modal open={!!upVid} onClose={() => setUpVid(null)} title={`🎬 Vidéo — ${upVid?.title || ""}`} wide>
+        {upVid && (
+          <>
+            <p className="text-sm text-slate-500 leading-relaxed mb-5">
+              Glisse ta vidéo <strong>directement depuis ton ordinateur</strong> ou colle une URL YouTube / MP4.
+              La vidéo uploadée sera stockée sur le serveur et automatiquement associée à la leçon.
+            </p>
+            <VideoUploader
+              token={token}
+              lessonId={upVid.id}
+              currentUrl={upVid.content_url || ""}
+              onSuccess={(url) => {
+                t$("🎬 Vidéo enregistrée !");
+                setLessons(prev => {
+                  const map = { ...prev };
+                  for (const [mid, arr] of Object.entries(map)) {
+                    map[mid] = arr.map(l => l.id === upVid.id ? { ...l, content_url: url } : l);
+                  }
+                  return map;
+                });
+              }}
+            />
+            <div className="mt-6 pt-5 border-t border-slate-100">
+              <button onClick={() => setUpVid(null)} className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Fermer</button>
+            </div>
+          </>
+        )}
+      </Modal>
+
+      {/* ════ MODAL RESSOURCES / FICHIERS ════ */}
+      <Modal open={!!resM} onClose={() => setResM(null)} title={`📎 Fichiers — ${resM?.les?.title || ""}`} wide>
+        {resM && (
+          <>
+            {/* Ressources existantes */}
+            {(resources[resM.lesId] || []).length > 0 && (
+              <div className="mb-6">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Fichiers existants ({resources[resM.lesId].length})</p>
+                {resources[resM.lesId].map(r => (
+                  <div key={r.id} className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-2xl mb-2 border border-slate-100">
+                    <span className="text-lg">{r.file_type === "pdf" ? "📄" : r.file_type === "mp4" ? "🎬" : r.file_type === "zip" ? "🗜" : r.file_type === "pptx" ? "📊" : "📎"}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-slate-800">{r.title}</p>
+                      <a href={r.file_url} target="_blank" rel="noreferrer" className="text-xs text-indigo-500 hover:underline">{(r.file_url || "").slice(0, 70)}</a>
+                    </div>
+                    {r.file_size && <Badge color="#64748b">{(r.file_size / 1024 / 1024).toFixed(1)} Mo</Badge>}
+                    <button onClick={() => deleteRes(r, resM.lesId)} className="w-7 h-7 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-100 transition"><Trash2 size={12} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="border-t border-slate-100 pt-5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4">+ Ajouter un fichier</p>
+              <ResourceUploader
+                token={token}
+                lessonId={resM.lesId}
+                onSuccess={() => { t$("📎 Fichier ajouté !"); loadRes(resM.lesId); }}
+              />
+            </div>
+
+            <div className="mt-5 pt-5 border-t border-slate-100">
+              <button onClick={() => setResM(null)} className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Fermer</button>
+            </div>
+          </>
+        )}
+      </Modal>
+    </div>
   );
 }
