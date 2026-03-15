@@ -7,7 +7,14 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      // Proxy API vers le backend Express
       '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+      // ✅ Proxy /uploads pour servir les vidéos et fichiers uploadés
+      // Les vidéos stockées dans uploads/ du backend sont accessibles via /uploads/...
+      '/uploads': {
         target: 'http://localhost:5000',
         changeOrigin: true,
       },
@@ -24,6 +31,4 @@ export default defineConfig({
       reporter: ['text', 'html'],
     },
   },
-
-  
 });

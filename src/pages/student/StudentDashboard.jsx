@@ -86,12 +86,17 @@ const isRej   = c => c.payment_status === "rejected";
 /* ── Progress bar ── */
 function ProgressBar({ pct, done=false }) {
   return (
-    <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+    <div className="w-full rounded-full overflow-hidden" style={{ height:8, background:"#e8e6f5" }}>
       <div
         className="h-full rounded-full transition-all duration-700"
         style={{
-          width: `${pct}%`,
-          background: done ? "#5653e1" : `linear-gradient(90deg, #2d287f, #5653e1)`,
+          width: `${Math.max(pct, pct>0?4:0)}%`,
+          background: done
+            ? "linear-gradient(90deg, #5653e1, #8b5cf6)"
+            : pct >= 80
+            ? "linear-gradient(90deg, #059669, #10b981)"
+            : `linear-gradient(90deg, #2d287f, #5653e1)`,
+          minWidth: pct > 0 ? 8 : 0,
         }}
       />
     </div>
@@ -107,16 +112,16 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
 
   return (
     <div
-      className="group flex flex-col rounded-2xl overflow-hidden bg-white border transition-all duration-200 hover:-translate-y-0.5 cursor-default"
+      className="group flex flex-col rounded-2xl overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 cursor-default"
       style={{
-        border: `1px solid ${done ? "#c4b5fd" : C.border}`,
-        boxShadow: "0 1px 4px rgba(45,40,127,0.06)",
+        border: `1.5px solid ${done ? "#c4b5fd" : acc ? "#ddd9f9" : C.border}`,
+        boxShadow: "0 2px 8px rgba(45,40,127,0.07)",
       }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow="0 4px 16px rgba(45,40,127,0.12)"}
-      onMouseLeave={e => e.currentTarget.style.boxShadow="0 1px 4px rgba(45,40,127,0.06)"}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 8px 24px rgba(45,40,127,0.14)"; e.currentTarget.style.borderColor=done?"#a78bfa":acc?"#6366f1":"#c4b5fd"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow="0 2px 8px rgba(45,40,127,0.07)"; e.currentTarget.style.borderColor=done?"#c4b5fd":acc?"#ddd9f9":C.border; }}
     >
       {/* Thumbnail */}
-      <div className="relative h-28 overflow-hidden flex-shrink-0">
+      <div className="relative h-36 overflow-hidden flex-shrink-0">
         <ThumbnailCard title={c.title} url={c.thumbnail_url} className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
         {/* Status badge */}
         <div className="absolute top-2 right-2">
@@ -144,22 +149,26 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
       </div>
 
       {/* Body */}
-      <div className="flex flex-col flex-1 p-3 gap-2">
-        <h3 className="text-sm font-semibold line-clamp-2 leading-snug" style={{ color: C.text }}>
+      <div className="flex flex-col flex-1 p-4 gap-2.5">
+        <h3 className="text-sm font-bold line-clamp-2 leading-snug" style={{ color: C.text }}>
           {c.title}
         </h3>
 
-        <div className="flex items-center gap-3 text-xs text-slate-400">
+        <div className="flex items-center gap-3 text-xs text-slate-400 flex-wrap">
+          {c.category_name && <span className="text-indigo-500 font-medium">{c.category_name}</span>}
           {c.duration_hours && <span className="flex items-center gap-1"><Clock className="w-3 h-3"/>{c.duration_hours}h</span>}
           {c.total_lessons  && <span className="flex items-center gap-1"><BookOpen className="w-3 h-3"/>{c.total_lessons} leçons</span>}
         </div>
 
         {/* Progress */}
         {acc && (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">{c.completed_lessons||0}/{c.total_lessons||0} leçons</span>
-              <span className="font-bold" style={{ color: done ? "#5653e1" : C.primary }}>{pct}%</span>
+              <span className="text-slate-400 font-medium">{c.completed_lessons||0}/{c.total_lessons||0} leçons</span>
+              <span className="font-bold px-1.5 py-0.5 rounded-md text-[10px]"
+                style={{ background: done?"#ede9fe":pct>=50?"#d1fae5":"#eff6ff", color: done?"#5653e1":pct>=50?"#059669":"#2d287f" }}>
+                {pct}%
+              </span>
             </div>
             <ProgressBar pct={pct} done={done} />
           </div>
@@ -453,7 +462,8 @@ export default function StudentDashboard() {
                 <div className="flex-1 max-w-48">
                   <ProgressBar pct={getPct(lastAcc)} />
                 </div>
-                <span className="text-xs font-bold" style={{ color:C.light }}>{getPct(lastAcc)}%</span>
+                <span className="text-xs font-bold px-2 py-1 rounded-lg"
+                  style={{ background:"#ede9fe", color:C.primary }}>{getPct(lastAcc)}%</span>
               </div>
             </div>
             <button onClick={() => navigate(`/courses/${lastAcc.id}/learn`)}
@@ -470,7 +480,7 @@ export default function StudentDashboard() {
           <div>
             <SectionHeader icon={Flame} color="text-orange-500" title="En cours"
               count={g.active.length} action={<SeeAll to="/student/active" />} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {g.active.slice(0,5).map(c => (
                 <CourseCard key={c.id} c={c} onUpload={doUpload} uploading={uploadId} onGo={navigate} />
               ))}
@@ -501,7 +511,7 @@ export default function StudentDashboard() {
                   <SeeAll to="/student/completed" />
                 </div>
               } />
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {g.completed.slice(0,5).map(c => (
                 <CourseCard key={c.id} c={c} onUpload={doUpload} uploading={uploadId} onGo={navigate} />
               ))}

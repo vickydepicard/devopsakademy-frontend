@@ -113,14 +113,21 @@ function VideoPlayer({ url, lessonId, token, onVideoUploaded, isAdmin, isInstruc
   }
 
   if (url?.match(/\.(mp4|webm|ogg|mkv|avi|mov)$/i) || url?.includes("/uploads/")) {
+    // Normaliser l'URL: si c'est localhost:5000, convertir en chemin relatif via proxy Vite
+    const videoSrc = url.includes("localhost:5000/uploads/")
+      ? url.replace(/^https?:\/\/[^/]+\/uploads\//, "/uploads/")
+      : url.includes("localhost:3000/uploads/")
+      ? url.replace(/^https?:\/\/[^/]+\/uploads\//, "/uploads/")
+      : url;
     return (
       <div className="w-full rounded-2xl overflow-hidden bg-black" style={{ maxHeight: "56vh" }}>
         <video
-          src={url}
+          src={videoSrc}
           controls
           className="w-full"
           style={{ maxHeight: "56vh" }}
           controlsList="nodownload"
+          onError={(e) => console.error("Video load error:", e, "src:", videoSrc)}
         />
       </div>
     );
@@ -570,19 +577,44 @@ export default function CourseLearn() {
               {/* Ressources attachées */}
               {activeLesson.resources?.length > 0 && (
                 <div className="mt-5 bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-                  <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-700">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-700">
                     <Paperclip size={15} className="text-gray-400" />
-                    <p className="text-gray-300 font-semibold text-sm">Ressources ({activeLesson.resources.length})</p>
+                    <p className="text-gray-300 font-semibold text-sm">Fichiers & Ressources</p>
+                    <span className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded-full">{activeLesson.resources.length}</span>
                   </div>
-                  <div className="divide-y divide-gray-700/50">
-                    {activeLesson.resources.map((r, i) => (
-                      <a key={i} href={r.url || r.file_url} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-5 py-3 hover:bg-gray-700/30 transition group">
-                        <span className="text-base">{r.file_type==="pdf"?"📄":r.file_type==="zip"?"🗜":"📎"}</span>
-                        <span className="flex-1 text-indigo-400 group-hover:text-indigo-300 text-sm transition">{r.title || r.url}</span>
-                        <Download size={13} className="text-gray-600 group-hover:text-gray-400 flex-shrink-0" />
-                      </a>
-                    ))}
+                  <div className="divide-y divide-gray-700/40">
+                    {activeLesson.resources.map((r, i) => {
+                      const furl = r.file_url || r.url || "";
+                      const normalUrl = furl.includes("localhost:5000/uploads/")
+                        ? furl.replace(/^https?:\/\/[^/]+\/uploads\//, "/uploads/")
+                        : furl;
+                      const ft = r.file_type || "";
+                      const icon = ft==="pdf"?"📄":ft==="mp4"||ft==="video"?"🎬":ft==="zip"?"🗜":ft==="pptx"?"📊":ft==="docx"?"📝":ft==="code"?"💻":ft==="link"?"🔗":"📎";
+                      const isVideo = ft==="mp4" || furl.match(/\.(mp4|webm|ogg)$/i);
+                      return (
+                        <div key={r.id||i} className="px-5 py-3 hover:bg-gray-700/30 transition">
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg flex-shrink-0">{icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-gray-200 text-sm font-medium truncate">{r.title || furl}</p>
+                              {r.file_size > 0 && (
+                                <p className="text-gray-500 text-xs mt-0.5">{(r.file_size/1024/1024).toFixed(1)} Mo</p>
+                              )}
+                            </div>
+                            {normalUrl && !isVideo && (
+                              <a href={normalUrl} target="_blank" rel="noopener noreferrer" download
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 text-indigo-400 rounded-lg text-xs font-semibold hover:bg-indigo-600/30 transition flex-shrink-0">
+                                <Download size={11} /> Télécharger
+                              </a>
+                            )}
+                          </div>
+                          {/* Lecteur vidéo inline pour ressources MP4 */}
+                          {isVideo && normalUrl && (
+                            <video src={normalUrl} controls className="w-full rounded-xl mt-2 max-h-36 bg-black" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

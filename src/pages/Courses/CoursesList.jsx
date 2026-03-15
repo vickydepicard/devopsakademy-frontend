@@ -146,7 +146,7 @@ export default function CoursesList() {
     if (payment_status === "free" || payment_status === "verified" || is_approved) {
       return (
         <button
-          onClick={() => navigate(`/courses/${course.slug}/learn`)}
+          onClick={() => navigate(`/courses/${course.id}/learn`)}
           className="px-4 py-1.5 rounded-full text-sm font-semibold bg-emerald-500 hover:bg-emerald-600 text-white transition"
         >
           ▶ Accéder
@@ -277,7 +277,7 @@ export default function CoursesList() {
                   </div>
 
                   <div className="flex gap-2 mt-3">
-                    <Link to={`/courses/${course.slug || course.id}`} className="flex-1 py-2 border border-gray-200 rounded-full text-xs font-semibold text-gray-600 hover:border-indigo-300 hover:text-indigo-700 text-center transition">
+                    <Link to={`/courses/${course.id}`} className="flex-1 py-2 border border-gray-200 rounded-full text-xs font-semibold text-gray-600 hover:border-indigo-300 hover:text-indigo-700 text-center transition">
                       Voir détails
                     </Link>
                     {renderEnrollButton(course)}

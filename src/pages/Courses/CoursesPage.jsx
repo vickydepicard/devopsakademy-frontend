@@ -109,7 +109,7 @@ function CourseCard({ course, onEnrolled }) {
 
           <div className="flex gap-2 mt-3">
             <Link
-              to={`/courses/${course.slug}`}
+              to={`/courses/${course.id}`}
               className="flex-1 py-2 border border-gray-200 rounded-full text-xs font-semibold text-gray-600 hover:border-indigo-300 hover:text-indigo-700 text-center transition"
             >
               Voir détails

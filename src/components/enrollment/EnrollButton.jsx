@@ -120,7 +120,7 @@ export default function EnrollButton({ course, className = "", size = "md", onEn
   if (payment_status === "free" || payment_status === "verified" || is_approved === 1) {
     return (
       <button
-        onClick={() => navigate(`/courses/${course.slug}/learn`)}
+        onClick={() => navigate(`/courses/${course.id}/learn`)}
         className={`${sz} rounded-full font-semibold bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm hover:shadow-md ${className}`}
       >
         ▶ Accéder au cours

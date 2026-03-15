@@ -223,7 +223,19 @@ export default function MyCourses() {
                   {/* Thumbnail */}
                   <div className="relative h-44 overflow-hidden bg-gradient-to-br from-primary-dark to-primary-light">
                     {course.thumbnail_url ? (
-                      <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+                      <>
+                        <img
+                          src={course.thumbnail_url}
+                          alt={course.title}
+                          className="w-full h-full object-cover"
+                          onError={e => { e.target.style.display="none"; const fb=e.target.nextSibling; if(fb) fb.style.display="flex"; }}
+                        />
+                        <div style={{display:"none"}} className="absolute inset-0 items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
+                          <span className="text-white font-bold text-2xl drop-shadow">
+                            {(course.title||"?").split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase()}
+                          </span>
+                        </div>
+                      </>
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <BookOpen className="w-12 h-12 text-white/40" />
@@ -234,7 +246,7 @@ export default function MyCourses() {
 
                     {/* Badge statut */}
                     <div className="absolute top-3 right-3">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.color}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border shadow-sm ${cfg.color}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                         {cfg.label}
                       </span>
@@ -242,15 +254,26 @@ export default function MyCourses() {
 
                     {/* Progress overlay si actif */}
                     {status === "approved" && (
-                      <div className="absolute bottom-3 left-3 right-3">
-                        <div className="flex items-center justify-between text-white text-xs mb-1">
-                          <span>Progression</span>
-                          <span className="font-bold">{Math.round(progress)}%</span>
+                      <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6"
+                        style={{ background:"linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}>
+                        <div className="flex items-center justify-between text-white text-xs mb-1.5">
+                          <span className="font-medium">Progression</span>
+                          <span className="font-bold text-sm px-1.5 py-0.5 rounded"
+                            style={{ background: progress>=100?"#5653e1":progress>=50?"#059669":"rgba(255,255,255,0.2)" }}>
+                            {Math.round(progress)}%
+                          </span>
                         </div>
-                        <div className="h-1.5 bg-white/30 rounded-full">
+                        <div className="h-2 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.25)" }}>
                           <div
-                            className="h-full bg-accent rounded-full transition-all"
-                            style={{ width: `${progress}%` }}
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.max(progress, progress>0?3:0)}%`,
+                              background: progress>=100
+                                ? "linear-gradient(90deg,#5653e1,#8b5cf6)"
+                                : progress>=80
+                                ? "linear-gradient(90deg,#059669,#10b981)"
+                                : "linear-gradient(90deg,#facc15,#fbbf24)",
+                            }}
                           />
                         </div>
                       </div>
@@ -259,7 +282,7 @@ export default function MyCourses() {
 
                   {/* Contenu */}
                   <div className="p-5 flex flex-col flex-1">
-                    <h3 className="font-bold text-gray-900 mb-1 text-base line-clamp-2 leading-snug">
+                    <h3 className="font-bold text-gray-900 mb-2 text-base leading-snug" style={{ display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
                       {course.title}
                     </h3>
 
@@ -290,10 +313,11 @@ export default function MyCourses() {
                         <>
                           <button
                             onClick={() => navigate(`/courses/${course.course_id || course.id}/learn`)}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-primary to-primary-light text-white font-semibold rounded-xl hover:shadow-md transition text-sm"
+                            className="w-full flex items-center justify-center gap-2 py-3 font-bold rounded-xl transition text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                            style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)", color:"#fff" }}
                           >
                             <PlayCircle className="w-4 h-4" />
-                            {progress > 0 ? "Continuer" : "Commencer"}
+                            {progress >= 100 ? "🎓 Revoir le cours" : progress > 0 ? "▶ Continuer" : "🚀 Commencer"}
                           </button>
                           {progress >= 100 && (
                             <Link

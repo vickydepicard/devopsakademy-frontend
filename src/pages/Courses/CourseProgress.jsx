@@ -72,7 +72,7 @@ export default function CourseProgress() {
       {/* ── Header ──────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-indigo-900 to-purple-800 text-white px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <button onClick={() => navigate("/dashboard")} className="text-indigo-300 hover:text-white text-sm mb-4 flex items-center gap-1 transition">
+          <button onClick={() => navigate("/student")} className="text-indigo-300 hover:text-white text-sm mb-4 flex items-center gap-1 transition">
             ← Mon dashboard
           </button>
           <h1 className="text-2xl font-bold">{course?.title}</h1>
@@ -121,7 +121,7 @@ export default function CourseProgress() {
             <p className="text-gray-600 font-medium">Aucune donnée de progression</p>
             <p className="text-gray-400 text-sm mt-1">Commencez le cours pour voir votre avancement</p>
             <button
-              onClick={() => navigate(`/courses/${id}/learn`)}
+              onClick={() => navigate(`/courses/${course?.id || id}/learn`)}
               className="mt-4 px-5 py-2.5 bg-indigo-700 text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition"
             >
               ▶ Commencer le cours
@@ -199,13 +199,13 @@ export default function CourseProgress() {
         {/* ── CTA ─────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <button
-            onClick={() => navigate(`/courses/${id}/learn`)}
+            onClick={() => navigate(`/courses/${course?.id || id}/learn`)}
             className="flex-1 py-3 bg-indigo-700 hover:bg-indigo-800 text-white rounded-xl font-semibold text-sm transition text-center"
           >
             ▶ Continuer le cours
           </button>
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/student")}
             className="flex-1 py-3 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl font-semibold text-sm transition text-center"
           >
             ← Mon dashboard

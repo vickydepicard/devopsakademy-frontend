@@ -784,8 +784,21 @@ export default function AdminCourses() {
                   <div className="flex flex-col gap-3">
                     <Field label="Instructeur" required>
                       <select className={IS} value={cForm.instructor_id || ""} onChange={e => setCForm(p => ({ ...p, instructor_id: e.target.value }))}>
-                        <option value="">— Sélectionner —</option>
-                        {instructors.map(i => <option key={i.id} value={i.id}>{i.first_name} {i.last_name}</option>)}
+                        <option value="">— Sélectionner un instructeur —</option>
+                        {instructors.filter(i=>i.role==="instructor").length>0 && (
+                          <optgroup label="👨‍🏫 Instructeurs">
+                            {instructors.filter(i=>i.role==="instructor").map(i => (
+                              <option key={i.id} value={i.id}>{i.first_name} {i.last_name} — {i.email}</option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {instructors.filter(i=>i.role==="admin").length>0 && (
+                          <optgroup label="🛡️ Admins">
+                            {instructors.filter(i=>i.role==="admin").map(i => (
+                              <option key={i.id} value={i.id}>{i.first_name} {i.last_name} — {i.email}</option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
                     </Field>
                     <Field label="Catégorie">
@@ -1011,12 +1024,13 @@ export default function AdminCourses() {
                                         <p className="text-xs text-slate-400 italic">Aucun fichier attaché</p>
                                       ) : resources[les.id].map(r => (
                                         <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 bg-slate-50 rounded-xl mb-1.5 border border-slate-100">
-                                          <span className="text-sm">{r.file_type === "pdf" ? "📄" : r.file_type === "mp4" ? "🎬" : r.file_type === "zip" ? "🗜" : r.file_type === "pptx" ? "📊" : "📎"}</span>
+                                          <span className="text-sm">{r.file_type==="pdf"?"📄":r.file_type==="mp4"||r.file_type==="video"?"🎬":r.file_type==="zip"?"🗜":r.file_type==="pptx"?"📊":r.file_type==="docx"?"📝":r.file_type==="code"?"💻":r.file_type==="link"?"🔗":"📎"}</span>
                                           <div className="flex-1 min-w-0">
                                             <p className="font-semibold text-xs text-slate-800">{r.title}</p>
-                                            <a href={r.file_url} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-500 truncate block">{(r.file_url || "").slice(0, 60)}{(r.file_url || "").length > 60 ? "…" : ""}</a>
+                                            <a href={r.file_url} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-500 truncate block hover:text-indigo-700">{(r.file_url || "").slice(0, 55)}{(r.file_url || "").length > 55 ? "…" : ""}</a>
                                           </div>
-                                          {r.file_size && <Badge color="#64748b">{(r.file_size / 1024 / 1024).toFixed(1)}Mo</Badge>}
+                                          {r.file_size > 0 && <Badge color="#64748b">{(r.file_size/1024/1024).toFixed(1)}Mo</Badge>}
+                                          <a href={r.file_url} target="_blank" rel="noreferrer" download className="w-6 h-6 flex items-center justify-center bg-blue-50 text-blue-400 rounded-lg hover:bg-blue-100 transition" title="Télécharger"><Download size={10} /></a>
                                           <button onClick={() => deleteRes(r, les.id)} className="w-6 h-6 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-100 transition"><Trash2 size={10} /></button>
                                         </div>
                                       ))}
@@ -1123,8 +1137,13 @@ export default function AdminCourses() {
                             <div className="mt-3 rounded-2xl overflow-hidden bg-black max-h-44" style={{ aspectRatio:"16/9" }}>
                               {(lesM.content_url.includes("youtube") || lesM.content_url.includes("youtu.be")) ? (
                                 <iframe src={`https://www.youtube.com/embed/${lesM.content_url.includes("v=") ? lesM.content_url.split("v=")[1]?.split("&")[0] : lesM.content_url.split("/").pop()}`} className="w-full h-full border-none" allowFullScreen title="preview" />
-                              ) : lesM.content_url.match(/\.(mp4|webm|ogg)$/i) ? (
-                                <video src={lesM.content_url} controls className="w-full max-h-44" />
+                              ) : lesM.content_url.match(/\.(mp4|webm|ogg|mkv|avi|mov)$/i) || lesM.content_url.includes("/uploads/") ? (
+                                <video
+                                  src={lesM.content_url.includes("localhost:5000/uploads/")
+                                    ? lesM.content_url.replace(/^https?:\/\/[^/]+\/uploads\//, "/uploads/")
+                                    : lesM.content_url}
+                                  controls className="w-full max-h-44"
+                                />
                               ) : <div className="flex items-center justify-center h-32 text-slate-400 text-xs">🔗 {lesM.content_url.slice(0,60)}</div>}
                             </div>
                           )}

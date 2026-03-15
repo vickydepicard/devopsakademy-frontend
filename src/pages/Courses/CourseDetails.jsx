@@ -1,749 +1,548 @@
+// CourseDetails.jsx — DevOpsAkademy
+// Page détail cours — 100% dynamique — Prix en FCFA
+// Design cohérent avec les couleurs #2d287f / #facc15
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { usePermissions } from "../../contexts/PermissionContext";
 import api from "../../api/api";
-
-// Icons imports
 import {
-  Star, Users, Clock, BookOpen, CheckCircle, Lock, Unlock, Award,
-  MessageSquare, ChevronRight, PlayCircle, FileText, Download, Globe,
-  Target, BarChart, Shield, Smartphone, Video, FileCode, Zap,
-  TrendingUp, Heart, Share2, Bookmark, AlertCircle, UserCheck,
-  Briefcase, GraduationCap, Languages, CalendarDays, Eye, ArrowRight,
-  Info, HelpCircle, ChevronDown, ChevronUp, ExternalLink,
-  // DevOps icons
-  Code, Server, Database, Cloud, Terminal, GitBranch, Settings,
-  ShieldCheck, Cpu, Network, Key, GitMerge, Container, Loader,
-  Wifi, Check, X, AlertTriangle, Mail, Phone, CreditCard
+  Star, Users, Clock, BookOpen, CheckCircle, Lock, Award,
+  PlayCircle, FileText, Download, Globe, Target, BarChart,
+  Shield, Video, Zap, TrendingUp, Share2, AlertCircle,
+  GraduationCap, Eye, ArrowRight, Info, HelpCircle,
+  ChevronDown, ChevronUp, ChevronRight, Terminal,
+  Code, Cloud, Settings, ShieldCheck, CreditCard,
+  Check, X, Mail, Phone, Loader, FileCode
 } from "lucide-react";
-
 import CourseReviews from "../../components/Reviews/CourseReviews";
 
-const CourseDetails = () => {
+
+/* ── Dé-encoder les champs JSON multi-encodés ── */
+function parseJsonField(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    // Peut-être un tableau de tableaux encodés récursivement
+    if (raw.length === 1 && typeof raw[0] === "string") return parseJsonField(raw[0]);
+    return raw.flatMap(item => typeof item === "string" ? parseJsonField(item) : item);
+  }
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      return parseJsonField(parsed);
+    } catch {
+      // Pas du JSON valide → c'est une chaîne simple
+      return raw.trim() ? [raw] : [];
+    }
+  }
+  return [];
+}
+
+/* ══════════════════════════════════════════════════════
+   UTILITAIRES
+══════════════════════════════════════════════════════ */
+// Prix UNIQUEMENT en FCFA
+const formatPrice = (price, isFree) => {
+  if (isFree || price === 0 || !price) return "Gratuit";
+  return new Intl.NumberFormat("fr-FR").format(Number(price)) + " FCFA";
+};
+
+const formatDuration = (hours) => {
+  if (!hours) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  return `${hours} heure${hours > 1 ? "s" : ""}`;
+};
+
+const formatRating = (r) => (!r ? "0.0" : parseFloat(r).toFixed(1));
+
+const LEVELS = {
+  beginner:     { label: "Débutant",      cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: "🟢" },
+  intermediate: { label: "Intermédiaire", cls: "bg-blue-50 text-blue-700 border-blue-200",          icon: "🔵" },
+  advanced:     { label: "Avancé",        cls: "bg-purple-50 text-purple-700 border-purple-200",    icon: "🟣" },
+};
+const LANGS = {
+  fr: { name: "Français", flag: "🇫🇷" },
+  en: { name: "English",  flag: "🇬🇧" },
+  ar: { name: "Arabe",    flag: "🇸🇦" },
+};
+const LESSON_TYPES = {
+  video:    { icon: Video,    bg: "bg-blue-50 text-blue-600",   label: "Vidéo" },
+  article:  { icon: FileText, bg: "bg-emerald-50 text-emerald-600", label: "Article" },
+  quiz:     { icon: FileCode, bg: "bg-purple-50 text-purple-600",  label: "Quiz" },
+  exercise: { icon: Zap,      bg: "bg-orange-50 text-orange-600",  label: "Exercice" },
+  download: { icon: Download, bg: "bg-gray-50 text-gray-600",      label: "Téléchargement" },
+};
+
+/* ══════════════════════════════════════════════════════
+   COMPOSANTS
+══════════════════════════════════════════════════════ */
+function Thumbnail({ url, title, h = "h-80" }) {
+  const [failed, setFailed] = useState(false);
+  const initials = (title || "?").split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
+  if (url && !failed) {
+    return (
+      <img
+        src={url} alt={title}
+        className={`w-full ${h} object-cover`}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return (
+    <div className={`w-full ${h} flex items-center justify-center`}
+      style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+      <div className="text-center">
+        <span className="text-white font-black text-5xl drop-shadow">{initials}</span>
+        <p className="text-white/70 text-sm mt-2">DevOps Akademy</p>
+      </div>
+    </div>
+  );
+}
+
+function PriceBadge({ price, originalPrice, isFree }) {
+  const discount = originalPrice && price && !isFree
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
+    : null;
+  return { discount };
+}
+
+/* ══════════════════════════════════════════════════════
+   MODAL PAIEMENT
+══════════════════════════════════════════════════════ */
+function PaymentModal({ onClose, price, isFree }) {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h3 className="text-xl font-black text-gray-900">💳 Informations de Paiement</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-5">
+          {/* Prix FCFA */}
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 border border-indigo-100">
+            <p className="text-sm text-indigo-600 font-semibold mb-1">Montant à payer</p>
+            <p className="text-3xl font-black" style={{ color: "#2d287f" }}>
+              {formatPrice(price, isFree)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">Paiement unique — accès à vie</p>
+          </div>
+
+          {/* Méthodes de paiement */}
+          <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard className="w-5 h-5 text-amber-600" />
+              <h4 className="font-bold text-gray-900">Méthodes acceptées (FCFA)</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { name: "Orange Money", icon: "🟠", detail: "Via mobile money" },
+                { name: "MTN MoMo",     icon: "🟡", detail: "Via mobile money" },
+                { name: "Wave",         icon: "🌊", detail: "Via Wave App" },
+                { name: "Virement",     icon: "🏦", detail: "Banque locale" },
+              ].map(m => (
+                <div key={m.name} className="bg-white rounded-xl p-3 border border-amber-200 text-center">
+                  <div className="text-2xl mb-1">{m.icon}</div>
+                  <p className="text-sm font-bold text-gray-800">{m.name}</p>
+                  <p className="text-xs text-gray-500">{m.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Processus */}
+          <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
+            <div className="flex items-center gap-2 mb-4">
+              <Info className="w-5 h-5 text-emerald-600" />
+              <h4 className="font-bold text-gray-900">Processus d'inscription</h4>
+            </div>
+            <ol className="space-y-3">
+              {[
+                { icon: "1", text: "Cliquez sur \"S'inscrire\" et créez votre compte" },
+                { icon: "2", text: "Effectuez le paiement via votre méthode préférée" },
+                { icon: "3", text: "Envoyez la preuve à support@devopsakademy.com" },
+                { icon: "4", text: "Accès activé sous 24h après validation" },
+              ].map((s) => (
+                <li key={s.icon} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
+                    style={{ background: "#2d287f" }}>{s.icon}</div>
+                  <p className="text-sm text-gray-700">{s.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Contact */}
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+            <p className="text-sm font-bold text-gray-700 mb-3">📞 Support & Assistance</p>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-gray-400" /> support@devopsakademy.com</div>
+              <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-gray-400" /> Lun–Ven : 8h–18h (WAT)</div>
+              <div className="flex items-center gap-2"><Shield className="w-4 h-4 text-gray-400" /> Garantie satisfait ou remboursé 30 jours</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 pt-0">
+          <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-white transition hover:opacity-90"
+            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   COMPOSANT PRINCIPAL
+══════════════════════════════════════════════════════ */
+export default function CourseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
-  const { 
-    isUserEnrolled, 
-    isEnrollmentApproved, 
-    getEnrollmentStatus,
-    enrollInCourse 
-  } = usePermissions();
-  
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [enrolling, setEnrolling] = useState(false);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [expandedModules, setExpandedModules] = useState([]);
-  const [showPaymentInfo, setShowPaymentInfo] = useState(false);
+  const { isUserEnrolled, isEnrollmentApproved, getEnrollmentStatus, enrollInCourse } = usePermissions();
 
-  // Language detection
-  const userLanguage = navigator.language || navigator.userLanguage || 'fr';
-  const isFrench = userLanguage.startsWith('fr');
+  const [course,          setCourse]         = useState(null);
+  const [loading,         setLoading]        = useState(true);
+  const [enrolling,       setEnrolling]      = useState(false);
+  const [error,           setError]          = useState(null);
+  const [activeTab,       setActiveTab]      = useState("overview");
+  const [expandedMods,    setExpandedMods]   = useState([]);
+  const [showPayment,     setShowPayment]    = useState(false);
+  const [notif,           setNotif]          = useState(location.state?.message || null);
 
+  /* ── Chargement ── */
   useEffect(() => {
-    const fetchCourseDetails = async () => {
+    const load = async () => {
+      setLoading(true); setError(null);
       try {
-        setLoading(true);
-        setError(null);
-        
-        // Try enhanced version for authenticated users
         if (isAuthenticated) {
           try {
-            const enhancedResponse = await api.get(`/courses/${id}/details`);
-            if (enhancedResponse.data?.success) {
-              setCourse(enhancedResponse.data.data);
-              return;
-            }
-          } catch (enhancedErr) {
-            console.log("Enhanced version not available, falling back to public");
-          }
+            const r = await api.get(`/courses/${id}/details`);
+            if (r.data?.success) { setCourse(r.data.data); return; }
+          } catch (_) {}
         }
-        
-        // Public version (for everyone)
-        const response = await api.get(`/courses/${id}`);
-        if (response.data?.success) {
-          setCourse(response.data.data);
-        } else {
-          setError(isFrench ? "Impossible de charger les détails du cours" : "Unable to load course details");
-        }
+        const r = await api.get(`/courses/${id}`);
+        if (r.data?.success) setCourse(r.data.data);
+        else setError("Impossible de charger ce cours.");
       } catch (err) {
-        console.error("Error loading course details:", err);
-        setError(err.response?.data?.message || (isFrench ? "Erreur de connexion au serveur" : "Server connection error"));
-      } finally {
-        setLoading(false);
-      }
+        setError(err.response?.data?.message || "Erreur de connexion au serveur");
+      } finally { setLoading(false); }
     };
-
-    fetchCourseDetails();
+    load();
   }, [id, isAuthenticated]);
 
+  /* ── Inscription ── */
   const handleEnroll = async () => {
     if (!isAuthenticated) {
-      navigate('/login', { 
-        state: { 
-          from: `/courses/${id}`,
-          message: isFrench ? "Connectez-vous pour vous inscrire à ce cours" : "Sign in to enroll in this course"
-        }
-      });
+      navigate("/login", { state: { from: `/courses/${course?.id || id}` } });
       return;
     }
-
-    if (isUserEnrolled(id)) {
-      if (isEnrollmentApproved(id)) {
-        navigate(`/courses/${id}/learn`);
-      } else {
-        navigate(`/courses/${id}`, {
-          state: { message: isFrench 
-            ? "Votre inscription est en attente de validation par l'administrateur" 
-            : "Your enrollment is pending administrator approval"
-          }
-        });
-      }
+    const cid = String(course?.id || id);
+    if (isUserEnrolled(cid)) {
+      if (isEnrollmentApproved(cid)) navigate(`/courses/${course?.id || id}/learn`);
+      else setNotif("Votre inscription est en attente de validation.");
       return;
     }
-
+    setEnrolling(true);
     try {
-      setEnrolling(true);
-      await enrollInCourse(id);
-      
-      // Reload data
-      try {
-        const enhancedResponse = await api.get(`/courses/${id}/details`);
-        if (enhancedResponse.data?.success) {
-          setCourse(enhancedResponse.data.data);
-        }
-      } catch (err) {
-        console.log("Error reloading:", err);
-      }
-      
-      navigate(`/courses/${id}`, {
-        state: { 
-          success: true,
-          message: isFrench
-            ? "Votre inscription a été soumise avec succès ! L'administrateur validera votre inscription après vérification du paiement."
-            : "Your enrollment has been submitted successfully! The administrator will validate your enrollment after payment verification."
-        }
-      });
+      await enrollInCourse(cid);
+      setNotif("✅ Inscription soumise ! Accès activé après validation du paiement sous 24h.");
     } catch (err) {
-      console.error("Enrollment error:", err);
-      setError(err.response?.data?.message || (isFrench ? "Erreur lors de l'inscription" : "Error during enrollment"));
-    } finally {
-      setEnrolling(false);
-    }
+      setError(err.response?.data?.message || "Erreur lors de l'inscription.");
+    } finally { setEnrolling(false); }
   };
 
-  // Unified access logic
-  const accessStatus = useMemo(() => {
-    if (!isAuthenticated) {
-      return {
-        status: 'guest',
-        label: isFrench ? 'Visiteur' : 'Visitor',
-        message: isFrench ? 'Inscrivez-vous pour accéder à ce cours' : 'Sign up to access this course',
-        icon: <Unlock className="w-5 h-5" />,
-        color: 'blue',
-        badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-        actions: {
-          primary: {
-            text: isFrench ? 'S\'inscrire au cours' : 'Enroll in Course',
-            action: () => navigate('/login', { 
-              state: { 
-                from: `/courses/${id}`,
-                message: isFrench ? "Connectez-vous pour vous inscrire à ce cours" : "Sign in to enroll in this course"
-              }
-            }),
-            variant: 'primary',
-            icon: <BookOpen className="w-4 h-4" />
-          },
-        }
-      };
-    }
+  /* ── Statut d'accès ── */
+  const access = useMemo(() => {
+    if (!isAuthenticated) return { status: "guest" };
+    const s = getEnrollmentStatus(String(course?.id || id));
+    return { status: s };
+  }, [isAuthenticated, course, id, getEnrollmentStatus]);
 
-    const status = getEnrollmentStatus(id);
-    
-    switch(status) {
-      case 'approved':
-        return {
-          status: 'approved',
-          label: isFrench ? 'Accès autorisé' : 'Access Granted',
-          message: isFrench ? 'Votre inscription a été validée' : 'Your enrollment has been approved',
-          icon: <CheckCircle className="w-5 h-5" />,
-          color: 'green',
-          badgeClass: 'bg-green-50 text-green-700 border-green-200',
-          actions: {
-            primary: {
-              text: isFrench ? 'Continuer l\'apprentissage' : 'Continue Learning',
-              action: () => navigate(`/courses/${id}/learn`),
-              variant: 'success',
-              icon: <PlayCircle className="w-4 h-4" />
-            },
-            secondary: {
-              text: isFrench ? 'Voir progression' : 'View Progress',
-              action: () => navigate(`/courses/${id}/progress`),
-              variant: 'outline',
-              icon: <BarChart className="w-4 h-4" />
-            }
-          }
-        };
-      
-      case 'pending':
-        return {
-          status: 'pending',
-          label: isFrench ? 'En attente de validation' : 'Pending Approval',
-          message: isFrench ? 'Validation administrateur en cours' : 'Awaiting administrator approval',
-          icon: <Clock className="w-5 h-5" />,
-          color: 'yellow',
-          badgeClass: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-          actions: {
-            primary: {
-              text: isFrench ? 'Voir le statut' : 'View Status',
-              action: () => navigate('/dashboard/enrollments'),
-              variant: 'disabled',
-              icon: <Clock className="w-4 h-4" />
-            },
-            secondary: {
-              text: isFrench ? 'Contacter le support' : 'Contact Support',
-              action: () => navigate('/support'),
-              variant: 'outline',
-              icon: <HelpCircle className="w-4 h-4" />
-            }
-          }
-        };
-      
-      case 'not_enrolled':
-      default:
-        return {
-          status: 'not_enrolled',
-          label: isFrench ? 'Non inscrit' : 'Not Enrolled',
-          message: isFrench ? 'Inscrivez-vous pour accéder au contenu' : 'Enroll to access full content',
-          icon: <Lock className="w-5 h-5" />,
-          color: 'gray',
-          badgeClass: 'bg-gray-50 text-gray-700 border-gray-200',
-          actions: {
-            primary: {
-              text: enrolling 
-                ? (isFrench ? 'Inscription en cours...' : 'Enrolling...') 
-                : (isFrench ? 'S\'inscrire maintenant' : 'Enroll Now'),
-              action: handleEnroll,
-              disabled: enrolling,
-              variant: 'primary',
-              icon: <BookOpen className="w-4 h-4" />
-            },
-            secondary: {
-              text: isFrench ? 'Informations paiement' : 'Payment Info',
-              action: () => setShowPaymentInfo(true),
-              variant: 'outline',
-              icon: <CreditCard className="w-4 h-4" />
-            }
-          }
-        };
-    }
-  }, [isAuthenticated, getEnrollmentStatus, id, enrolling, navigate, isFrench]);
+  /* ── Helpers ── */
+  const level    = LEVELS[course?.level] || LEVELS.beginner;
+  const lang     = LANGS[course?.language] || LANGS.fr;
+  const discount = course?.original_price && course?.price && !course?.is_free
+    ? Math.round(((course.original_price - course.price) / course.original_price) * 100)
+    : null;
+  const totalLessons = course?.modules?.reduce((s, m) => s + Number(m.lesson_count || 0), 0) || 0;
 
-  // Utility functions
-  const formatDuration = (hours) => {
-    if (!hours) return isFrench ? 'Durée flexible' : 'Flexible duration';
-    if (hours < 1) return `${Math.round(hours * 60)} ${isFrench ? 'minutes' : 'min'}`;
-    if (hours === 1) return `1 ${isFrench ? 'heure' : 'hour'}`;
-    return `${hours} ${isFrench ? 'heures' : 'hours'}`;
-  };
-
-  const formatPrice = (price) => {
-    if (price === 0 || course?.is_free) return isFrench ? 'Gratuit' : 'Free';
-    if (!price) return isFrench ? 'Prix sur demande' : 'Price on request';
-    return new Intl.NumberFormat(isFrench ? 'fr-FR' : 'en-US', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
-  };
-
-  const formatRating = (rating) => {
-    if (!rating) return '0.0';
-    return parseFloat(rating).toFixed(1);
-  };
-
-  const getLevelInfo = (level) => {
-    const levels = {
-      'beginner': { 
-        text: isFrench ? 'Débutant' : 'Beginner', 
-        class: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        icon: '🟢',
-        description: isFrench ? 'Aucune connaissance préalable requise' : 'No prior knowledge required'
-      },
-      'intermediate': { 
-        text: isFrench ? 'Intermédiaire' : 'Intermediate', 
-        class: 'bg-blue-50 text-blue-700 border-blue-200',
-        icon: '🔵',
-        description: isFrench ? 'Connaissances de base requises' : 'Basic knowledge required'
-      },
-      'advanced': { 
-        text: isFrench ? 'Avancé' : 'Advanced', 
-        class: 'bg-purple-50 text-purple-700 border-purple-200',
-        icon: '🟣',
-        description: isFrench ? 'Expérience significative requise' : 'Significant experience required'
-      }
-    };
-    
-    return levels[level?.toLowerCase()] || { 
-      text: isFrench ? 'Tous niveaux' : 'All Levels', 
-      class: 'bg-gray-50 text-gray-700 border-gray-200',
-      icon: '⚪',
-      description: isFrench ? 'Adapté à tous les niveaux' : 'Suitable for all levels'
-    };
-  };
-
-  const getLanguageInfo = (language) => {
-    const languages = {
-      'fr': { name: 'Français', flag: '🇫🇷' },
-      'en': { name: 'English', flag: '🇬🇧' },
-      'es': { name: 'Español', flag: '🇪🇸' },
-      'de': { name: 'Deutsch', flag: '🇩🇪' }
-    };
-    return languages[language] || { name: isFrench ? 'Multilingue' : 'Multilingual', flag: '🌐' };
-  };
-
-  const calculateDiscount = () => {
-    if (!course?.original_price || !course?.price) return null;
-    const discount = ((course.original_price - course.price) / course.original_price) * 100;
-    return Math.round(discount);
-  };
-
-  const toggleModule = (moduleId) => {
-    setExpandedModules(prev =>
-      prev.includes(moduleId)
-        ? prev.filter(id => id !== moduleId)
-        : [...prev, moduleId]
-    );
-  };
-
-  const renderPaymentInfoModal = () => {
-    if (!showPaymentInfo) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[80vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-900">
-              {isFrench ? 'Informations de Paiement' : 'Payment Information'}
-            </h3>
-            <button
-              onClick={() => setShowPaymentInfo(false)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <X className="w-5 h-5" />
-            </button>
+  /* ── Skeleton ── */
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="animate-pulse grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-5">
+            <div className="h-8 bg-gray-200 rounded-xl w-1/2" />
+            <div className="h-80 bg-gray-200 rounded-3xl" />
+            <div className="h-24 bg-gray-200 rounded-2xl" />
           </div>
-
-          <div className="space-y-6">
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <CreditCard className="w-6 h-6 text-blue-600" />
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {isFrench ? 'Méthodes de Paiement' : 'Payment Methods'}
-                </h4>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { name: 'Virement Bancaire', icon: '🏦' },
-                  { name: 'Orange Money', icon: '🟠' },
-                  { name: 'Moov Money', icon: '🔵' },
-                  { name: 'Wave', icon: '🌊' }
-                ].map((method, idx) => (
-                  <div key={idx} className="bg-white p-4 rounded-lg border text-center">
-                    <div className="text-2xl mb-2">{method.icon}</div>
-                    <p className="text-sm font-medium">{method.name}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Info className="w-6 h-6 text-amber-600" />
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {isFrench ? 'Processus de Validation' : 'Validation Process'}
-                </h4>
-              </div>
-              <ol className="space-y-4">
-                {[
-                  isFrench ? 'Effectuez le paiement via votre méthode préférée' : 'Complete payment via your preferred method',
-                  isFrench ? 'Envoyez la preuve de paiement à support@devopsakademy.com' : 'Send payment proof to support@devopsakademy.com',
-                  isFrench ? 'Notre équipe valide votre paiement sous 24h' : 'Our team validates your payment within 24 hours',
-                  isFrench ? 'Accès immédiat au cours après validation' : 'Immediate course access after validation'
-                ].map((step, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                      {idx + 1}
-                    </div>
-                    <p className="text-gray-700">{step}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Shield className="w-6 h-6 text-emerald-600" />
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {isFrench ? 'Support & Assistance' : 'Support & Assistance'}
-                </h4>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-gray-500" />
-                  <p className="text-gray-700">support@devopsakademy.com</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-gray-500" />
-                  <p className="text-gray-700">+33 1 23 45 67 89</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-gray-500" />
-                  <p className="text-gray-700">
-                    {isFrench ? 'Lun-Ven: 9h-18h (GMT+1)' : 'Mon-Fri: 9AM-6PM (GMT+1)'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={() => setShowPaymentInfo(false)}
-              className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
-            >
-              {isFrench ? 'Fermer' : 'Close'}
-            </button>
+          <div className="space-y-4">
+            <div className="h-72 bg-gray-200 rounded-2xl" />
+            <div className="h-40 bg-gray-200 rounded-2xl" />
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl w-1/3 mb-8"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                <div className="h-96 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl"></div>
-                <div className="h-32 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl"></div>
-              </div>
-              <div className="space-y-6">
-                <div className="h-72 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl"></div>
-                <div className="h-48 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl"></div>
-              </div>
-            </div>
-          </div>
+  /* ── Erreur ── */
+  if (error || !course) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl p-10 text-center max-w-md shadow-xl border border-gray-100">
+        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
+          <AlertCircle className="w-10 h-10 text-red-500" />
+        </div>
+        <h3 className="text-xl font-black text-gray-900 mb-2">Cours non disponible</h3>
+        <p className="text-gray-500 mb-6 text-sm">{error || "Ce cours n'est pas accessible actuellement."}</p>
+        <div className="flex gap-3">
+          <button onClick={() => navigate("/courses")} className="flex-1 py-3 rounded-xl font-bold text-white text-sm" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+            Explorer les cours
+          </button>
+          <button onClick={() => window.location.reload()} className="flex-1 py-3 rounded-xl font-bold text-sm border-2" style={{ borderColor: "#2d287f", color: "#2d287f" }}>
+            Réessayer
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Error state
-  if (error || !course) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center py-12 px-4">
-        <div className="text-center max-w-md">
-          <div className="w-24 h-24 bg-gradient-to-br from-red-50 to-pink-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-12 h-12 text-red-600" />
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            {isFrench ? 'Cours non disponible' : 'Course Unavailable'}
-          </h3>
-          <p className="text-gray-600 mb-8">
-            {error || (isFrench ? "Le cours demandé n'est pas accessible pour le moment." : "The requested course is not currently available.")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => navigate('/courses')}
-              className="px-6 py-3 bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300"
-            >
-              {isFrench ? 'Explorer les formations' : 'Browse Courses'}
-            </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 border-2 border-[#2d287f] text-[#2d287f] rounded-xl font-medium hover:bg-[#2d287f] hover:text-white transition-all duration-300"
-            >
-              {isFrench ? 'Réessayer' : 'Retry'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const levelInfo = getLevelInfo(course.level);
-  const languageInfo = getLanguageInfo(course.language);
-  const discount = calculateDiscount();
-
+  /* ══════════ RENDER PRINCIPAL ══════════ */
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Notification Banner */}
-        {location.state?.message && (
-          <div className={`${location.state?.success ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'} border-b`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {location.state?.success ? (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <Info className="w-5 h-5 text-blue-600" />
-                  )}
-                  <p className={`${location.state?.success ? 'text-green-800' : 'text-blue-800'} font-medium`}>
-                    {location.state.message}
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate(location.pathname, { replace: true, state: {} })}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {showPayment && (
+        <PaymentModal onClose={() => setShowPayment(false)} price={course.price} isFree={!!course.is_free} />
+      )}
+
+      {/* Notification banner */}
+      {notif && (
+        <div className={`border-b px-4 py-3 ${notif.startsWith("✅") ? "bg-emerald-50 border-emerald-200" : "bg-blue-50 border-blue-200"}`}>
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <p className={`text-sm font-medium ${notif.startsWith("✅") ? "text-emerald-800" : "text-blue-800"}`}>{notif}</p>
+            <button onClick={() => setNotif(null)} className="text-gray-400 hover:text-gray-600 flex-shrink-0"><X className="w-4 h-4" /></button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
-            <button 
-              onClick={() => navigate('/')} 
-              className="hover:text-[#2d287f] transition-colors"
-            >
-              {isFrench ? 'Accueil' : 'Home'}
-            </button>
-            <ChevronRight className="w-4 h-4" />
-            <button 
-              onClick={() => navigate('/courses')} 
-              className="hover:text-[#2d287f] transition-colors"
-            >
-              {isFrench ? 'Formations' : 'Courses'}
-            </button>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-gray-900 font-medium truncate">{course.title}</span>
-          </nav>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Main Content */}
-            <div className="lg:col-span-2">
-              {/* Course Header */}
-              <div className="mb-8">
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <span className={`px-3 py-1.5 rounded-full text-sm font-medium border ${levelInfo.class}`}>
-                    {levelInfo.icon} {levelInfo.text}
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+          <button onClick={() => navigate("/")} className="hover:text-gray-800 transition">Accueil</button>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <button onClick={() => navigate("/courses")} className="hover:text-gray-800 transition">Formations</button>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <span className="text-gray-900 font-medium truncate max-w-xs">{course.title}</span>
+        </nav>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* ════ COLONNE GAUCHE ════ */}
+          <div className="lg:col-span-2 space-y-7">
+
+            {/* Header cours */}
+            <div>
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${level.cls}`}>
+                  {level.icon} {level.label}
+                </span>
+                <span className="px-3 py-1.5 bg-white text-gray-700 rounded-full text-sm font-medium border border-gray-200 flex items-center gap-1">
+                  <Globe className="w-3.5 h-3.5" /> {lang.flag} {lang.name}
+                </span>
+                {course.category_name && (
+                  <span className="px-3 py-1.5 rounded-full text-sm font-medium border" style={{ background: "#ede9fe", color: "#2d287f", borderColor: "#c4b5fd" }}>
+                    {course.category_name}
                   </span>
-                  <span className="px-3 py-1.5 bg-gray-50 text-gray-700 rounded-full text-sm font-medium border border-gray-200 flex items-center gap-1">
-                    <Globe className="w-3 h-3" />
-                    {languageInfo.flag} {languageInfo.name}
-                  </span>
-                  {discount && (
-                    <span className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-full text-sm font-bold animate-pulse">
-                      -{discount}%
-                    </span>
-                  )}
-                </div>
-
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-                  {course.title}
-                </h1>
-                
-                <p className="text-lg sm:text-xl text-gray-600 mb-6 leading-relaxed">
-                  {course.short_description || course.description?.substring(0, 200) + "..." || 
-                   (isFrench ? "Formation DevOps complète et professionnelle" : "Complete professional DevOps training")}
-                </p>
-              </div>
-
-              {/* Hero Image */}
-              <div className="relative rounded-3xl overflow-hidden mb-8 shadow-2xl border border-gray-200/50 group">
-                {course.thumbnail_url ? (
-                  <>
-                    <img
-                      src={course.thumbnail_url}
-                      alt={course.title}
-                      className="w-full h-[300px] sm:h-[350px] md:h-[400px] object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-                  </>
-                ) : (
-                  <div className="w-full h-[400px] bg-gradient-to-br from-[#2d287f] via-[#3b3a82] to-[#5653e1] flex items-center justify-center">
-                    <div className="text-center">
-                      <Terminal className="w-16 h-16 text-white/80 mx-auto mb-4" />
-                      <p className="text-white/80 text-xl font-semibold">DevOps Akademy</p>
-                    </div>
-                  </div>
                 )}
-                
-                {/* Overlay Stats */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-5 h-5" />
-                      <span className="font-semibold">{course.student_count?.toLocaleString() || '0'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Star className="w-5 h-5" />
-                      <span className="font-semibold">{formatRating(course.rating)}/5.0</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-5 h-5" />
-                      <span className="font-semibold">{formatDuration(course.duration_hours)}</span>
-                    </div>
-                  </div>
-                </div>
+                {discount && (
+                  <span className="px-3 py-1.5 bg-red-500 text-white rounded-full text-sm font-bold animate-pulse">
+                    -{discount}% PROMO
+                  </span>
+                )}
               </div>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-6 h-6 text-blue-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {course?.student_count?.toLocaleString() || '0'}
-                      </p>
-                      <p className="text-sm text-gray-600">{isFrench ? 'Étudiants' : 'Students'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <Star className="w-6 h-6 text-amber-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatRating(course?.rating)}
-                        <span className="text-sm text-gray-500">/5</span>
-                      </p>
-                      <p className="text-sm text-gray-600">{isFrench ? 'Note moyenne' : 'Average Rating'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-6 h-6 text-emerald-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatDuration(course?.duration_hours)}
-                      </p>
-                      <p className="text-sm text-gray-600">{isFrench ? 'Durée' : 'Duration'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="w-6 h-6 text-purple-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {course?.completion_percentage || '85'}%
-                      </p>
-                      <p className="text-sm text-gray-600">{isFrench ? 'Taux de réussite' : 'Success Rate'}</p>
-                    </div>
-                  </div>
-                </div>
+              {/* Titre */}
+              <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3 leading-tight">
+                {course.title}
+              </h1>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                {course.short_description || course.description?.substring(0, 180) + "…"}
+              </p>
+
+              {/* Mini stats inline */}
+              <div className="flex flex-wrap items-center gap-5 mt-4 text-sm text-gray-600">
+                <span className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  <strong className="text-gray-900">{(course.student_count || 0).toLocaleString("fr-FR")}</strong> étudiants
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                  <strong className="text-gray-900">{formatRating(course.rating)}/5</strong>
+                  {course.review_count > 0 && <span className="text-gray-400">({course.review_count} avis)</span>}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-emerald-500" />
+                  <strong className="text-gray-900">{formatDuration(course.duration_hours)}</strong>
+                </span>
+                {totalLessons > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4 text-purple-500" />
+                    <strong className="text-gray-900">{totalLessons}</strong> leçons
+                  </span>
+                )}
               </div>
 
-              {/* Tabs Navigation */}
-              <div className="mb-6">
-                <div className="border-b border-gray-200">
-                  <nav className="flex space-x-1 overflow-x-auto">
-                    {[
-                      { id: 'overview', label: isFrench ? 'Aperçu' : 'Overview', icon: <Eye className="w-4 h-4" /> },
-                      { id: 'curriculum', label: isFrench ? 'Programme' : 'Curriculum', icon: <BookOpen className="w-4 h-4" /> },
-                      { id: 'instructor', label: isFrench ? 'Instructeur' : 'Instructor', icon: <Users className="w-4 h-4" /> },
-                      { id: 'outcomes', label: isFrench ? 'Compétences' : 'Skills', icon: <Target className="w-4 h-4" /> },
-                      { id: 'faq', label: 'FAQ', icon: <HelpCircle className="w-4 h-4" /> },
-                      { id: 'reviews', label: isFrench ? 'Avis' : 'Reviews', icon: <Star className="w-4 h-4" /> }
-                    ].map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 py-3 px-4 font-medium text-sm rounded-t-lg transition-all whitespace-nowrap ${
-                          activeTab === tab.id
-                            ? 'bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                        }`}
-                      >
-                        {tab.icon}
-                        {tab.label}
-                      </button>
-                    ))}
-                  </nav>
+              {/* Instructeur */}
+              {(course.first_name || course.last_name) && (
+                <div className="flex items-center gap-2 mt-4 text-sm text-gray-500">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                    {(course.first_name?.[0] || "") + (course.last_name?.[0] || "")}
+                  </div>
+                  <span>Présenté par <strong className="text-gray-800">{course.first_name} {course.last_name}</strong></span>
                 </div>
+              )}
+            </div>
+
+            {/* Image/Thumbnail */}
+            <div className="rounded-3xl overflow-hidden shadow-xl border border-gray-200/50">
+              <Thumbnail url={course.thumbnail_url} title={course.title} h="h-72 sm:h-80" />
+            </div>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { icon: Users,    color: "text-blue-600",   bg: "bg-blue-50",   label: "Étudiants",       val: (course.student_count || 0).toLocaleString("fr-FR") },
+                { icon: Star,     color: "text-amber-600",  bg: "bg-amber-50",  label: "Note moyenne",    val: `${formatRating(course.rating)}/5` },
+                { icon: Clock,    color: "text-emerald-600",bg: "bg-emerald-50",label: "Durée",           val: formatDuration(course.duration_hours) },
+                { icon: BookOpen, color: "text-purple-600", bg: "bg-purple-50", label: "Leçons",          val: totalLessons || "—" },
+              ].map(({ icon: Icon, color, bg, label, val }) => (
+                <div key={label} className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-5 h-5 ${color}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xl font-black text-gray-900 truncate">{val}</p>
+                      <p className="text-xs text-gray-500">{label}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── TABS ── */}
+            <div>
+              {/* Tab nav */}
+              <div className="flex gap-1 border-b border-gray-200 overflow-x-auto pb-0">
+                {[
+                  { id: "overview",    icon: Eye,       label: "Aperçu" },
+                  { id: "curriculum",  icon: BookOpen,  label: "Programme" },
+                  { id: "instructor",  icon: Users,     label: "Instructeur" },
+                  { id: "outcomes",    icon: Target,    label: "Compétences" },
+                  { id: "faq",         icon: HelpCircle,label: "FAQ" },
+                  { id: "reviews",     icon: Star,      label: "Avis" },
+                ].map(({ id: tid, icon: Icon, label }) => (
+                  <button key={tid} onClick={() => setActiveTab(tid)}
+                    className={`flex items-center gap-1.5 py-3 px-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all -mb-px
+                      ${activeTab === tid
+                        ? "text-white border-transparent rounded-t-xl"
+                        : "text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300"
+                      }`}
+                    style={activeTab === tid ? { background: "linear-gradient(135deg,#2d287f,#5653e1)" } : {}}>
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </button>
+                ))}
               </div>
 
-              {/* Tab Content */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+              {/* Tab content */}
+              <div className="bg-white rounded-b-2xl rounded-tr-2xl border border-gray-200 border-t-0 shadow-sm">
                 <div className="p-6">
-                  {activeTab === 'overview' && (
-                    <div className="space-y-8">
+
+                  {/* ── Aperçu ── */}
+                  {activeTab === "overview" && (
+                    <div className="space-y-7">
+                      {/* Description */}
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                          {isFrench ? 'À propos de ce cours' : 'About This Course'}
-                        </h3>
-                        <div className="prose prose-lg max-w-none">
-                          <div className="text-gray-700 leading-relaxed whitespace-pre-line">
-                            {course.description || (isFrench ? 'Aucune description disponible.' : 'No description available.')}
+                        <h3 className="text-xl font-black text-gray-900 mb-4">À propos de ce cours</h3>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-line text-sm">
+                          {course.description || "Aucune description disponible."}
+                        </div>
+                      </div>
+
+                      {/* Ce que vous apprendrez */}
+                      {course.learning_outcomes && (
+                        <div>
+                          <h3 className="text-xl font-black text-gray-900 mb-4">Ce que vous apprendrez</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {parseJsonField(course.learning_outcomes).map((item, i) => (
+                              <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-gray-100 bg-gray-50">
+                                <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                <span className="text-sm text-gray-700">{item}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </div>
+                      )}
 
-                      {/* What You'll Learn */}
-                      <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">
-                          {isFrench ? 'Ce que vous apprendrez' : 'What You\'ll Learn'}
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Prérequis */}
+                      {course.requirements && (
+                        <div>
+                          <h3 className="text-xl font-black text-gray-900 mb-4">Prérequis</h3>
+                          <ul className="space-y-2">
+                            {parseJsonField(course.requirements).map((r, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                                <ArrowRight className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+                                {r}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Ce qui est inclus */}
+                      <div>
+                        <h3 className="text-xl font-black text-gray-900 mb-4">Ce qui est inclus</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           {[
-                            { icon: <Server className="w-5 h-5" />, text: isFrench ? 'Architecture Cloud & Containers' : 'Cloud & Container Architecture' },
-                            { icon: <GitBranch className="w-5 h-5" />, text: isFrench ? 'CI/CD Pipelines automatisés' : 'Automated CI/CD Pipelines' },
-                            { icon: <Database className="w-5 h-5" />, text: isFrench ? 'Gestion infrastructure as Code' : 'Infrastructure as Code Management' },
-                            { icon: <ShieldCheck className="w-5 h-5" />, text: isFrench ? 'Sécurité DevOps (DevSecOps)' : 'DevOps Security (DevSecOps)' },
-                            { icon: <Cpu className="w-5 h-5" />, text: isFrench ? 'Monitoring & Observabilité' : 'Monitoring & Observability' },
-                            { icon: <Network className="w-5 h-5" />, text: isFrench ? 'Réseau & Sécurité Cloud' : 'Cloud Network & Security' }
-                          ].map((item, idx) => (
-                            <div key={idx} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 hover:border-[#2d287f]/20 transition-colors">
-                              <div className="w-8 h-8 bg-gradient-to-br from-[#2d287f]/10 to-[#5653e1]/10 rounded-lg flex items-center justify-center text-[#2d287f]">
-                                {item.icon}
-                              </div>
-                              <span className="text-gray-800 font-medium">{item.text}</span>
+                            { icon: Video,      label: `Vidéos HD ${formatDuration(course.duration_hours)}` },
+                            { icon: Download,   label: "Ressources téléchargeables" },
+                            { icon: Award,      label: "Certificat officiel" },
+                            { icon: GraduationCap, label: "Accès mobile & TV" },
+                            { icon: HelpCircle, label: "Support Q&A" },
+                            { icon: Clock,      label: "Accès à vie" },
+                          ].map(({ icon: Icon, label }) => (
+                            <div key={label} className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                              <Icon className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                              {label}
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Included Features */}
-                      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                        <h3 className="text-xl font-bold text-gray-900 mb-6">
-                          {isFrench ? 'Ce qui est inclus' : 'What\'s Included'}
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* Infos clés */}
+                      <div className="bg-gray-50 rounded-2xl border border-gray-200 p-5">
+                        <h3 className="text-base font-black text-gray-900 mb-4">Informations clés</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                           {[
-                            { icon: <Video className="w-5 h-5" />, text: isFrench ? 'Vidéos HD 4K' : '4K HD Videos' },
-                            { icon: <FileText className="w-5 h-5" />, text: isFrench ? 'Ressources téléchargeables' : 'Downloadable Resources' },
-                            { icon: <Award className="w-5 h-5" />, text: isFrench ? 'Certificat officiel' : 'Official Certificate' },
-                            { icon: <Smartphone className="w-5 h-5" />, text: isFrench ? 'Accès mobile & TV' : 'Mobile & TV Access' },
-                            { icon: <MessageSquare className="w-5 h-5" />, text: isFrench ? 'Support Q&A' : 'Q&A Support' },
-                            { icon: <div className="text-lg font-bold">∞</div>, text: isFrench ? 'Accès à vie' : 'Lifetime Access' }
-                          ].map((item, idx) => (
-                            <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                              <div className="w-10 h-10 bg-gradient-to-br from-[#2d287f]/10 to-[#5653e1]/10 rounded-lg flex items-center justify-center text-[#2d287f]">
-                                {item.icon}
-                              </div>
-                              <span className="text-gray-800">{item.text}</span>
+                            { l: "Niveau",      v: level.label },
+                            { l: "Catégorie",   v: course.category_name || "—" },
+                            { l: "Accès",       v: "À vie" },
+                            { l: "Langue",      v: `${lang.flag} ${lang.name}` },
+                            { l: "Durée",       v: formatDuration(course.duration_hours) },
+                            { l: "Mise à jour", v: course.updated_at ? new Date(course.updated_at).toLocaleDateString("fr-FR", { year:"numeric", month:"short" }) : "Récent" },
+                          ].map(({ l, v }) => (
+                            <div key={l}>
+                              <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">{l}</p>
+                              <p className="font-semibold text-gray-800">{v}</p>
                             </div>
                           ))}
                         </div>
@@ -751,183 +550,125 @@ const CourseDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === 'curriculum' && (
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between mb-6">
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900">
-                            {isFrench ? 'Programme du cours' : 'Course Curriculum'}
-                          </h3>
-                          <p className="text-gray-600 mt-2">
-                            {course.modules?.length || 0} {isFrench ? 'modules' : 'modules'} • 
-                            {course.modules?.reduce((total, m) => total + (m.lesson_count || 0), 0) || 0} {isFrench ? 'leçons' : 'lessons'} • 
-                            {formatDuration(course.duration_hours)}
-                          </p>
-                        </div>
+                  {/* ── Programme ── */}
+                  {activeTab === "curriculum" && (
+                    <div>
+                      <div className="flex items-center justify-between mb-5">
+                        <h3 className="text-xl font-black text-gray-900">Programme du cours</h3>
+                        {course.modules?.length > 0 && (
+                          <span className="text-sm text-gray-500">{course.modules.length} modules · {totalLessons} leçons</span>
+                        )}
                       </div>
 
-                      {course.modules && course.modules.length > 0 ? (
-                        <div className="space-y-4">
-                          {course.modules.map((module, idx) => (
-                            <div 
-                              key={idx} 
-                              className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#2d287f]/40 transition-all duration-300"
-                            >
+                      {course.modules?.length > 0 ? (
+                        <div className="space-y-3">
+                          {course.modules.map((mod, mi) => (
+                            <div key={mod.id || mi} className="border border-gray-200 rounded-2xl overflow-hidden">
                               <button
-                                onClick={() => toggleModule(module.id || idx)}
-                                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
+                                onClick={() => setExpandedMods(p =>
+                                  p.includes(mod.id || mi)
+                                    ? p.filter(x => x !== (mod.id || mi))
+                                    : [...p, (mod.id || mi)]
+                                )}
+                                className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition text-left"
                               >
-                                <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 bg-gradient-to-br from-[#2d287f] to-[#5653e1] rounded-xl flex items-center justify-center text-white font-bold text-lg">
-                                    {idx + 1}
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0"
+                                    style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
+                                    {mi + 1}
                                   </div>
-                                  <div className="text-left">
-                                    <h4 className="font-bold text-gray-900 text-lg">
-                                      {module.title}
-                                    </h4>
-                                    {module.description && (
-                                      <p className="text-gray-600 text-sm mt-1">{module.description}</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="text-right">
-                                    <p className="text-sm text-gray-500">
-                                      {module.lesson_count || 0} {isFrench ? 'leçons' : 'lessons'}
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-gray-900 truncate">{mod.title}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                      {mod.lesson_count || 0} leçon{mod.lesson_count !== 1 ? "s" : ""}
+                                      {mod.total_duration > 0 && ` · ${Math.round(mod.total_duration / 60)}h`}
                                     </p>
-                                    {module.total_duration && (
-                                      <p className="text-sm text-gray-500">
-                                        {Math.round(module.total_duration / 60)}h
-                                      </p>
-                                    )}
                                   </div>
-                                  {expandedModules.includes(module.id || idx) ? (
-                                    <ChevronUp className="w-5 h-5 text-gray-500" />
-                                  ) : (
-                                    <ChevronDown className="w-5 h-5 text-gray-500" />
-                                  )}
                                 </div>
+                                {expandedMods.includes(mod.id || mi)
+                                  ? <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                  : <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                }
                               </button>
 
-                              {expandedModules.includes(module.id || idx) && module.lessons && module.lessons.length > 0 && (
-                                <div className="border-t border-gray-100">
-                                  {module.lessons.map((lesson, lessonIdx) => (
-                                    <div 
-                                      key={lessonIdx} 
-                                      className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors border-t border-gray-50"
-                                    >
-                                      <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                                          lesson.content_type === 'video' ? 'bg-blue-50 text-blue-600' :
-                                          lesson.content_type === 'article' ? 'bg-emerald-50 text-emerald-600' :
-                                          lesson.content_type === 'quiz' ? 'bg-purple-50 text-purple-600' :
-                                          'bg-gray-50 text-gray-600'
-                                        }`}>
-                                          {lesson.content_type === 'video' ? (
-                                            <Video className="w-5 h-5" />
-                                          ) : lesson.content_type === 'article' ? (
-                                            <FileText className="w-5 h-5" />
-                                          ) : lesson.content_type === 'quiz' ? (
-                                            <FileCode className="w-5 h-5" />
-                                          ) : (
-                                            <Terminal className="w-5 h-5" />
-                                          )}
-                                        </div>
-                                        <div>
-                                          <p className="font-medium text-gray-900">
-                                            {lesson.title}
-                                          </p>
-                                          <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                                            {lesson.duration_minutes && (
-                                              <span className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
-                                                {lesson.duration_minutes} {isFrench ? 'min' : 'min'}
-                                              </span>
-                                            )}
-                                            <span className="capitalize">{lesson.content_type}</span>
+                              {expandedMods.includes(mod.id || mi) && mod.lessons?.length > 0 && (
+                                <div className="divide-y divide-gray-50">
+                                  {mod.lessons.map((les, li) => {
+                                    const lt = LESSON_TYPES[les.content_type] || LESSON_TYPES.video;
+                                    const Icon = lt.icon;
+                                    return (
+                                      <div key={les.id || li} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${lt.bg}`}>
+                                            <Icon className="w-4 h-4" />
+                                          </div>
+                                          <div className="min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 truncate">{les.title}</p>
+                                            <p className="text-xs text-gray-400">{lt.label}{les.duration_minutes ? ` · ${les.duration_minutes} min` : ""}</p>
                                           </div>
                                         </div>
+                                        {access.status === "approved" ? (
+                                          <button
+                                            onClick={() => navigate(`/courses/${course.id}/lessons/${les.id}`)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white flex-shrink-0"
+                                            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                                            <PlayCircle className="w-3.5 h-3.5" /> Accéder
+                                          </button>
+                                        ) : les.is_preview ? (
+                                          <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full font-medium flex-shrink-0">
+                                            Aperçu libre
+                                          </span>
+                                        ) : (
+                                          <Lock className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                                        )}
                                       </div>
-                                      
-                                      {accessStatus.status === 'approved' ? (
-                                        <button 
-                                          onClick={() => navigate(`/courses/${id}/lessons/${lesson.id}`)}
-                                          className="px-4 py-2 bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 flex items-center gap-2"
-                                        >
-                                          <PlayCircle className="w-4 h-4" />
-                                          {isFrench ? 'Commencer' : 'Start'}
-                                        </button>
-                                      ) : (
-                                        <div className="flex items-center gap-2 text-gray-400">
-                                          <Lock className="w-4 h-4" />
-                                          <span className="text-sm">{isFrench ? 'Verrouillé' : 'Locked'}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                    );
+                                  })}
                                 </div>
                               )}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-12">
-                          <FileCode className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                          <h4 className="text-xl font-bold text-gray-900 mb-2">
-                            {isFrench ? 'Programme en cours de finalisation' : 'Curriculum being finalized'}
-                          </h4>
-                          <p className="text-gray-600">
-                            {isFrench ? 'Le programme détaillé sera disponible prochainement.' : 'Detailed curriculum will be available soon.'}
-                          </p>
+                        <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                          <FileCode className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                          <p className="font-bold text-gray-700 mb-1">Programme en cours de finalisation</p>
+                          <p className="text-sm text-gray-500">Le programme détaillé sera disponible prochainement.</p>
                         </div>
                       )}
                     </div>
                   )}
 
-                  {activeTab === 'instructor' && (
-                    <div className="space-y-6">
+                  {/* ── Instructeur ── */}
+                  {activeTab === "instructor" && (
+                    <div className="space-y-5">
+                      <h3 className="text-xl font-black text-gray-900">Votre instructeur</h3>
                       <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-gray-200">
-                        <div className="flex flex-col sm:flex-row items-start gap-6">
-                          <div className="relative">
-                            <img
-                              src={course.instructor_avatar || `https://ui-avatars.com/api/?name=${course.first_name}+${course.last_name}&background=2d287f&color=fff&size=128`}
-                              alt={`${course.first_name} ${course.last_name}`}
-                              className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
-                            />
-                            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                              <CheckCircle className="w-4 h-4 text-white" />
-                            </div>
+                        <div className="flex items-start gap-5">
+                          <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-black text-white flex-shrink-0"
+                            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                            {(course.first_name?.[0] || "") + (course.last_name?.[0] || "")}
                           </div>
-                          <div className="flex-1">
-                            <h3 className="text-2xl font-bold text-gray-900">{course.first_name} {course.last_name}</h3>
-                            <p className="text-gray-600 mb-4">{isFrench ? 'Expert DevOps Certifié' : 'Certified DevOps Expert'}</p>
-                            <p className="text-gray-700 mb-6">
-                              {isFrench 
-                                ? 'Avec plus de 10 ans d\'expérience en DevOps et Cloud Computing, j\'ai formé des milliers de professionnels à travers le monde. Mes cours allient théorie et pratique pour une acquisition rapide des compétences.'
-                                : 'With over 10 years of experience in DevOps and Cloud Computing, I have trained thousands of professionals worldwide. My courses combine theory and practice for rapid skill acquisition.'}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xl font-black text-gray-900">{course.first_name} {course.last_name}</h4>
+                            <p className="text-indigo-600 font-medium text-sm mb-3">Expert DevOps & Cloud</p>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                              Spécialiste DevOps avec une expertise approfondie en CI/CD, conteneurisation et cloud.
+                              Formateur expérimenté avec de nombreux apprenants formés.
                             </p>
-                            
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                              <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-                                <Briefcase className="w-5 h-5 text-[#2d287f] mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-900">10+ {isFrench ? 'ans' : 'years'}</p>
-                                <p className="text-xs text-gray-500">{isFrench ? 'Expérience' : 'Experience'}</p>
-                              </div>
-                              <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-                                <GraduationCap className="w-5 h-5 text-[#2d287f] mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-900">{isFrench ? 'Certifié' : 'Certified'}</p>
-                                <p className="text-xs text-gray-500">AWS & K8s</p>
-                              </div>
-                              <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-                                <Users className="w-5 h-5 text-[#2d287f] mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-900">5K+</p>
-                                <p className="text-xs text-gray-500">{isFrench ? 'Étudiants' : 'Students'}</p>
-                              </div>
-                              <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-                                <Award className="w-5 h-5 text-[#2d287f] mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-900">Top 1%</p>
-                                <p className="text-xs text-gray-500">{isFrench ? 'Instructeur' : 'Instructor'}</p>
-                              </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              {[
+                                { icon: Users, label: "Étudiants", val: (course.student_count || 0).toLocaleString("fr-FR") },
+                                { icon: BookOpen, label: "Cours", val: "15+" },
+                                { icon: Star, label: "Note", val: `${formatRating(course.rating)}/5` },
+                                { icon: Award, label: "Certifié", val: "AWS & K8s" },
+                              ].map(({ icon: Icon, label, val }) => (
+                                <div key={label} className="bg-white rounded-xl p-3 border border-gray-100 text-center">
+                                  <Icon className="w-4 h-4 mx-auto mb-1 text-indigo-500" />
+                                  <p className="text-sm font-bold text-gray-900">{val}</p>
+                                  <p className="text-xs text-gray-500">{label}</p>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -935,404 +676,264 @@ const CourseDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === 'outcomes' && (
-                    <div className="space-y-6">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                        {isFrench ? 'Compétences acquises' : 'Skills You\'ll Gain'}
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100">
-                          <div className="flex items-center gap-3 mb-4">
-                            <Code className="w-6 h-6 text-blue-600" />
-                            <h4 className="text-lg font-semibold text-gray-900">
-                              {isFrench ? 'Développement & CI/CD' : 'Development & CI/CD'}
-                            </h4>
-                          </div>
-                          <ul className="space-y-2">
-                            {[
-                              'Git & GitHub Actions',
-                              'Jenkins Pipelines',
-                              'Docker & Containerization',
-                              'Kubernetes Orchestration',
-                              'Terraform Infrastructure'
-                            ].map((skill, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-blue-500" />
-                                <span className="text-gray-700">{skill}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                  {/* ── Compétences ── */}
+                  {activeTab === "outcomes" && (
+                    <div className="space-y-5">
+                      <h3 className="text-xl font-black text-gray-900">Compétences acquises</h3>
 
-                        <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-6 border border-emerald-100">
-                          <div className="flex items-center gap-3 mb-4">
-                            <Cloud className="w-6 h-6 text-emerald-600" />
-                            <h4 className="text-lg font-semibold text-gray-900">
-                              {isFrench ? 'Cloud & Infrastructure' : 'Cloud & Infrastructure'}
-                            </h4>
-                          </div>
-                          <ul className="space-y-2">
-                            {[
-                              'AWS/Azure/GCP Services',
-                              'Infrastructure as Code',
-                              'Networking & Security',
-                              'Monitoring & Logging',
-                              'Cost Optimization'
-                            ].map((skill, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-emerald-500" />
-                                <span className="text-gray-700">{skill}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-                          <div className="flex items-center gap-3 mb-4">
-                            <ShieldCheck className="w-6 h-6 text-purple-600" />
-                            <h4 className="text-lg font-semibold text-gray-900">
-                              {isFrench ? 'Sécurité DevOps' : 'DevOps Security'}
-                            </h4>
-                          </div>
-                          <ul className="space-y-2">
-                            {[
-                              'DevSecOps Implementation',
-                              'Security Scanning',
-                              'Compliance & Auditing',
-                              'Secret Management',
-                              'Vulnerability Assessment'
-                            ].map((skill, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-purple-500" />
-                                <span className="text-gray-700">{skill}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-100">
-                          <div className="flex items-center gap-3 mb-4">
-                            <Settings className="w-6 h-6 text-amber-600" />
-                            <h4 className="text-lg font-semibold text-gray-900">
-                              {isFrench ? 'Outils & Automatisation' : 'Tools & Automation'}
-                            </h4>
-                          </div>
-                          <ul className="space-y-2">
-                            {[
-                              'Ansible Automation',
-                              'Prometheus & Grafana',
-                              'ELK Stack',
-                              'ArgoCD',
-                              'Helm Charts'
-                            ].map((skill, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-amber-500" />
-                                <span className="text-gray-700">{skill}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'faq' && (
-                    <div className="space-y-6">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                        {isFrench ? 'Questions fréquentes' : 'Frequently Asked Questions'}
-                      </h3>
-                      
-                      <div className="space-y-4">
-                        {[
-                          {
-                            q: isFrench ? "Puis-je suivre ce cours à mon rythme ?" : "Can I take this course at my own pace?",
-                            a: isFrench ? "Oui, tous nos cours sont disponibles à la demande. Vous pouvez apprendre à votre propre rythme, n'importe quand, n'importe où, sur tous vos appareils." : "Yes, all our courses are available on-demand. You can learn at your own pace, anytime, anywhere, on all your devices."
-                          },
-                          {
-                            q: isFrench ? "Ai-je besoin de prérequis techniques ?" : "Do I need technical prerequisites?",
-                            a: isFrench ? "Ce cours est conçu pour être accessible aux débutants. Nous couvrons toutes les bases nécessaires avant d'aborder les concepts avancés. Des connaissances en programmation sont un plus mais pas obligatoires." : "This course is designed to be accessible to beginners. We cover all necessary basics before moving to advanced concepts. Programming knowledge is a plus but not required."
-                          },
-                          {
-                            q: isFrench ? "Comment obtenir le certificat ?" : "How do I get the certificate?",
-                            a: isFrench ? "Le certificat est délivré automatiquement après avoir complété toutes les leçons et réussi les évaluations avec un score minimum de 80%." : "The certificate is automatically issued after completing all lessons and passing assessments with a minimum score of 80%."
-                          },
-                          {
-                            q: isFrench ? "Puis-je accéder au cours sur mobile ?" : "Can I access the course on mobile?",
-                            a: isFrench ? "Oui, notre plateforme est entièrement responsive et fonctionne parfaitement sur smartphones, tablettes et ordinateurs. Vous pouvez même télécharger les vidéos pour un visionnage hors ligne." : "Yes, our platform is fully responsive and works perfectly on smartphones, tablets, and computers. You can even download videos for offline viewing."
-                          },
-                          {
-                            q: isFrench ? "Y a-t-il un support disponible ?" : "Is there support available?",
-                            a: isFrench ? "Oui, vous bénéficiez d'un support direct de l'instructeur, d'un accès à notre communauté d'étudiants et d'un support technique 24/7 pour toutes vos questions." : "Yes, you get direct instructor support, access to our student community, and 24/7 technical support for all your questions."
-                          },
-                          {
-                            q: isFrench ? "Puis-je obtenir un remboursement ?" : "Can I get a refund?",
-                            a: isFrench ? "Oui, nous offrons une garantie satisfait ou remboursé de 30 jours. Si vous n'êtes pas satisfait du cours, vous pouvez demander un remboursement complet dans les 30 jours suivant votre inscription." : "Yes, we offer a 30-day money-back guarantee. If you're not satisfied with the course, you can request a full refund within 30 days of enrollment."
-                          }
-                        ].map((faq, idx) => (
-                          <div key={idx} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#2d287f] transition-colors">
+                      {/* Depuis la BDD learning_outcomes */}
+                      {course.learning_outcomes && (() => {
+                        const outcomes = parseJsonField(course.learning_outcomes);
+                        if (outcomes.length > 0) return (
+                          <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
                             <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                              <HelpCircle className="w-5 h-5 text-[#2d287f]" />
-                              {faq.q}
+                              <CheckCircle className="w-5 h-5 text-emerald-500" /> Objectifs de ce cours
                             </h4>
-                            <p className="text-gray-600 leading-relaxed">{faq.a}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {outcomes.map((o, i) => (
+                                <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                                  <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> {o}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Grille compétences DevOps génériques */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {[
+                          { icon: Code,       bg:"bg-blue-50 border-blue-100",    title:"Dev & CI/CD",     color:"text-blue-600",    skills:["Git & GitHub Actions","Jenkins Pipelines","Docker","Kubernetes","Terraform"] },
+                          { icon: Cloud,      bg:"bg-emerald-50 border-emerald-100",title:"Cloud",          color:"text-emerald-600", skills:["AWS / Azure / GCP","IaC","Networking","Monitoring","Cost Optim."] },
+                          { icon: ShieldCheck,bg:"bg-purple-50 border-purple-100", title:"DevSecOps",       color:"text-purple-600",  skills:["SAST/DAST","Secret Mgmt","Compliance","Vuln. Assessment","Zero Trust"] },
+                          { icon: Settings,   bg:"bg-amber-50 border-amber-100",   title:"Automatisation",  color:"text-amber-600",   skills:["Ansible","Prometheus","Grafana","ArgoCD","Helm"] },
+                        ].map(({ icon: Icon, bg, title, color, skills }) => (
+                          <div key={title} className={`rounded-xl p-4 border ${bg}`}>
+                            <div className="flex items-center gap-2 mb-3">
+                              <Icon className={`w-5 h-5 ${color}`} />
+                              <h4 className="font-bold text-gray-900 text-sm">{title}</h4>
+                            </div>
+                            <ul className="space-y-1.5">
+                              {skills.map(s => (
+                                <li key={s} className="flex items-center gap-2 text-xs text-gray-700">
+                                  <CheckCircle className={`w-3.5 h-3.5 ${color} flex-shrink-0`} /> {s}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         ))}
                       </div>
                     </div>
-
                   )}
 
-                  {activeTab === 'reviews' && (
-                    <div className="p-2">
-                      <CourseReviews
-                        courseId={id}
-                        isEnrolled={isUserEnrolled(id) && isEnrollmentApproved(id)}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-8 space-y-6">
-                {/* Pricing Card */}
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
-                  {discount && (
-                    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 px-6">
-                      <div className="flex items-center justify-center gap-2">
-                        <Zap className="w-5 h-5 animate-pulse" />
-                        <span className="font-bold text-sm">
-                          {isFrench ? `OFFRE SPÉCIALE : -${discount}%` : `SPECIAL OFFER: -${discount}%`}
-                        </span>
-                      </div>
-                      <p className="text-xs opacity-90 text-center mt-1">
-                        {isFrench ? 'Valable encore 2 jours' : 'Valid for 2 more days'}
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="p-6">
-                    <div className="mb-6">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-4xl font-bold text-gray-900">
-                          {formatPrice(course.price)}
-                        </span>
-                        {course.original_price && course.price !== course.original_price && (
-                          <span className="text-lg text-gray-500 line-through">
-                            {formatPrice(course.original_price)}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {discount && (
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-medium mb-4">
-                          <span className="font-bold">{isFrench ? 'Économisez' : 'Save'} </span>
-                          <span>{formatPrice(course.original_price - course.price)}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Course Details */}
-                    <div className="space-y-4 mb-6">
+                  {/* ── FAQ ── */}
+                  {activeTab === "faq" && (
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-black text-gray-900 mb-5">Questions fréquentes</h3>
                       {[
-                        { icon: <Clock className="w-4 h-4" />, label: isFrench ? 'Durée' : 'Duration', value: formatDuration(course.duration_hours) },
-                        { icon: <BookOpen className="w-4 h-4" />, label: isFrench ? 'Leçons' : 'Lessons', value: course.modules?.reduce((total, m) => total + (m.lesson_count || 0), 0) || 'N/A' },
-                        { icon: <Globe className="w-4 h-4" />, label: isFrench ? 'Langue' : 'Language', value: languageInfo.name },
-                        { icon: <Award className="w-4 h-4" />, label: isFrench ? 'Certificat' : 'Certificate', value: isFrench ? 'Inclus' : 'Included', badge: true }
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-600">
-                              {item.icon}
-                            </div>
-                            <span className="text-gray-600">{item.label}</span>
-                          </div>
-                          <span className={`font-medium ${item.badge ? 'text-emerald-600' : 'text-gray-900'}`}>
-                            {item.value}
-                          </span>
+                        { q:"Puis-je suivre ce cours à mon rythme ?",      a:"Oui, tous nos cours sont 100% à la demande. Vous apprenez quand vous voulez, depuis n'importe quel appareil." },
+                        { q:"Comment s'effectue le paiement ?",             a:"Le paiement s'effectue uniquement en FCFA via Orange Money, MTN MoMo, Wave ou virement bancaire. Envoyez la preuve à notre équipe, accès sous 24h." },
+                        { q:"Ai-je besoin de prérequis ?",                  a:"Chaque cours précise ses prérequis dans l'onglet Aperçu. Les cours Débutant n'en nécessitent aucun." },
+                        { q:"Comment obtenir mon certificat ?",             a:"Le certificat est généré automatiquement après avoir complété toutes les leçons et réussi les évaluations avec 80% minimum." },
+                        { q:"Puis-je obtenir un remboursement ?",           a:"Oui, garantie satisfait ou remboursé 30 jours. Contactez support@devopsakademy.com pour toute demande." },
+                        { q:"Le cours est-il accessible sur mobile ?",      a:"Oui, la plateforme est 100% responsive. Vous pouvez aussi télécharger les ressources pour un accès hors-ligne." },
+                      ].map(({ q, a }) => (
+                        <div key={q} className="bg-white border border-gray-200 rounded-xl p-5 hover:border-indigo-200 transition">
+                          <h4 className="font-bold text-gray-900 mb-2 flex items-start gap-2 text-sm">
+                            <HelpCircle className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" /> {q}
+                          </h4>
+                          <p className="text-gray-600 text-sm leading-relaxed pl-6">{a}</p>
                         </div>
                       ))}
                     </div>
+                  )}
 
-                    {/* Action Buttons */}
-                    <div className="space-y-3">
-                      <button
-                        onClick={accessStatus.actions.primary.action}
-                        disabled={accessStatus.actions.primary.disabled}
-                        className={`w-full py-4 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 ${
-                          accessStatus.actions.primary.variant === 'primary' 
-                            ? 'bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white hover:shadow-lg hover:shadow-[#5653e1]/30 hover:scale-[1.02] active:scale-[0.98]' 
-                            : accessStatus.actions.primary.variant === 'success'
-                            ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-[1.02]'
-                            : 'bg-gray-200 text-gray-700 cursor-not-allowed'
-                        }`}
-                      >
-                        {accessStatus.actions.primary.icon}
-                        <span>{accessStatus.actions.primary.text}</span>
-                      </button>
-                      
-                      {accessStatus.actions.secondary && (
-                        <button
-                          onClick={accessStatus.actions.secondary.action}
-                          className="w-full py-3 px-4 border-2 border-[#2d287f] text-[#2d287f] rounded-xl font-medium hover:bg-[#2d287f] hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
-                        >
-                          {accessStatus.actions.secondary.icon}
-                          {accessStatus.actions.secondary.text}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Guarantee */}
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <ShieldCheck className="w-6 h-6 text-emerald-600 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {isFrench ? 'Garantie satisfait ou remboursé' : '30-Day Money-Back Guarantee'}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {isFrench ? 'Essayez sans risque pendant 30 jours' : 'Try risk-free for 30 days'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Access Status */}
-                <div className={`${accessStatus.badgeClass} border rounded-2xl p-6`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    {accessStatus.icon}
-                    <div>
-                      <h3 className="font-bold text-gray-900">{accessStatus.label}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{accessStatus.message}</p>
-                    </div>
-                  </div>
-                  
-                  {accessStatus.status === 'guest' && (
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-3">
-                        {isFrench ? 'Rejoignez notre communauté' : 'Join our community'}
-                      </p>
-                      <div className="flex -space-x-2 mb-4">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white"></div>
-                        ))}
-                        <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-600">
-                          +5K
-                        </div>
-                      </div>
-                    </div>
+                  {/* ── Avis ── */}
+                  {activeTab === "reviews" && (
+                    <CourseReviews
+                      courseId={course.id || id}
+                      isEnrolled={isUserEnrolled(String(course?.id || id)) && isEnrollmentApproved(String(course?.id || id))}
+                    />
                   )}
                 </div>
+              </div>
+            </div>
 
-                {/* Enrollment Process */}
-                <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
-                  <h3 className="font-bold text-gray-900 mb-4">
-                    {isFrench ? 'Processus d\'inscription' : 'Enrollment Process'}
-                  </h3>
-                  <div className="space-y-4">
+          </div>{/* fin colonne gauche */}
+
+          {/* ════ SIDEBAR DROITE — STICKY ════ */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6 space-y-4">
+
+              {/* Card prix + inscription */}
+              <div className="bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden">
+
+                {/* Promo banner */}
+                {discount && (
+                  <div className="flex items-center justify-center gap-2 py-3 px-5 text-white text-sm font-bold"
+                    style={{ background: "linear-gradient(135deg,#ef4444,#f97316)" }}>
+                    <Zap className="w-4 h-4 animate-pulse" />
+                    OFFRE LIMITÉE : -{discount}% · Valable encore 2 jours
+                  </div>
+                )}
+
+                <div className="p-6">
+                  {/* Prix FCFA */}
+                  <div className="mb-5">
+                    {course.is_free ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-black text-emerald-600">Gratuit</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-baseline gap-3">
+                          <span className="text-4xl font-black text-gray-900">
+                            {formatPrice(course.price, course.is_free)}
+                          </span>
+                        </div>
+                        {course.original_price && Number(course.original_price) > Number(course.price) && (
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="text-gray-400 line-through text-lg">
+                              {formatPrice(course.original_price, false)}
+                            </span>
+                            {discount && (
+                              <span className="bg-red-50 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full border border-red-100">
+                                Économisez {formatPrice(course.original_price - course.price, false)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Infos clés */}
+                  <div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
                     {[
-                      { number: 1, title: isFrench ? 'Inscription' : 'Enrollment', desc: isFrench ? 'Cliquez sur "S\'inscrire"' : 'Click "Enroll Now"' },
-                      { number: 2, title: isFrench ? 'Paiement' : 'Payment', desc: isFrench ? 'Effectuez le paiement' : 'Complete payment' },
-                      { number: 3, title: isFrench ? 'Validation' : 'Validation', desc: isFrench ? 'Admin vérifie la preuve' : 'Admin verifies payment' },
-                      { number: 4, title: isFrench ? 'Accès' : 'Access', desc: isFrench ? 'Accès immédiat au cours' : 'Immediate course access' }
-                    ].map((step, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className="w-6 h-6 bg-gradient-to-br from-[#2d287f] to-[#5653e1] text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
-                          {step.number}
+                      { icon: Clock,    label: "Durée",      val: formatDuration(course.duration_hours) },
+                      { icon: BookOpen, label: "Leçons",     val: totalLessons || "N/A" },
+                      { icon: Globe,    label: "Langue",     val: `${lang.flag} ${lang.name}` },
+                      { icon: Award,    label: "Certificat", val: "Inclus", green: true },
+                    ].map(({ icon: Icon, label, val, green }) => (
+                      <div key={label} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2.5 text-gray-500">
+                          <div className="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center">
+                            <Icon className="w-3.5 h-3.5" />
+                          </div>
+                          {label}
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{step.title}</p>
-                          <p className="text-xs text-gray-600">{step.desc}</p>
-                        </div>
+                        <span className={`font-semibold ${green ? "text-emerald-600" : "text-gray-900"}`}>{val}</span>
                       </div>
                     ))}
                   </div>
-                </div>
 
-                {/* Quick Info */}
-                <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
-                  <h3 className="font-bold text-gray-900 mb-4">
-                    {isFrench ? 'Informations clés' : 'Key Information'}
-                  </h3>
+                  {/* Boutons d'action selon statut */}
                   <div className="space-y-3">
-                    {[
-                      { label: isFrench ? 'Niveau' : 'Level', value: levelInfo.text },
-                      { label: isFrench ? 'Catégorie' : 'Category', value: course.category_name || 'DevOps' },
-                      { label: isFrench ? 'Accès' : 'Access', value: isFrench ? 'À vie' : 'Lifetime' },
-                      { label: isFrench ? 'Mise à jour' : 'Updated', value: course.updated_at ? new Date(course.updated_at).toLocaleDateString(isFrench ? 'fr-FR' : 'en-US') : 'Recent' }
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">{item.label}</span>
-                        <span className="text-sm font-medium text-gray-900">{item.value}</span>
+                    {access.status === "approved" ? (
+                      <>
+                        <button onClick={() => navigate(`/courses/${course.id}/learn`)}
+                          className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                          style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
+                          <PlayCircle className="w-5 h-5" /> Continuer l'apprentissage
+                        </button>
+                        <button onClick={() => navigate(`/courses/${course.id}/progress`)}
+                          className="w-full py-3 rounded-2xl font-bold text-sm border-2 flex items-center justify-center gap-2 transition hover:bg-gray-50"
+                          style={{ borderColor: "#2d287f", color: "#2d287f" }}>
+                          <BarChart className="w-4 h-4" /> Voir ma progression
+                        </button>
+                      </>
+                    ) : access.status === "pending" ? (
+                      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+                        <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Clock className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <p className="font-bold text-amber-800 text-sm">Validation en cours</p>
+                        <p className="text-xs text-amber-600 mt-1">Accès activé sous 24h ouvrées après vérification du paiement.</p>
                       </div>
-                    ))}
+                    ) : access.status === "rejected" ? (
+                      <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-center">
+                        <p className="font-bold text-red-700 text-sm mb-2">Paiement refusé</p>
+                        <p className="text-xs text-red-600 mb-3">Veuillez renvoyer une preuve valide.</p>
+                        <button onClick={() => navigate("/student")} className="text-xs font-bold text-red-600 underline">
+                          Aller dans mon espace
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleEnroll}
+                          disabled={enrolling}
+                          className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-70"
+                          style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                          {enrolling ? <><Loader className="w-5 h-5 animate-spin" /> Inscription…</> : <><GraduationCap className="w-5 h-5" /> S'inscrire maintenant</>}
+                        </button>
+                        <button onClick={() => setShowPayment(true)}
+                          className="w-full py-3 rounded-2xl font-semibold text-sm border border-gray-200 text-gray-600 flex items-center justify-center gap-2 hover:bg-gray-50 transition">
+                          <Info className="w-4 h-4" /> Voir les infos de paiement
+                        </button>
+                      </>
+                    )}
                   </div>
-                </div>
 
-                {/* Share Card */}
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-200">
-                  <h3 className="font-bold text-gray-900 mb-4">
-                    {isFrench ? 'Partager ce cours' : 'Share this course'}
-                  </h3>
-                  <div className="flex gap-2">
-                    {['Facebook', 'Twitter', 'LinkedIn', 'WhatsApp'].map((platform) => (
-                      <button
-                        key={platform}
-                        onClick={() => setShowShareModal(true)}
-                        className="flex-1 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        {platform}
-                      </button>
-                    ))}
+                  {/* Garantie */}
+                  <div className="mt-5 flex items-start gap-3 pt-5 border-t border-gray-100">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">Garantie satisfait ou remboursé</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Sans risque pendant 30 jours</p>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Processus d'inscription */}
+              {access.status !== "approved" && (
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                  <h4 className="font-black text-gray-900 text-sm mb-4">Processus d'inscription</h4>
+                  <ol className="space-y-3">
+                    {[
+                      { n:"1", t:"Inscription",   d:`Cliquez sur "S'inscrire"` },
+                      { n:"2", t:"Paiement",       d:"En FCFA (MoMo/Wave/Orange)" },
+                      { n:"3", t:"Validation",     d:"Admin vérifie la preuve" },
+                      { n:"4", t:"Accès",          d:"Accès immédiat au cours" },
+                    ].map(({ n, t, d }) => (
+                      <li key={n} className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{n}</div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">{t}</p>
+                          <p className="text-xs text-gray-500">{d}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* Partager */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                <h4 className="font-bold text-gray-900 text-sm mb-3">Partager ce cours</h4>
+                <div className="flex gap-2">
+                  {[
+                    { l:"Facebook",  bg:"#1877f2", href:`https://facebook.com/sharer/sharer.php?u=${window.location.href}` },
+                    { l:"Twitter",   bg:"#1da1f2", href:`https://twitter.com/intent/tweet?url=${window.location.href}&text=${course.title}` },
+                    { l:"LinkedIn",  bg:"#0a66c2", href:`https://linkedin.com/sharing/share-offsite/?url=${window.location.href}` },
+                    { l:"WhatsApp",  bg:"#25d366", href:`https://wa.me/?text=${course.title} ${window.location.href}` },
+                  ].map(({ l, bg, href }) => (
+                    <a key={l} href={href} target="_blank" rel="noreferrer"
+                      className="flex-1 py-2 rounded-xl text-white text-xs font-bold text-center hover:opacity-90 transition"
+                      style={{ background: bg }}>
+                      {l}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
 
-          {/* CTA Section */}
-          <div className="mt-16 bg-gradient-to-r from-[#2d287f] via-[#3b3a82] to-[#5653e1] rounded-3xl p-8 md:p-12 text-center text-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-32 -translate-y-32"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-48 translate-y-48"></div>
-            
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                {isFrench ? 'Prêt à maîtriser DevOps ?' : 'Ready to Master DevOps?'}
-              </h2>
-              <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-                {isFrench 
-                  ? 'Rejoignez des milliers de professionnels qui ont transformé leur carrière avec DevOps Akademy'
-                  : 'Join thousands of professionals who have transformed their careers with DevOps Akademy'}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={accessStatus.actions.primary.action}
-                  disabled={accessStatus.actions.primary.disabled}
-                  className="px-8 py-3 bg-white text-[#2d287f] rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 hover:scale-105 active:scale-95"
-                >
-                  {accessStatus.actions.primary.text}
-                </button>
-                <button
-                  onClick={() => navigate('/courses')}
-                  className="px-8 py-3 border-2 border-white text-white rounded-xl font-bold hover:bg-white/10 transition-all duration-300"
-                >
-                  {isFrench ? 'Explorer d\'autres cours' : 'Explore Other Courses'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        </div>{/* fin grid */}
       </div>
-
-      {/* Payment Info Modal */}
-      {renderPaymentInfoModal()}
-    </>
+    </div>
   );
-};
-
-export default CourseDetails;
+}
