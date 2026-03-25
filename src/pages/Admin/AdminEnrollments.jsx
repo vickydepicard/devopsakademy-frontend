@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
+import { ProofButton } from "../payment/ProofViewer";
 import { 
   Users,
   Mail,
@@ -383,14 +384,23 @@ export default function AdminEnrollments() {
                               <span className="text-gray-600 truncate max-w-[140px]">
                                 {enrollment.course_title}
                               </span>
-                              <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                enrollment.is_approved ? 'bg-green-100 text-green-800' :
-                                enrollment.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {enrollment.is_approved ? 'Approved' : 
-                                 enrollment.status === 'rejected' ? 'Rejected' : 'Pending'}
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                  enrollment.is_approved ? 'bg-green-100 text-green-800' :
+                                  (enrollment.payment_status === 'rejected' || enrollment.status === 'rejected') ? 'bg-red-100 text-red-800' :
+                                  'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {enrollment.is_approved ? 'Validé' : 
+                                   (enrollment.payment_status === 'rejected' || enrollment.status === 'rejected') ? 'Rejeté' : 'En attente'}
+                                </span>
+                                {enrollment.payment_proof_url && (
+                                  <ProofButton
+                                    url={enrollment.payment_proof_url}
+                                    label="Preuve"
+                                    size="xs"
+                                  />
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>

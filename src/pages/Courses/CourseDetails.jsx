@@ -16,6 +16,7 @@ import {
   Check, X, Mail, Phone, Loader, FileCode
 } from "lucide-react";
 import CourseReviews from "../../components/Reviews/CourseReviews";
+import RealPaymentModal from "../../pages/payment/PaymentModal";
 
 
 /* ── Dé-encoder les champs JSON multi-encodés ── */
@@ -214,6 +215,7 @@ export default function CourseDetails() {
   const [activeTab,       setActiveTab]      = useState("overview");
   const [expandedMods,    setExpandedMods]   = useState([]);
   const [showPayment,     setShowPayment]    = useState(false);
+  const [showRealPayment, setShowRealPayment] = useState(false);
   const [notif,           setNotif]          = useState(location.state?.message || null);
 
   /* ── Chargement ── */
@@ -221,15 +223,28 @@ export default function CourseDetails() {
     const load = async () => {
       setLoading(true); setError(null);
       try {
+        // Essai 1: Route enrichie (connecté)
         if (isAuthenticated) {
           try {
             const r = await api.get(`/courses/${id}/details`);
             if (r.data?.success) { setCourse(r.data.data); return; }
-          } catch (_) {}
+          } catch (detailsErr) {
+            console.warn("CourseDetails /details err, fallback vers route publique:", detailsErr?.response?.status);
+          }
         }
-        const r = await api.get(`/courses/${id}`);
-        if (r.data?.success) setCourse(r.data.data);
-        else setError("Impossible de charger ce cours.");
+        // Essai 2: Route publique (fallback)
+        try {
+          const r = await api.get(`/courses/${id}`);
+          if (r.data?.success) { setCourse(r.data.data); return; }
+          setError("Ce cours est introuvable ou n'est plus disponible.");
+        } catch (pubErr) {
+          const status = pubErr?.response?.status;
+          if (status === 404) {
+            setError("Ce cours est introuvable (ID: " + id + "). Vérifiez le lien ou retournez au catalogue.");
+          } else {
+            setError("Erreur de connexion au serveur. Vérifiez que l'API est démarrée.");
+          }
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Erreur de connexion au serveur");
       } finally { setLoading(false); }
@@ -244,18 +259,30 @@ export default function CourseDetails() {
       return;
     }
     const cid = String(course?.id || id);
-    if (isUserEnrolled(cid)) {
-      if (isEnrollmentApproved(cid)) navigate(`/courses/${course?.id || id}/learn`);
-      else setNotif("Votre inscription est en attente de validation.");
+    // Déjà inscrit et approuvé → accéder
+    if (isUserEnrolled(cid) && isEnrollmentApproved(cid)) {
+      navigate(`/courses/${course?.id || id}/learn`);
       return;
     }
-    setEnrolling(true);
-    try {
-      await enrollInCourse(cid);
-      setNotif("✅ Inscription soumise ! Accès activé après validation du paiement sous 24h.");
-    } catch (err) {
-      setError(err.response?.data?.message || "Erreur lors de l'inscription.");
-    } finally { setEnrolling(false); }
+    // Déjà inscrit mais en attente
+    if (isUserEnrolled(cid)) {
+      setNotif("⏳ Votre inscription est en attente de validation par l'admin.");
+      return;
+    }
+    // Cours gratuit → inscription directe
+    const isCourseFree = course?.is_free === 1 || Number(course?.price || 0) === 0;
+    if (isCourseFree) {
+      setEnrolling(true);
+      try {
+        await enrollInCourse(cid);
+        setNotif("✅ Inscription confirmée ! Vous pouvez commencer le cours.");
+      } catch (err) {
+        setError(err.response?.data?.message || "Erreur lors de l'inscription.");
+      } finally { setEnrolling(false); }
+      return;
+    }
+    // Cours payant → ouvrir le vrai modal paiement
+    setShowRealPayment(true);
   };
 
   /* ── Statut d'accès ── */
@@ -300,15 +327,37 @@ export default function CourseDetails() {
           <AlertCircle className="w-10 h-10 text-red-500" />
         </div>
         <h3 className="text-xl font-black text-gray-900 mb-2">Cours non disponible</h3>
-        <p className="text-gray-500 mb-6 text-sm">{error || "Ce cours n'est pas accessible actuellement."}</p>
-        <div className="flex gap-3">
-          <button onClick={() => navigate("/courses")} className="flex-1 py-3 rounded-xl font-bold text-white text-sm" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-            Explorer les cours
+        <p className="text-gray-500 mb-5 text-sm leading-relaxed">
+          {error || "Ce cours n'est pas accessible actuellement."}
+        </p>
+        {/* Si l'user est probablement inscrit, proposer d'aller directement au contenu */}
+        <div className="space-y-2">
+          <button
+            onClick={() => navigate(`/courses/${id}/learn`)}
+            className="w-full py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2"
+            style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
+            ▶ Accéder directement au cours
           </button>
-          <button onClick={() => window.location.reload()} className="flex-1 py-3 rounded-xl font-bold text-sm border-2" style={{ borderColor: "#2d287f", color: "#2d287f" }}>
-            Réessayer
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => navigate("/student")}
+              className="flex-1 py-2.5 rounded-xl font-bold text-white text-sm"
+              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              Mon espace
+            </button>
+            <button onClick={() => navigate("/courses")}
+              className="flex-1 py-2.5 rounded-xl font-bold text-sm border-2"
+              style={{ borderColor: "#2d287f", color: "#2d287f" }}>
+              Catalogue
+            </button>
+            <button onClick={() => window.location.reload()}
+              className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
+              Réessayer
+            </button>
+          </div>
         </div>
+        <p className="text-xs text-gray-400 mt-4">
+          Code cours: #{id} · Si le problème persiste, contactez le support.
+        </p>
       </div>
     </div>
   );
@@ -318,6 +367,17 @@ export default function CourseDetails() {
     <div className="min-h-screen bg-gray-50">
       {showPayment && (
         <PaymentModal onClose={() => setShowPayment(false)} price={course.price} isFree={!!course.is_free} />
+      )}
+
+      {showRealPayment && course && (
+        <RealPaymentModal
+          course={course}
+          onClose={() => setShowRealPayment(false)}
+          onSuccess={() => {
+            setShowRealPayment(false);
+            setNotif("✅ Preuve soumise ! Accès activé après validation sous 24h.");
+          }}
+        />
       )}
 
       {/* Notification banner */}

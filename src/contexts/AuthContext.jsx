@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null)
     localStorage.removeItem("user")
     localStorage.removeItem("token")
+    localStorage.removeItem("refreshToken")
     navigate("/login")
   }, [navigate])
 
@@ -104,6 +105,7 @@ export const AuthProvider = ({ children }) => {
 
       const loggedUser = data.data.user
       const newToken = data.data.accessToken
+      const newRefreshToken = data.data.refreshToken
 
       // ✅ Marquer qu'on vient de se connecter → checkAuth ne s'exécutera pas
       justLoggedIn.current = true
@@ -113,6 +115,8 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("user", JSON.stringify(loggedUser))
       localStorage.setItem("token", newToken)
+      // Stocker le refreshToken pour le renouvellement automatique
+      if (newRefreshToken) localStorage.setItem("refreshToken", newRefreshToken)
 
       return { success: true }
     } catch (err) {
@@ -169,24 +173,36 @@ export const AuthProvider = ({ children }) => {
 
     const interval = setInterval(async () => {
       try {
+        const storedRefreshToken = localStorage.getItem("refreshToken")
+        // Si pas de refreshToken stocké, ne pas essayer
+        if (!storedRefreshToken) return
+
         const res = await fetch("/api/auth/refresh-token", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
+          body: JSON.stringify({ refresh_token: storedRefreshToken }),
         })
 
-        if (!res.ok) throw new Error("Refresh failed")
+        if (!res.ok) {
+          console.warn("⚠️ Refresh token expiré — session maintenue avec access token")
+          return // Ne pas déconnecter, le JWT access token peut encore être valide
+        }
 
         const data = await res.json()
+        if (!data?.data?.accessToken) return
+
         const newToken = data.data.accessToken
+        const newRefresh = data.data.refreshToken
 
-        // ✅ Ne pas déclencher checkAuth sur le nouveau token
+        // Mettre à jour les tokens
         justLoggedIn.current = true
-
         setToken(newToken)
         localStorage.setItem("token", newToken)
+        if (newRefresh) localStorage.setItem("refreshToken", newRefresh)
       } catch (err) {
-        console.error("❌ Refresh token error:", err.message)
-        logout()
+        console.warn("⚠️ Refresh token error (non bloquant):", err.message)
+        // Ne pas déconnecter — le JWT access token peut encore fonctionner
       }
     }, 10 * 60 * 1000) // 10 minutes
 

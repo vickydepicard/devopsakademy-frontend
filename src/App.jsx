@@ -34,6 +34,7 @@ import LessonDetail from './pages/Courses/LessonDetail';
 import StudentLayout from './pages/student/StudentLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentCertificates from './pages/student/StudentCertificates';
+import StudentPayments from './pages/student/StudentPayments';
 import UserProfile from './pages/Profile/UserProfile';
 
 // Pages étudiantes legacy
@@ -127,7 +128,7 @@ function App() {
                   <Route path="pending"     element={<StudentDashboard />} />
                   <Route path="profile"     element={<UserProfile />} />
                   <Route path="certificates" element={<StudentCertificates />} />
-                  {/* <Route path="payments"     element={<StudentPayments />} /> */}
+                  <Route path="payments" element={<StudentPayments />} />
                 </Route>
 
                 {/* ── REDIRECTIONS LEGACY ── */}

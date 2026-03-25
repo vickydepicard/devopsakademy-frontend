@@ -190,7 +190,7 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
         <div className="mt-auto pt-1">
           {done ? (
             <div className="flex gap-1.5">
-              <button onClick={() => onGo(`/courses/${c.id}/learn`)}
+              <button onClick={() => onGo(`/courses/${c.course_id}/learn`)}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold border transition hover:opacity-90"
                 style={{ borderColor:"#5653e1", color:"#5653e1", background:"#f0efff" }}>
                 Revoir
@@ -203,13 +203,13 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
             </div>
           ) : acc ? (
             <div className="flex gap-1.5">
-              <button onClick={() => onGo(`/courses/${c.id}/learn`)}
+              <button onClick={() => onGo(`/courses/${c.course_id}/learn`)}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold text-white transition hover:opacity-90 flex items-center justify-center gap-1"
                 style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
                 <PlayCircle className="w-3.5 h-3.5" />
                 {(c.completed_lessons || 0) > 0 ? "Continuer" : "Commencer"}
               </button>
-              <button onClick={() => onGo(`/courses/${c.id}/progress`)}
+              <button onClick={() => onGo(`/courses/${c.course_id}/progress`)}
                 className="py-2 px-2.5 border border-slate-200 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition"
                 title="Détails">
                 <BarChart2 className="w-3.5 h-3.5" />
@@ -223,7 +223,7 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
               <input type="file" accept="image/*,.pdf" className="hidden" disabled={uploading} onChange={e => onUpload(c.id, e)} />
             </label>
           ) : (
-            <button onClick={() => onGo(`/courses/${c.id}`)}
+            <button onClick={() => { if (c.course_id && (c.is_approved || c.payment_status === "free" || c.payment_status === "verified")) { onGo(`/courses/${c.course_id}/learn`); } else { onGo(`/courses/${c.course_id || c.id}`); } }}
               className="w-full py-2 border border-slate-200 rounded-xl text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition flex items-center justify-center gap-1">
               <Eye className="w-3 h-3" /> Voir le cours
             </button>
@@ -466,7 +466,7 @@ export default function StudentDashboard() {
                   style={{ background:"#ede9fe", color:C.primary }}>{getPct(lastAcc)}%</span>
               </div>
             </div>
-            <button onClick={() => navigate(`/courses/${lastAcc.id}/learn`)}
+            <button onClick={() => navigate(`/courses/${lastAcc.course_id || lastAcc.id}/learn`)}
               className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
               style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
               <PlayCircle className="w-4 h-4" />

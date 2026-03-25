@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/api";
+import { ProofButton } from "../payment/ProofViewer";
 import {
   ArrowLeft,
   User,
@@ -41,7 +42,7 @@ export default function AdminStudentDetail() {
     try {
       setLoading(true);
       
-      const studentRes = await api.get(`/users/${userId}`);
+      const studentRes = await api.get(`/admin/users/${userId}`);
       if (studentRes.data.success) {
         setStudent(studentRes.data.data);
       }
@@ -144,17 +145,17 @@ export default function AdminStudentDetail() {
       
       switch(action) {
         case 'approve':
-          response = await api.patch(`/enrollments/${userId}/${enrollment.course_id}/approve`);
+          response = await api.patch(`/admin/enrollments/${enrollment.id}/approve`);
           break;
           
         case 'reject':
-          response = await api.patch(`/enrollments/${userId}/${enrollment.course_id}/reject`, {
+          response = await api.patch(`/admin/enrollments/${enrollment.id}/reject`, {
             reason: extraData.reason
           });
           break;
           
         case 'delete':
-          response = await api.delete(`/enrollments/${enrollment.course_id}/students/${userId}`);
+          response = await api.delete(`/admin/enrollments/${enrollment.id}`);
           break;
           
         default:
@@ -545,14 +546,12 @@ export default function AdminStudentDetail() {
                       
                       {enrollment.payment_proof_url && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 mb-2">Preuve de paiement</h4>
-                          <button
-                            onClick={() => window.open(enrollment.payment_proof_url, '_blank')}
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            <Download className="w-4 h-4" />
-                            Télécharger
-                          </button>
+                          <h4 className="text-sm font-bold text-gray-900 mb-2">Preuve de paiement</h4>
+                          <ProofButton
+                            url={enrollment.payment_proof_url}
+                            label="Voir & Télécharger la preuve"
+                            size="sm"
+                          />
                         </div>
                       )}
                     </div>

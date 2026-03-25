@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { usePermissions } from "../../contexts/PermissionContext";
 import api from "../../api/api";
+import PaymentModal from "../../pages/payment/PaymentModal";
 import { 
   Star, 
   Users, 
@@ -99,18 +100,27 @@ const PopularCourses = () => {
       const status = getEnrollmentStatus(courseId);
       
       switch(status) {
-        case 'not_enrolled':
-          // Connecté mais non inscrit : Inscription
+        case 'not_enrolled': {
+          const co = courses.find(x => x.id === courseId);
+          const isCourseFree = co ? (co.is_free === 1 || Number(co.price || 0) === 0) : true;
           buttons.push({
             text: "S'inscrire",
             icon: <BookOpen className="w-4 h-4" />,
             variant: 'primary',
-            onClick: () => navigate(`/courses/${courseId}`, {
-              state: { showEnrollButton: true }
-            }),
+            onClick: () => {
+              if (!co) { navigate(`/courses/${courseId}`); return; }
+              if (isCourseFree) {
+                // Inscription gratuite directe → aller sur la page cours
+                navigate(`/courses/${courseId}`);
+              } else {
+                // Cours payant → ouvrir modal paiement
+                setPaymentModal(co);
+              }
+            },
             className: 'bg-[#3B3A82] hover:bg-[#4F46E5] text-white'
           });
           break;
+        }
         
         case 'pending':
           // En attente de validation
@@ -134,13 +144,19 @@ const PopularCourses = () => {
           });
           break;
         
-        default:
-          // Fallback
+        default: {
+          const coD = courses.find(x => x.id === courseId);
           buttons.push({
             text: "S'inscrire",
             icon: <BookOpen className="w-4 h-4" />,
             variant: 'primary',
-            onClick: () => navigate(`/courses/${courseId}`),
+            onClick: () => {
+              if (coD && !(coD.is_free === 1 || Number(coD.price || 0) === 0)) {
+                setPaymentModal(coD);
+              } else {
+                navigate(`/courses/${courseId}`);
+              }
+            },
             className: 'bg-[#3B3A82] hover:bg-[#4F46E5] text-white'
           });
       }
@@ -394,7 +410,16 @@ const PopularCourses = () => {
         </div>
       )}
     </section>
+      {/* ✅ Modal paiement */}
+      {paymentModal && (
+        <PaymentModal
+          course={paymentModal}
+          onClose={() => setPaymentModal(null)}
+          onSuccess={() => setPaymentModal(null)}
+        />
+      )}
   );
 };
 
+  const [paymentModal, setPaymentModal] = useState(null);
 export default PopularCourses;
