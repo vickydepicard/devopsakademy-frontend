@@ -1,3 +1,9 @@
+// src/contexts/AuthContext.jsx
+// VERSION CORRIGÉE — 25 mars 2026
+// Corrections :
+//   - register() ne stocke plus le token (compte inactif jusqu'à vérif email)
+//   - login() expose email_not_verified pour que Login.jsx affiche le bon message
+
 import {
   createContext,
   useContext,
@@ -17,8 +23,6 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  // ✅ Flag pour savoir si le token vient d'un login (pas du storage)
-  // → évite que checkAuth efface un token qu'on vient de créer
   const justLoggedIn = useRef(false)
 
   // ================= INIT STORAGE =================
@@ -39,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
-  // ================= LOGOUT (défini avant checkAuth) =================
+  // ================= LOGOUT =================
   const logout = useCallback(() => {
     setUser(null)
     setToken(null)
@@ -50,11 +54,9 @@ export const AuthProvider = ({ children }) => {
   }, [navigate])
 
   // ================= CHECK SESSION =================
-  // Ne se déclenche QUE sur le token venu du storage (pas après un login)
   useEffect(() => {
     if (!token) return
     if (justLoggedIn.current) {
-      // Token vient d'un login → pas besoin de re-vérifier
       justLoggedIn.current = false
       return
     }
@@ -96,18 +98,24 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify(credentials),
       })
 
-      // ✅ Lire le JSON même en cas d'erreur pour avoir le vrai message
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data?.message || "Email ou mot de passe incorrect")
+        // ✅ CORRECTIF 3 — on propage email_not_verified et can_resend
+        // pour que Login.jsx puisse afficher le bon message + bouton renvoyer
+        return {
+          success: false,
+          message: data?.message || "Email ou mot de passe incorrect",
+          email_not_verified: data?.email_not_verified || false,
+          can_resend: data?.can_resend || false,
+          email: data?.email || credentials.email,
+        }
       }
 
       const loggedUser = data.data.user
       const newToken = data.data.accessToken
       const newRefreshToken = data.data.refreshToken
 
-      // ✅ Marquer qu'on vient de se connecter → checkAuth ne s'exécutera pas
       justLoggedIn.current = true
 
       setUser(loggedUser)
@@ -115,10 +123,9 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("user", JSON.stringify(loggedUser))
       localStorage.setItem("token", newToken)
-      // Stocker le refreshToken pour le renouvellement automatique
       if (newRefreshToken) localStorage.setItem("refreshToken", newRefreshToken)
 
-      return { success: true }
+      return { success: true, user: loggedUser }
     } catch (err) {
       setError(err.message)
       return { success: false, message: err.message }
@@ -128,6 +135,9 @@ export const AuthProvider = ({ children }) => {
   }
 
   // ================= REGISTER =================
+  // ✅ CORRECTIF 1 — register() ne stocke plus le token
+  // Le compte est inactif jusqu'à vérification email.
+  // On retourne email_verification_required et email_sent.
   const register = async (userData) => {
     setLoading(true)
     setError("")
@@ -146,19 +156,17 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data?.message || "Erreur inscription")
       }
 
-      const newUser = data.data.user
-      const newToken = data.data.accessToken
+      // ✅ Ne PAS stocker le token — le compte n'est pas actif
+      // On laisse user et token à null
+      // Le Register.jsx affichera l'écran "vérifiez votre email"
 
-      // ✅ Même chose pour le register
-      justLoggedIn.current = true
-
-      setUser(newUser)
-      setToken(newToken)
-
-      localStorage.setItem("user", JSON.stringify(newUser))
-      localStorage.setItem("token", newToken)
-
-      return { success: true }
+      return {
+        success: true,
+        email_verification_required: data.data?.email_verification_required,
+        email_sent: data.data?.email_sent,
+        email: userData.email,
+        first_name: userData.first_name,
+      }
     } catch (err) {
       setError(err.message)
       return { success: false, message: err.message }
@@ -174,7 +182,6 @@ export const AuthProvider = ({ children }) => {
     const interval = setInterval(async () => {
       try {
         const storedRefreshToken = localStorage.getItem("refreshToken")
-        // Si pas de refreshToken stocké, ne pas essayer
         if (!storedRefreshToken) return
 
         const res = await fetch("/api/auth/refresh-token", {
@@ -185,8 +192,8 @@ export const AuthProvider = ({ children }) => {
         })
 
         if (!res.ok) {
-          console.warn("⚠️ Refresh token expiré — session maintenue avec access token")
-          return // Ne pas déconnecter, le JWT access token peut encore être valide
+          console.warn("⚠️ Refresh token expiré")
+          return
         }
 
         const data = await res.json()
@@ -195,41 +202,23 @@ export const AuthProvider = ({ children }) => {
         const newToken = data.data.accessToken
         const newRefresh = data.data.refreshToken
 
-        // Mettre à jour les tokens
         justLoggedIn.current = true
         setToken(newToken)
         localStorage.setItem("token", newToken)
         if (newRefresh) localStorage.setItem("refreshToken", newRefresh)
       } catch (err) {
-        console.warn("⚠️ Refresh token error (non bloquant):", err.message)
-        // Ne pas déconnecter — le JWT access token peut encore fonctionner
+        console.warn("⚠️ Refresh token error:", err.message)
       }
-    }, 10 * 60 * 1000) // 10 minutes
+    }, 10 * 60 * 1000)
 
     return () => clearInterval(interval)
   }, [token, logout])
 
   // ================= FONCTIONS DE RÔLE =================
-  const isAdmin = () => {
-    if (!user?.role) return false
-    return user.role === "admin" || user.role === "superadmin"
-  }
-
-  const isInstructor = () => {
-    if (!user?.role) return false
-    return user.role === "instructor"
-  }
-
-  const isStudent = () => {
-    if (!user) return false
-    return user.role === "student"
-  }
-
-  const hasRole = (roles) => {
-    if (!user?.role) return false
-    return Array.isArray(roles) ? roles.includes(user.role) : user.role === roles
-  }
-
+  const isAdmin = () => user?.role === "admin" || user?.role === "superadmin"
+  const isInstructor = () => user?.role === "instructor"
+  const isStudent = () => user?.role === "student"
+  const hasRole = (roles) => Array.isArray(roles) ? roles.includes(user?.role) : user?.role === roles
   const isGuest = () => !user || !token
 
   const updateUser = (updatedData) => {
@@ -249,29 +238,20 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        // États
         user,
         token,
         loading,
         error,
-
-        // Authentification
         isAuthenticated: !!token,
         isGuest,
-
-        // Rôles
         isAdmin,
         isInstructor,
         isStudent,
         hasRole,
-
-        // Actions
         login,
         register,
         logout,
         updateUser,
-
-        // Utilitaires
         getFullName,
       }}
     >
