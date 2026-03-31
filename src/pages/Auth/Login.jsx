@@ -87,15 +87,6 @@ export default function Login() {
 
       <div className="w-full max-w-sm">
 
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "#facc15" }}>
-            <span className="text-indigo-900 font-black text-xs">DA</span>
-          </div>
-          <span className="text-white font-black text-base tracking-tight">DevOps Akademy</span>
-        </div>
-
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
 
