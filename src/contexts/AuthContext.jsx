@@ -138,7 +138,8 @@ export const AuthProvider = ({ children }) => {
 
       if (!res.ok) throw new Error(data?.message || "Erreur lors de l'inscription")
 
-      // Compte inactif → PAS de token stocké
+      // Compte inactif → PAS de token stocké en localStorage
+      // Exception : instructeur → token temporaire pour soumettre la candidature
       return {
         success:                    true,
         email_verification_required: data.data?.email_verification_required,
@@ -146,6 +147,8 @@ export const AuthProvider = ({ children }) => {
         email:                      userData.email,
         first_name:                 userData.first_name,
         message:                    data.message,
+        instructor_temp_token:      data.instructor_temp_token || null,
+        user_id:                    data.data?.user?.id || null,
       }
     } catch (err) {
       setError(err.message)
