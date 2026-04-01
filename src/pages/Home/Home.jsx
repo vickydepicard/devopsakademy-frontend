@@ -28,7 +28,7 @@ const TECH_STACK = [
 ];
 
 const STATS = [
-  { value: "2 000+", label: "Apprenants formés",   icon: Users },
+  { value: "20+", label: "Apprenants formés",   icon: Users },
   { value: "30+",    label: "Cours disponibles",    icon: BookOpen },
   { value: "95%",    label: "Taux de satisfaction", icon: Star },
   { value: "12+",    label: "Pays représentés",     icon: Globe },
@@ -309,7 +309,7 @@ function PopularCoursesSection() {
           <div>
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Formations</span>
             <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">Les plus populaires</h2>
-            <p className="text-gray-500 mt-1.5">Plébiscitées par notre communauté de +2 000 apprenants</p>
+            <p className="text-gray-500 mt-1.5">Plébiscitées par notre communauté d'apprenants</p>
           </div>
           <Link to="/courses" className="hidden md:inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all duration-200 text-sm">
             Voir tout <ArrowRight className="w-4 h-4" />

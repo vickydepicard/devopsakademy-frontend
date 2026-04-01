@@ -629,7 +629,7 @@ export default function BecomeInstructor() {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 mt-16 max-w-xl mx-auto">
-            {[["2 000+", "Apprenants actifs"],["30+", "Cours disponibles"],["95%", "Satisfaction"]].map(([v,l]) => (
+            {[["20+", "Apprenants actifs"],["30+", "Cours disponibles"],["95%", "Satisfaction"]].map(([v,l]) => (
               <div key={l} className="text-center">
                 <p className="text-3xl font-black" style={{ color: C.accent }}>{v}</p>
                 <p className="text-white/60 text-xs mt-1">{l}</p>

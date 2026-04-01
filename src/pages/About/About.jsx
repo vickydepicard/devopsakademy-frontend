@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 const stats = [
-  { value: "2 000+", label: "Apprenants formés", icon: Users },
+  { value: "20+", label: "Apprenants formés", icon: Users },
   { value: "30+", label: "Modules de formation", icon: Award },
   { value: "95%", label: "Taux de satisfaction", icon: Star },
   { value: "12+", label: "Pays représentés", icon: Globe },
