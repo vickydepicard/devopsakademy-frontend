@@ -175,7 +175,7 @@ export default function StudentPayments() {
                   {/* Thumbnail */}
                   <div className="w-16 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-indigo-50">
                     {e.thumbnail_url
-                      ? <img src={e.thumbnail_url} alt="" className="w-full h-full object-cover"
+                      ? <img src={e.thumbnail_url} alt="" className="w-full h-full object-contain"
                           onError={ev => ev.target.style.display = "none"} />
                       : <div className="w-full h-full flex items-center justify-center">
                           <span className="text-xs font-black text-indigo-300">

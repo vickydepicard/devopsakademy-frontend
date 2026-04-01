@@ -227,7 +227,7 @@ export default function MyCourses() {
                         <img
                           src={course.thumbnail_url}
                           alt={course.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                           onError={e => { e.target.style.display="none"; const fb=e.target.nextSibling; if(fb) fb.style.display="flex"; }}
                         />
                         <div style={{display:"none"}} className="absolute inset-0 items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">

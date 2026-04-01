@@ -80,7 +80,7 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
             <img
               src={review.avatar_url}
               alt={fullName}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-10 h-10 rounded-full object-contain"
               onError={e => { e.target.onerror = null; e.target.style.display = "none"; }}
             />
           ) : (

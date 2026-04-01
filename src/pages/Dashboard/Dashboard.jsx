@@ -73,7 +73,7 @@ function CourseCard({ course, onUpload, uploading }) {
       <div className="relative h-28 bg-gradient-to-br from-slate-100 to-indigo-50 flex-shrink-0 overflow-hidden">
         {course.thumbnail_url && (
           <img src={course.thumbnail_url} alt=""
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
             onError={e => { e.target.style.display="none"; }} />
         )}
         {done && (
@@ -314,7 +314,7 @@ export default function Dashboard() {
             <div className="relative flex-shrink-0">
               {avatar ? (
                 <img src={avatar} alt="avatar"
-                  className="w-13 h-13 rounded-2xl border-2 border-white/25 shadow-xl object-cover w-[52px] h-[52px]" />
+                  className="w-13 h-13 rounded-2xl border-2 border-white/25 shadow-xl object-contain w-[52px] h-[52px]" />
               ) : (
                 <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg border-2 border-white/25 shadow-xl">
                   {initials}
@@ -366,7 +366,7 @@ export default function Dashboard() {
             <div className="p-4 flex gap-3 items-center">
               <div className="w-20 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex-shrink-0 flex items-center justify-center">
                 {lastAccessed.thumbnail_url
-                  ? <img src={lastAccessed.thumbnail_url} alt="" className="w-full h-full object-cover"
+                  ? <img src={lastAccessed.thumbnail_url} alt="" className="w-full h-full object-contain"
                       onError={e => e.target.style.display="none"} />
                   : <BookOpen className="w-5 h-5 text-indigo-300" />
                 }
@@ -510,7 +510,7 @@ export default function Dashboard() {
                   <div key={course.id} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/70 transition">
                     <div className="w-8 h-8 rounded-lg bg-indigo-50 flex-shrink-0 flex items-center justify-center overflow-hidden">
                       {course.thumbnail_url
-                        ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover"
+                        ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-contain"
                             onError={e => e.target.style.display="none"} />
                         : <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
                       }

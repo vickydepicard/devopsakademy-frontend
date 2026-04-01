@@ -1,7 +1,7 @@
 // CourseDetails.jsx — DevOpsAkademy
 // Page détail cours — 100% dynamique — Prix en FCFA
 // Design cohérent avec les couleurs #2d287f / #facc15
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { usePermissions } from "../../contexts/PermissionContext";
@@ -84,7 +84,7 @@ function Thumbnail({ url, title, h = "h-80" }) {
     return (
       <img
         src={url} alt={title}
-        className={`w-full ${h} object-cover`}
+        className={`w-full ${h} object-contain`}
         onError={() => setFailed(true)}
       />
     );
@@ -108,95 +108,358 @@ function PriceBadge({ price, originalPrice, isFree }) {
 }
 
 /* ══════════════════════════════════════════════════════
-   MODAL PAIEMENT
+   MODAL PAIEMENT — Logos SVG inline fidèles
 ══════════════════════════════════════════════════════ */
-function PaymentModal({ onClose, price, isFree }) {
+
+// Orange Money — logo officiel via URL externe avec fallback SVG
+const OrangeLogo = () => {
+  const [failed, setFailed] = React.useState(false);
+  if (failed) {
+    // Fallback si l'URL ne charge pas
+    return (
+      <div style={{
+        width: 52, height: 52, borderRadius: 13, background: "#111111",
+        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
+      }}>
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+          <polygon points="33,8 44,8 44,19" fill="#FF6900"/>
+          <rect x="21.5" y="9" width="8" height="30" rx="4" fill="#FF6900"
+            transform="rotate(45 26 26)"/>
+          <polygon points="8,44 19,44 8,33" fill="white"/>
+          <rect x="21.5" y="13" width="8" height="30" rx="4" fill="white"
+            transform="rotate(45 26 26)"/>
+        </svg>
+      </div>
+    );
+  }
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h3 className="text-xl font-black text-gray-900">💳 Informations de Paiement</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-            <X className="w-4 h-4" />
+    <div style={{
+      width: 52, height: 52, borderRadius: 13, background: "#111111",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      overflow: "hidden", padding: 4,
+    }}>
+      <img
+        src="https://www.logo.wine/a/logo/Orange_Money/Orange_Money-Logo.wine.svg"
+        alt="Orange Money"
+        onError={() => setFailed(true)}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+      />
+    </div>
+  );
+};
+
+// MTN MoMo — fond jaune signature, 2 bandes noires, texte MTN + MoMo
+const MtnLogo = () => (
+  <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="52" height="52" rx="13" fill="#FFCC00"/>
+    {/* 2 bandes noires horizontales signature MTN */}
+    <rect x="0" y="16" width="52" height="6" fill="#111111"/>
+    <rect x="0" y="30" width="52" height="6" fill="#111111"/>
+    {/* Masque coins arrondis */}
+    <rect width="52" height="52" rx="13" fill="transparent"/>
+    {/* Texte MTN en haut */}
+    <text x="26" y="13.5" textAnchor="middle" fontSize="10.5" fontWeight="900"
+      fill="#111111" fontFamily="Arial Black,Arial,sans-serif">MTN</text>
+    {/* Texte MoMo en bas */}
+    <text x="26" y="47" textAnchor="middle" fontSize="8.5" fontWeight="800"
+      fill="#111111" fontFamily="Arial,sans-serif">MoMo</text>
+  </svg>
+);
+
+// Wave — logo pingouin stylisé inline
+const WaveLogo = () => (
+  <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="52" height="52" rx="14" fill="#00B2F0"/>
+    {/* Corps pingouin */}
+    <ellipse cx="26" cy="30" rx="10" ry="12" fill="#1a1a1a"/>
+    {/* Ventre blanc */}
+    <ellipse cx="26" cy="31" rx="6" ry="8" fill="white"/>
+    {/* Tête */}
+    <ellipse cx="26" cy="18" rx="8" ry="8" fill="#1a1a1a"/>
+    {/* Yeux */}
+    <circle cx="23" cy="16" r="2" fill="white"/>
+    <circle cx="29" cy="16" r="2" fill="white"/>
+    <circle cx="23.5" cy="16.5" r="1" fill="#1a1a1a"/>
+    <circle cx="29.5" cy="16.5" r="1" fill="#1a1a1a"/>
+    {/* Bec */}
+    <path d="M24 20 L26 23 L28 20 Z" fill="#FF9900"/>
+    {/* Ailes */}
+    <ellipse cx="14" cy="29" rx="4" ry="7" fill="#1a1a1a" transform="rotate(-10 14 29)"/>
+    <ellipse cx="38" cy="29" rx="4" ry="7" fill="#1a1a1a" transform="rotate(10 38 29)"/>
+    {/* Pieds */}
+    <ellipse cx="22" cy="42" rx="4" ry="2.5" fill="#FF9900"/>
+    <ellipse cx="30" cy="42" rx="4" ry="2.5" fill="#FF9900"/>
+  </svg>
+);
+
+
+function PaymentModal({ onClose, price, isFree }) {
+  const fmt = (p) => Number(p || 0).toLocaleString("fr-FR");
+  const [copied, setCopied] = useState(null);
+
+  const copyNum = (num, id) => {
+    navigator.clipboard?.writeText(num).catch(() => {});
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  // ══════════════════════════════════════════════════════
+  // CONFIG PAIEMENT — tout depuis .env
+  // Activer/désactiver : VITE_PAYMENT_xxx_ENABLED=true/false
+  // Changer numéro    : VITE_PAYMENT_xxx_NUMBER=6xxxxxxxx
+  // Changer nom       : VITE_PAYMENT_xxx_NAME=Nom Compte
+  // ══════════════════════════════════════════════════════
+  const formatPhone = (raw) => {
+    const n = (raw || "").replace(/\D/g, "");
+    return n.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+  };
+
+  const ALL_METHODS = [
+    {
+      id:        "orange",
+      Logo:      OrangeLogo,
+      name:      "Orange Money",
+      accountName: import.meta.env.VITE_PAYMENT_ORANGE_NAME    || "DevOpsAkademy",
+      number:    formatPhone(import.meta.env.VITE_PAYMENT_ORANGE_NUMBER),
+      rawNumber: import.meta.env.VITE_PAYMENT_ORANGE_NUMBER    || "",
+      enabled:   import.meta.env.VITE_PAYMENT_ORANGE_ENABLED   !== "false",
+      code:      "#150*1#",
+      grad:      "linear-gradient(135deg,#FF6900,#FF8C00)",
+      glow:      "rgba(255,105,0,0.25)",
+      badge:     "#fff3e0",
+      badgeText: "#e65100",
+    },
+    {
+      id:        "mtn",
+      Logo:      MtnLogo,
+      name:      "MTN MoMo",
+      accountName: import.meta.env.VITE_PAYMENT_MTN_NAME       || "DevOpsAkademy",
+      number:    formatPhone(import.meta.env.VITE_PAYMENT_MTN_NUMBER),
+      rawNumber: import.meta.env.VITE_PAYMENT_MTN_NUMBER       || "",
+      enabled:   import.meta.env.VITE_PAYMENT_MTN_ENABLED      !== "false",
+      code:      "*126#",
+      grad:      "linear-gradient(135deg,#FFCB00,#FFD740)",
+      glow:      "rgba(255,203,0,0.3)",
+      badge:     "#fffde7",
+      badgeText: "#f57f17",
+    },
+    {
+      id:        "wave",
+      Logo:      WaveLogo,
+      name:      "Wave",
+      accountName: import.meta.env.VITE_PAYMENT_WAVE_NAME      || "DevOpsAkademy",
+      number:    formatPhone(import.meta.env.VITE_PAYMENT_WAVE_NUMBER),
+      rawNumber: import.meta.env.VITE_PAYMENT_WAVE_NUMBER      || "",
+      enabled:   import.meta.env.VITE_PAYMENT_WAVE_ENABLED     !== "false",
+      code:      "App Wave",
+      grad:      "linear-gradient(135deg,#00B2F0,#00D4FF)",
+      glow:      "rgba(0,178,240,0.25)",
+      badge:     "#e0f7fa",
+      badgeText: "#006064",
+    },
+  ];
+
+  // Filtre uniquement les méthodes activées dans .env
+  const METHODS = ALL_METHODS.filter(m => m.enabled && m.rawNumber);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5"
+      style={{ background: "rgba(10,8,40,0.85)", backdropFilter: "blur(10px)" }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="w-full bg-white overflow-hidden flex flex-col"
+        style={{
+          maxWidth: 420,
+          maxHeight: "90dvh",
+          borderRadius: 28,
+          boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)",
+          animation: "payIn 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+        }}
+      >
+        {/* ── HEADER ── */}
+        <div
+          className="relative flex-shrink-0 px-6 pt-7 pb-6 text-center overflow-hidden"
+          style={{ background: "linear-gradient(160deg,#0f0c2e 0%,#1e1b4b 40%,#2d287f 100%)" }}
+        >
+          {/* Glow décoratif */}
+          <div style={{
+            position: "absolute", top: -40, left: "50%", transform: "translateX(-50%)",
+            width: 220, height: 220, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(250,204,21,0.18) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}/>
+          {/* Close */}
+          <button onClick={onClose} style={{
+            position: "absolute", top: 14, right: 14, width: 32, height: 32,
+            background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 10, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <X className="w-4 h-4 text-white" />
           </button>
+          {/* Label */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 7, marginBottom: 12,
+            background: "rgba(255,255,255,0.08)", borderRadius: 20,
+            padding: "4px 12px 4px 6px", border: "1px solid rgba(255,255,255,0.12)",
+          }}>
+            <span style={{
+              width: 20, height: 20, background: "#facc15", borderRadius: 6,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 9, fontWeight: 900, color: "#1e1b4b",
+            }}>DA</span>
+            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+              Paiement
+            </span>
+          </div>
+          {/* Prix */}
+          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, marginBottom: 4 }}>Montant à payer</p>
+          <p style={{
+            fontSize: isFree ? 32 : 42, fontWeight: 900, letterSpacing: "-0.02em",
+            color: "#facc15",
+            textShadow: "0 0 40px rgba(250,204,21,0.4)",
+            lineHeight: 1,
+          }}>
+            {isFree ? "🎉 Gratuit" : `${fmt(price)} FCFA`}
+          </p>
+          {!isFree && (
+            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 6 }}>
+              Paiement unique · Accès à vie
+            </p>
+          )}
         </div>
 
-        <div className="p-6 space-y-5">
-          {/* Prix FCFA */}
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 border border-indigo-100">
-            <p className="text-sm text-indigo-600 font-semibold mb-1">Montant à payer</p>
-            <p className="text-3xl font-black" style={{ color: "#2d287f" }}>
-              {formatPrice(price, isFree)}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">Paiement unique — accès à vie</p>
-          </div>
+        {/* ── BODY ── */}
+        <div className="overflow-y-auto flex-1" style={{ padding: "20px 20px 0" }}>
 
-          {/* Méthodes de paiement */}
-          <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="w-5 h-5 text-amber-600" />
-              <h4 className="font-bold text-gray-900">Méthodes acceptées (FCFA)</h4>
+          {!isFree && (
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12, textAlign: "center" }}>
+                Moyens de paiement
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {METHODS.map(({ id, Logo, name, accountName, number, rawNumber, code, grad, glow, badge, badgeText }) => (
+                  <div key={id} style={{
+                    display: "flex", alignItems: "center", gap: 14,
+                    background: "#fafafa", borderRadius: 18,
+                    border: "1.5px solid #f0f0f0",
+                    padding: "12px 14px",
+                    transition: "all 0.2s",
+                  }}>
+                    {/* Logo */}
+                    <div style={{
+                      width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+                      overflow: "hidden", boxShadow: `0 6px 20px ${glow}`,
+                    }}>
+                      <Logo />
+                    </div>
+
+                    {/* Infos */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: "#111" }}>{name}</span>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, color: badgeText,
+                          background: badge, borderRadius: 6, padding: "2px 7px",
+                        }}>{code}</span>
+                      </div>
+                      <p style={{ fontSize: 18, fontWeight: 900, color: "#1e1b4b", letterSpacing: "0.05em", fontFamily: "monospace" }}>
+                        {number}
+                      </p>
+                      <p style={{ fontSize: 10, color: "#9ca3af", marginTop: 2, fontStyle: "italic" }}>
+                        {accountName}
+                      </p>
+                    </div>
+
+                    {/* Copier */}
+                    <button
+                      onClick={() => copyNum(rawNumber, id)}
+                      style={{
+                        flexShrink: 0, padding: "7px 14px", borderRadius: 10,
+                        background: copied === id ? "linear-gradient(135deg,#10b981,#059669)" : grad,
+                        border: "none", cursor: "pointer", color: copied === id ? "white" : (id === "mtn" ? "#1a1a1a" : "white"),
+                        fontSize: 11, fontWeight: 800, transition: "all 0.2s",
+                        boxShadow: `0 4px 12px ${glow}`,
+                        minWidth: 64, textAlign: "center",
+                      }}
+                    >
+                      {copied === id ? "✓ Copié" : "Copier"}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { name: "Orange Money", icon: "🟠", detail: "Via mobile money" },
-                { name: "MTN MoMo",     icon: "🟡", detail: "Via mobile money" },
-                { name: "Wave",         icon: "🌊", detail: "Via Wave App" },
-                { name: "Virement",     icon: "🏦", detail: "Banque locale" },
-              ].map(m => (
-                <div key={m.name} className="bg-white rounded-xl p-3 border border-amber-200 text-center">
-                  <div className="text-2xl mb-1">{m.icon}</div>
-                  <p className="text-sm font-bold text-gray-800">{m.name}</p>
-                  <p className="text-xs text-gray-500">{m.detail}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Processus */}
-          <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
-            <div className="flex items-center gap-2 mb-4">
-              <Info className="w-5 h-5 text-emerald-600" />
-              <h4 className="font-bold text-gray-900">Processus d'inscription</h4>
-            </div>
-            <ol className="space-y-3">
-              {[
-                { icon: "1", text: "Cliquez sur \"S'inscrire\" et créez votre compte" },
-                { icon: "2", text: "Effectuez le paiement via votre méthode préférée" },
-                { icon: "3", text: "Envoyez la preuve à support@devopsakademy.com" },
-                { icon: "4", text: "Accès activé sous 24h après validation" },
-              ].map((s) => (
-                <li key={s.icon} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
-                    style={{ background: "#2d287f" }}>{s.icon}</div>
-                  <p className="text-sm text-gray-700">{s.text}</p>
-                </li>
-              ))}
-            </ol>
+          <div style={{
+            background: "linear-gradient(135deg,#f8f7ff,#f0f0ff)",
+            border: "1px solid #e0e7ff", borderRadius: 18, padding: "14px 16px", marginBottom: 12,
+          }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>
+              📋 Comment payer
+            </p>
+            {[
+              "Notez le numéro et composez le code USSD",
+              "Entrez le montant exact et validez",
+              "Photographiez le SMS de confirmation",
+              "Cliquez « S'inscrire » et uploadez la preuve",
+              "Accès activé sous 24h ✓",
+            ].map((t, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: i < 4 ? 8 : 0 }}>
+                <div style={{
+                  width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                  background: "linear-gradient(135deg,#2d287f,#5653e1)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 900, color: "white",
+                }}>{i + 1}</div>
+                <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.5, paddingTop: 3 }}>{t}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Contact */}
-          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-            <p className="text-sm font-bold text-gray-700 mb-3">📞 Support & Assistance</p>
-            <div className="space-y-2 text-sm text-gray-600">
-              <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-gray-400" /> support@devopsakademy.com</div>
-              <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-gray-400" /> Lun–Ven : 8h–18h (WAT)</div>
-              <div className="flex items-center gap-2"><Shield className="w-4 h-4 text-gray-400" /> Garantie satisfait ou remboursé 30 jours</div>
+          {/* Garantie */}
+          <div style={{
+            background: "#f0fdf4", border: "1px solid #bbf7d0",
+            borderRadius: 14, padding: "10px 14px", marginBottom: 12,
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <span style={{ fontSize: 20 }}>🛡️</span>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 800, color: "#065f46" }}>Garantie satisfait ou remboursé 30 jours</p>
+              <p style={{ fontSize: 11, color: "#059669" }}>{import.meta.env.VITE_PAYMENT_EMAIL || "support@devopsakademy.com"}</p>
             </div>
           </div>
         </div>
 
-        <div className="p-6 pt-0">
-          <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-white transition hover:opacity-90"
-            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+        {/* ── FOOTER ── */}
+        <div style={{ padding: "12px 20px 20px", flexShrink: 0 }}>
+          <button onClick={onClose} style={{
+            width: "100%", padding: "15px", borderRadius: 18,
+            background: "linear-gradient(135deg,#2d287f,#5653e1)",
+            border: "none", cursor: "pointer", color: "white",
+            fontSize: 15, fontWeight: 900, letterSpacing: "0.01em",
+            boxShadow: "0 8px 24px rgba(45,40,127,0.35)",
+            transition: "opacity 0.2s",
+          }}>
             Fermer
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes payIn {
+          from { opacity:0; transform:scale(0.88) translateY(24px); }
+          to   { opacity:1; transform:scale(1) translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
+
+
 
 /* ══════════════════════════════════════════════════════
    COMPOSANT PRINCIPAL

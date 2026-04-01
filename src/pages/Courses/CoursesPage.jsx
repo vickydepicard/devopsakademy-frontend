@@ -1,6 +1,9 @@
 // src/pages/courses/CoursesPage.jsx
+import CourseImage from "../../components/UI/CourseImage";
 import { useState, useEffect, useMemo } from "react"
+import CourseImage from "../../components/UI/CourseImage";
 import { Link } from "react-router-dom"
+import CourseImage from "../../components/UI/CourseImage";
 import { useAuth } from "../../contexts/AuthContext"
 import EnrollButton from "../../components/enrollment/EnrollButton"
 
@@ -30,19 +33,14 @@ function CourseCard({ course, onEnrolled }) {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-indigo-100 transition-all group flex flex-col overflow-hidden">
 
       {/* Thumbnail */}
-      <div className="relative h-44 bg-gradient-to-br from-indigo-100 to-purple-100 overflow-hidden">
-        {course.thumbnail_url ? (
-          <img
-            src={course.thumbnail_url}
-            alt={course.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={e => { e.target.style.display = "none" }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-5xl opacity-40">📚</span>
-          </div>
-        )}
+      <div className="relative h-44 overflow-hidden">
+        <CourseImage
+          src={course.thumbnail_url}
+          title={course.title}
+          slug={course.slug}
+          wrapperClassName="w-full h-full group-hover:scale-105 transition-transform duration-300"
+          wrapperStyle={{ borderRadius: 0 }}
+        />
 
         {/* Badges overlay */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">

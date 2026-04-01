@@ -68,7 +68,7 @@ export default function CourseDetail() {
           <img
             src={course.thumbnail_url || "/default-course.jpg"}
             alt={course.title}
-            className="w-full h-56 object-cover rounded-lg shadow-md"
+            className="w-full h-56 object-contain rounded-lg shadow-md"
           />
         </div>
 

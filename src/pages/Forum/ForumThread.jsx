@@ -29,7 +29,7 @@ const fmtDate = (date) =>
 const Avatar = ({ firstName, lastName, avatarUrl, size = "md" }) => {
   const sizes = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" };
   if (avatarUrl) {
-    return <img src={avatarUrl} alt="" className={`${sizes[size]} rounded-full object-cover shrink-0`} />;
+    return <img src={avatarUrl} alt="" className={`${sizes[size]} rounded-full object-contain shrink-0`} />;
   }
   return (
     <div className={`${sizes[size]} bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white font-bold shrink-0`}>

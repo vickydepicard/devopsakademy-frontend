@@ -41,7 +41,7 @@ function ThumbnailCard({ title, url, className = "" }) {
   return (
     <div className={`relative overflow-hidden bg-gradient-to-br ${gradient} ${className}`}>
       {url && !imgFailed
-        ? <img src={url} alt={title} className="w-full h-full object-cover" onError={() => setImgFailed(true)} />
+        ? <img src={url} alt={title} className="w-full h-full object-contain" onError={() => setImgFailed(true)} />
         : <div className="w-full h-full flex items-center justify-center">
             <span className="text-white font-bold text-xl drop-shadow">{initials}</span>
           </div>

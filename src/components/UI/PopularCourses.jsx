@@ -1,9 +1,14 @@
+import CourseImage from "./CourseImage";
 import { useEffect, useState } from "react";
+import CourseImage from "./CourseImage";
 import { Link, useNavigate } from "react-router-dom";
+import CourseImage from "./CourseImage";
 import { useAuth } from "../../contexts/AuthContext";
+import CourseImage from "./CourseImage";
 import { usePermissions } from "../../contexts/PermissionContext";
 import api from "../../api/api";
 import PaymentModal from "../../pages/payment/PaymentModal";
+import CourseImage from "./CourseImage";
 import { 
   Star, 
   Users, 
@@ -273,27 +278,14 @@ const PopularCourses = () => {
                     </div>
                   )}
 
-                  {/* IMAGE / FALLBACK */}
+                  {/* IMAGE / LOGO TECH / FALLBACK */}
                   <div className="relative">
-                    {course.thumbnail_url && !imageError[course.id] ? (
-                      <img
-                        src={course.thumbnail_url}
-                        alt={course.title}
-                        onError={() =>
-                          setImageError((prev) => ({
-                            ...prev,
-                            [course.id]: true,
-                          }))
-                        }
-                        className="rounded-t-2xl w-full h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="rounded-t-2xl w-full h-48 bg-gradient-to-br from-[#3B3A82] to-[#4F46E5] flex items-center justify-center">
-                        <span className="text-white/90 text-6xl font-extrabold tracking-wider drop-shadow-md">
-                          {course.title?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    <CourseImage
+                      src={course.thumbnail_url}
+                      title={course.title}
+                      slug={course.slug}
+                      wrapperClassName="rounded-t-2xl w-full h-48"
+                    />
 
                     {/* PRIX */}
                     {!isFree && (

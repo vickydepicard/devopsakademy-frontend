@@ -354,7 +354,7 @@ function PopularCoursesSection() {
                           <img
                             src={course.thumbnail_url}
                             alt={course.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                             onError={e => { e.target.style.display = "none"; }}
                           />
                         )}

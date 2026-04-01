@@ -178,7 +178,7 @@ export default function UserProfile() {
           <div className="flex-shrink-0 relative">
             {avatar ? (
               <img src={avatar} alt={fullName}
-                className="w-16 h-16 rounded-2xl border-2 border-white/30 shadow-xl object-cover" />
+                className="w-16 h-16 rounded-2xl border-2 border-white/30 shadow-xl object-contain" />
             ) : (
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-black text-xl border-2 border-white/30 shadow-xl">
                 {initials}
@@ -397,7 +397,7 @@ export default function UserProfile() {
                           {/* Thumbnail */}
                           <div className="w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex-shrink-0 flex items-center justify-center">
                             {enr.thumbnail_url
-                              ? <img src={enr.thumbnail_url} alt="" className="w-full h-full object-cover"
+                              ? <img src={enr.thumbnail_url} alt="" className="w-full h-full object-contain"
                                   onError={e => e.target.style.display="none"} />
                               : <BookOpen className="w-5 h-5 text-indigo-300" />
                             }

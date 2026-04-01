@@ -785,7 +785,7 @@ const CourseDetails = () => {
                   <img
                     src={course.thumbnail_url}
                     alt={course.title}
-                    className="w-full h-[400px] object-cover"
+                    className="w-full h-[400px] object-contain"
                   />
                 ) : (
                   <div className="w-full h-[400px] bg-gradient-to-br from-[#3B3A82] to-[#4F46E5] flex items-center justify-center">

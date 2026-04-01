@@ -83,7 +83,7 @@ export default function StudentLayout() {
         <div className="px-3 py-3 flex-shrink-0" style={{ borderBottom:"1px solid #e8e6f5" }}>
           <div className="flex items-center gap-2.5 bg-violet-50 rounded-xl px-3 py-2.5">
             {user?.avatar_url
-              ? <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0"/>
+              ? <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-lg object-contain flex-shrink-0"/>
               : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
                   style={{ background:"#2d287f", color:"#facc15" }}>{initials}</div>
             }
@@ -99,7 +99,7 @@ export default function StudentLayout() {
       ) : (
         <div className="flex justify-center py-3 flex-shrink-0" style={{ borderBottom:"1px solid #e8e6f5" }}>
           {user?.avatar_url
-            ? <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-lg object-cover"/>
+            ? <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-lg object-contain"/>
             : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black"
                 style={{ background:"#2d287f", color:"#facc15" }}>{initials}</div>
           }

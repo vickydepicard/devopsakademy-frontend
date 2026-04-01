@@ -218,7 +218,7 @@ export default function InstructorAnalytics() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-7 rounded-lg overflow-hidden bg-gradient-to-br from-primary-dark to-primary shrink-0">
                             {course.thumbnail_url
-                              ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                              ? <img src={course.thumbnail_url} alt="" className="w-full h-full object-contain" />
                               : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-3.5 h-3.5 text-white/40" /></div>
                             }
                           </div>

@@ -4,8 +4,10 @@
 // ║  Upload vidéo depuis l'ordi · Publier/Dépublier partout         ║
 // ║  Intégré aux couleurs Tailwind du projet (#2d287f / #facc15)    ║
 // ╚══════════════════════════════════════════════════════════════════╝
+import CourseImage from "../../components/UI/CourseImage";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+
 import {
   BookOpen, Plus, Search, Filter, Eye, EyeOff, Edit3, Trash2,
   ChevronDown, ChevronRight, Video, FileText, Brain, Zap, Download,
@@ -685,7 +687,7 @@ export default function AdminCourses() {
                   <div key={c.id} onClick={() => openEditor(c)} className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-200 shadow-sm">
                     {/* Bannière */}
                     <div className="h-28 relative overflow-hidden" style={{ background: `linear-gradient(135deg,${lc}30,${lc}88)` }}>
-                      {c.thumbnail_url && <img src={c.thumbnail_url} alt="" className="w-full h-full object-cover opacity-80" onError={e => e.target.style.display = "none"} />}
+                      {c.thumbnail_url && <img src={c.thumbnail_url} alt="" className="w-full h-full object-contain opacity-80" onError={e => e.target.style.display = "none"} />}
                       <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55))" }} />
                       <div className="absolute top-2.5 left-3 flex gap-1.5">
                         <Badge color={lc} bg={lc + "30"}>{LEVEL_MAP[c.level]}</Badge>
@@ -762,9 +764,60 @@ export default function AdminCourses() {
                 )],
                 ["🖼 Médias", "#f59e0b", () => (
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="URL Image de couverture">
-                      <input className={IS} value={cForm.thumbnail_url || ""} onChange={e => setCForm(p => ({ ...p, thumbnail_url: e.target.value }))} placeholder="https://…" />
-                      {cForm.thumbnail_url && <img src={cForm.thumbnail_url} alt="" className="mt-2 h-16 rounded-lg object-cover" onError={e => e.target.style.display = "none"} />}
+                    <Field label="Image de couverture">
+                      <input className={IS}
+                        value={cForm.thumbnail_url || ""}
+                        onChange={e => setCForm(p => ({ ...p, thumbnail_url: e.target.value }))}
+                        placeholder="URL image ou logo tech (https://…)" />
+                      {/* Prévisualisation en temps réel */}
+                      <div className="mt-2 h-24 rounded-xl overflow-hidden border border-slate-200">
+                        <CourseImage
+                          src={cForm.thumbnail_url || undefined}
+                          title={cForm.title || ""}
+                          slug={cForm.slug || ""}
+                          wrapperClassName="w-full h-full"
+                        />
+                      </div>
+                      {/* Suggestions de logos officiels */}
+                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium">Logos officiels suggérés :</p>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {[
+                          ["Docker",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg"],
+                          ["Kubernetes", "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg"],
+                          ["Terraform",  "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/terraform/terraform-original.svg"],
+                          ["Ansible",    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ansible/ansible-original.svg"],
+                          ["AWS",        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg"],
+                          ["Azure",      "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg"],
+                          ["GCP",        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg"],
+                          ["Linux",      "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg"],
+                          ["Python",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"],
+                          ["GitLab",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/gitlab/gitlab-original.svg"],
+                          ["Jenkins",    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg"],
+                          ["Helm",       "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/helm/helm-original.svg"],
+                          ["GitHub",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"],
+                          ["Prometheus", "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prometheus/prometheus-original.svg"],
+                          ["Bash",       "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bash/bash-original.svg"],
+                          ["Vault",      "https://cdn.simpleicons.org/vault/000000"],
+                          ["ELK",        "https://cdn.simpleicons.org/elastic/005571"],
+                          ["ArgoCD",     "https://cdn.simpleicons.org/argo/EF7B4D"],
+                        ].map(([name, url]) => (
+                          <button key={name} type="button"
+                            onClick={() => setCForm(p => ({ ...p, thumbnail_url: url }))}
+                            className="px-2 py-0.5 rounded-md text-[10px] font-bold border transition hover:scale-105"
+                            style={{
+                              background: cForm.thumbnail_url === url ? "#2d287f" : "#f8f7ff",
+                              color:      cForm.thumbnail_url === url ? "#fff"    : "#2d287f",
+                              borderColor: cForm.thumbnail_url === url ? "#2d287f" : "#e0e7ff",
+                            }}>
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+                      <button type="button"
+                        onClick={() => setCForm(p => ({ ...p, thumbnail_url: "" }))}
+                        className="mt-1.5 text-[10px] text-red-400 hover:text-red-600 font-medium transition">
+                        ✕ Effacer l'image
+                      </button>
                     </Field>
                     <Field label="URL Vidéo de prévisualisation"><input className={IS} value={cForm.video_preview_url || ""} onChange={e => setCForm(p => ({ ...p, video_preview_url: e.target.value }))} placeholder="https://youtube.com/…" /></Field>
                   </div>
@@ -862,7 +915,7 @@ export default function AdminCourses() {
               ← Retour
             </button>
             <div className="w-12 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: `linear-gradient(135deg,${LEVEL_CLR[course.level] || "#2d287f"}50,${LEVEL_CLR[course.level] || "#2d287f"})` }}>
-              {course.thumbnail_url && <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = "none"} />}
+              {course.thumbnail_url && <img src={course.thumbnail_url} alt="" className="w-full h-full object-contain" onError={e => e.target.style.display = "none"} />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">

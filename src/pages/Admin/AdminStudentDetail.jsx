@@ -484,7 +484,7 @@ export default function AdminStudentDetail() {
                           <img
                             src={enrollment.thumbnail_url || `https://ui-avatars.com/api/?name=${enrollment.course_title}&background=3B3A82&color=fff&size=128`}
                             alt={enrollment.course_title}
-                            className="w-20 h-20 rounded-xl object-cover border border-gray-200"
+                            className="w-20 h-20 rounded-xl object-contain border border-gray-200"
                           />
                         </div>
                         <div>

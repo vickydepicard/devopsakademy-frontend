@@ -208,7 +208,7 @@ export default function CourseForm() {
               placeholder="https://…/image.jpg" help="Recommandé : 1280x720px, format JPG ou PNG" />
             {form.thumbnail_url && (
               <div className="rounded-xl overflow-hidden border border-gray-200 h-40 bg-gray-50">
-                <img src={form.thumbnail_url} alt="Preview" className="w-full h-full object-cover"
+                <img src={form.thumbnail_url} alt="Preview" className="w-full h-full object-contain"
                   onError={e => { e.target.style.display = "none"; }} />
               </div>
             )}

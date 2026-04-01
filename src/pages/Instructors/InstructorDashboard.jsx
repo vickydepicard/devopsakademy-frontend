@@ -228,7 +228,7 @@ export default function InstructorDashboard() {
                 <div className="w-16 h-12 rounded-xl overflow-hidden shrink-0"
                   style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
                   {course.thumbnail_url
-                    ? <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" onError={e => e.target.style.display="none"} />
+                    ? <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-contain" onError={e => e.target.style.display="none"} />
                     : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-4 h-4 text-white/50" /></div>
                   }
                 </div>

@@ -88,7 +88,7 @@ export default function StudentDashboard() {
       <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-800 text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-            <img src={avatar} alt="avatar" className="w-16 h-16 rounded-full border-2 border-white/30 shadow-lg object-cover" />
+            <img src={avatar} alt="avatar" className="w-16 h-16 rounded-full border-2 border-white/30 shadow-lg object-contain" />
             <div className="flex-1">
               <p className="text-indigo-300 text-sm">Bonjour 👋</p>
               <h1 className="text-2xl font-bold mt-0.5">{getFullName()}</h1>
@@ -128,7 +128,7 @@ export default function StudentDashboard() {
             <div className="flex flex-col sm:flex-row gap-4 items-start">
               <div className="w-full sm:w-32 h-20 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {lastAccessed.thumbnail_url
-                  ? <img src={lastAccessed.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                  ? <img src={lastAccessed.thumbnail_url} alt="" className="w-full h-full object-contain" onError={e => e.target.style.display="none"} />
                   : <span className="text-3xl">📖</span>}
               </div>
               <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ export default function StudentDashboard() {
                     {/* Thumbnail */}
                     <div className="w-full sm:w-24 h-16 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
                       {e.thumbnail_url
-                        ? <img src={e.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                        ? <img src={e.thumbnail_url} alt="" className="w-full h-full object-contain" onError={ev => ev.target.style.display="none"} />
                         : <span className="text-2xl">📚</span>}
                     </div>
 

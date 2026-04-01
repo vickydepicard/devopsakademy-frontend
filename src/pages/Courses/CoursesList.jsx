@@ -1,3 +1,4 @@
+import CourseImage from "../../components/UI/CourseImage";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -247,7 +248,7 @@ export default function CoursesList() {
                 {/* Thumbnail */}
                 <div className="relative h-40 bg-gradient-to-br from-indigo-100 to-purple-100 overflow-hidden">
                   {course.thumbnail_url ? (
-                    <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.style.display = "none" }} />
+                    <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.style.display = "none" }} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-4xl font-bold text-indigo-300">{course.title.slice(0, 2).toUpperCase()}</span>
