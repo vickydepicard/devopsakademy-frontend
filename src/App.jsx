@@ -19,8 +19,14 @@ import About from './pages/About/About';
 import Pricing from './pages/Pricing/Pricing';
 import BecomeInstructor from './pages/BecomeInstructor/BecomeInstructor';
 import CertificateVerify from './pages/Certificates/CertificateVerify';
-import Instructors from './pages/Instructors/Instructors';
+import Instructors      from './pages/Instructors/Instructors';
+import InstructorProfile from './pages/Instructors/InstructorProfile';
+import BootcampsPage   from './pages/Bootcamps/BootcampsPage';
+import BootcampLive    from './pages/Bootcamps/BootcampLive';
+import AdminBootcamps  from './pages/Admin/AdminBootcamps';
 import CoursesList from './pages/Courses/CoursesList';
+import ForumList from './pages/Forum/ForumList';
+import ForumThread from './pages/Forum/ForumThread';
 
 // Pages de cours
 import CourseDetails from './pages/Courses/CourseDetails';
@@ -107,7 +113,12 @@ function App() {
                 <Route path="/certificates/verify"       element={<CertificateVerify />} />
                 <Route path="/certificates/verify/:number" element={<CertificateVerify />} />
                 <Route path="/instructors"               element={<Instructors />} />
+                <Route path="/instructors/:id"           element={<InstructorProfile />} />
+                <Route path="/bootcamps"                 element={<BootcampsPage />} />
+                <Route path="/bootcamps/:id"             element={<BootcampLive />} />
                 <Route path="/courses"                   element={<CoursesList />} />
+                <Route path="/forum"                     element={<ForumList />} />
+                <Route path="/forum/thread/:id"          element={<ForumThread />} />
 
                 {/* ── COURS ── */}
                 <Route path="/courses/:id"               element={<CourseDetails />} />
@@ -118,7 +129,7 @@ function App() {
                 <Route path="/courses/:id/enroll"        element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><CourseEnroll /></ProtectedRoute>} />
                 <Route path="/courses/:courseId/submissions" element={<ProtectedRoute allowedRoles={['student']}><StudentSubmission /></ProtectedRoute>} />
 
-                {/* ── ESPACE ÉTUDIANT — sidebar layout ── */}
+                {/* ── ESPACE ÉTUDIANT ── */}
                 <Route path="/student"
                   element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><StudentLayout /></ProtectedRoute>}
                 >
@@ -142,7 +153,6 @@ function App() {
                   element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><UserProfile /></ProtectedRoute>}
                 />
 
-                {/* ── LEGACY sans sidebar ── */}
                 <Route path="/my-courses"    element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><MyCourses /></ProtectedRoute>} />
                 <Route path="/courses/:courseId/quizzes/:quizId" element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><QuizPage /></ProtectedRoute>} />
                 <Route path="/leaderboard"   element={<Leaderboard />} />
@@ -179,6 +189,7 @@ function App() {
                   <Route path="submissions"              element={<AdminSubmissionReview />} />
                   <Route path="submissions/:id"          element={<AdminSubmissionReview />} />
                   <Route path="instructor-applications"  element={<AdminInstructorApplications />} />
+                  <Route path="bootcamps"                element={<AdminBootcamps />} />
                   <Route path="subscriptions"            element={<AdminSubscriptions />} />
                   <Route path="certificates"             element={<AdminCertificates />} />
                   <Route path="leaderboard"              element={<AdminLeaderboard />} />

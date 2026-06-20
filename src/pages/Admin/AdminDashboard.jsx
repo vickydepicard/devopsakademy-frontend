@@ -5,7 +5,7 @@ import {
   Users, BookOpen, ClipboardList, TrendingUp,
   Award, CreditCard, Clock, CheckCircle,
   ArrowRight, ChevronRight, AlertCircle, BarChart2,
-  UserCheck, DollarSign
+  UserCheck, DollarSign, Radio
 } from "lucide-react";
 
 const KPI = ({ label, value, sub, icon: Icon, color, bg, to }) => (
@@ -24,7 +24,7 @@ const KPI = ({ label, value, sub, icon: Icon, color, bg, to }) => (
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [recentEnrollments, setRecentEnrollments] = useState([]);
-  const [pendingItems, setPendingItems] = useState({ enrollments: 0, applications: 0, subscriptions: 0 });
+  const [pendingItems, setPendingItems] = useState({ enrollments: 0, applications: 0, subscriptions: 0, liveBootcamps: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,21 +34,27 @@ export default function AdminDashboard() {
 
   const fetchAll = async () => {
     try {
-      const [statsRes, enrollRes] = await Promise.allSettled([
+      const [statsRes, enrollRes, bootRes] = await Promise.allSettled([
         api.get("/admin/stats"),
         api.get("/enrollments?limit=5&status=pending"),
+        api.get("/bootcamps/admin/all"),
       ]);
       if (statsRes.status === "fulfilled") {
         const d = statsRes.value.data?.data;
         setStats(d);
-        setPendingItems({
-          enrollments: d?.pending_enrollments ?? 0,
+        setPendingItems(prev => ({
+          ...prev,
+          enrollments:  d?.pending_enrollments  ?? 0,
           applications: d?.pending_applications ?? 0,
           subscriptions: d?.pending_subscriptions ?? 0,
-        });
+        }));
       }
       if (enrollRes.status === "fulfilled") {
         setRecentEnrollments(enrollRes.value.data?.data?.slice(0, 5) || []);
+      }
+      if (bootRes.status === "fulfilled") {
+        const lives = (bootRes.value.data?.data || []).filter(b => b.status === "live").length;
+        setPendingItems(prev => ({ ...prev, liveBootcamps: lives }));
       }
     } catch (err) {
       console.error("Erreur dashboard admin:", err);
@@ -90,7 +96,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Alertes en attente */}
-      {totalPending > 0 && (
+      {(totalPending > 0 || pendingItems.liveBootcamps > 0) && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4 flex-wrap">
           <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
           <p className="text-sm text-amber-800 font-medium flex-1">
@@ -110,6 +116,11 @@ export default function AdminDashboard() {
             {pendingItems.subscriptions > 0 && (
               <Link to="/admin/subscriptions" className="text-xs bg-violet-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-violet-600 transition">
                 {pendingItems.subscriptions} abonnement{pendingItems.subscriptions > 1 ? "s" : ""}
+              </Link>
+            )}
+            {pendingItems.liveBootcamps > 0 && (
+              <Link to="/admin/bootcamps" className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-red-600 transition animate-pulse">
+                🔴 {pendingItems.liveBootcamps} live en cours
               </Link>
             )}
           </div>
@@ -136,8 +147,8 @@ export default function AdminDashboard() {
           icon={Award} color="text-yellow-600" bg="bg-yellow-50" to="/admin/certificates" />
         <KPI label="Abonnements actifs" value={stats?.active_subscriptions}
           icon={CreditCard} color="text-indigo-600" bg="bg-indigo-50" to="/admin/subscriptions" />
-        <KPI label="Candidatures en attente" value={pendingItems.applications}
-          icon={Clock} color="text-rose-500" bg="bg-rose-50" to="/admin/instructor-applications" />
+        <KPI label="Bootcamps & Lives" value={pendingItems.liveBootcamps > 0 ? `🔴 ${pendingItems.liveBootcamps} live` : stats?.bootcamps_count ?? "—"}
+          icon={Radio} color="text-rose-500" bg="bg-rose-50" to="/admin/bootcamps" />
       </div>
 
       {/* Tableaux rapides */}
@@ -183,12 +194,13 @@ export default function AdminDashboard() {
           <h3 className="font-bold text-gray-900 text-sm mb-4">Actions rapides</h3>
           <div className="space-y-2">
             {[
-              { to: "/admin/enrollments?filter=pending", label: "Valider les paiements en attente", color: "text-amber-600", bg: "hover:bg-amber-50", count: pendingItems.enrollments },
-              { to: "/admin/instructor-applications", label: "Traiter les candidatures instructeurs", color: "text-blue-600", bg: "hover:bg-blue-50", count: pendingItems.applications },
-              { to: "/admin/subscriptions?filter=pending", label: "Valider les abonnements", color: "text-violet-600", bg: "hover:bg-violet-50", count: pendingItems.subscriptions },
-              { to: "/admin/courses", label: "Gérer le catalogue de cours", color: "text-emerald-600", bg: "hover:bg-emerald-50" },
-              { to: "/admin/certificates", label: "Émettre des certificats", color: "text-yellow-600", bg: "hover:bg-yellow-50" },
-              { to: "/admin/settings", label: "Paramètres de la plateforme", color: "text-gray-600", bg: "hover:bg-gray-50" },
+              { to: "/admin/enrollments?filter=pending",    label: "Valider les paiements en attente",       color: "text-amber-600",  bg: "hover:bg-amber-50",  count: pendingItems.enrollments },
+              { to: "/admin/instructor-applications",       label: "Traiter les candidatures instructeurs",  color: "text-blue-600",   bg: "hover:bg-blue-50",   count: pendingItems.applications },
+              { to: "/admin/subscriptions?filter=pending",  label: "Valider les abonnements",                color: "text-violet-600", bg: "hover:bg-violet-50", count: pendingItems.subscriptions },
+              { to: "/admin/bootcamps",                     label: "🎙️ Gérer les bootcamps & lives",         color: "text-indigo-600", bg: "hover:bg-indigo-50", count: pendingItems.liveBootcamps },
+              { to: "/admin/courses",                       label: "Gérer le catalogue de cours",            color: "text-emerald-600",bg: "hover:bg-emerald-50" },
+              { to: "/admin/certificates",                  label: "Émettre des certificats",                color: "text-yellow-600", bg: "hover:bg-yellow-50" },
+              { to: "/admin/settings",                      label: "Paramètres de la plateforme",            color: "text-gray-600",   bg: "hover:bg-gray-50" },
             ].map(({ to, label, color, bg, count }) => (
               <Link key={to} to={to}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border border-transparent ${bg} transition group`}>

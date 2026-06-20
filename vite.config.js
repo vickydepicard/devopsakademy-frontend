@@ -17,6 +17,15 @@ export default defineConfig({
       '/uploads': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+        // Support des Range requests pour le streaming vidéo MP4
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            // Transmettre le header Range au backend
+            if (req.headers['range']) {
+              proxyReq.setHeader('Range', req.headers['range']);
+            }
+          });
+        },
       },
     },
   },

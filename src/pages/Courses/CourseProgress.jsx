@@ -47,7 +47,7 @@ export default function CourseProgress() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2d287f]" />
       </div>
     );
   }
@@ -58,7 +58,7 @@ export default function CourseProgress() {
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100 max-w-sm w-full">
           <div className="text-4xl mb-3">⚠️</div>
           <p className="text-gray-700 font-medium mb-4">{error}</p>
-          <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-indigo-700 text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition">
+          <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition">
             ← Retour
           </button>
         </div>
@@ -70,35 +70,35 @@ export default function CourseProgress() {
     <div className="min-h-screen bg-gray-50">
 
       {/* ── Header ──────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-indigo-900 to-purple-800 text-white px-4 py-8">
+      <div className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <button onClick={() => navigate("/student")} className="text-indigo-300 hover:text-white text-sm mb-4 flex items-center gap-1 transition">
+          <button onClick={() => navigate("/student")} className="text-white/60 hover:text-white text-sm mb-4 flex items-center gap-1 transition">
             ← Mon dashboard
           </button>
           <h1 className="text-2xl font-bold">{course?.title}</h1>
-          <p className="text-indigo-300 text-sm mt-1">Progression détaillée</p>
+          <p className="text-white/60 text-sm mt-1">Progression détaillée</p>
 
           {/* Barre de progression principale */}
           <div className="mt-6 bg-white/10 rounded-2xl p-5">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <p className="text-3xl font-bold">{globalPct}%</p>
-                <p className="text-indigo-200 text-sm mt-0.5">
+                <p className="text-white/50 text-sm mt-0.5">
                   {completedLessons} / {totalLessons} leçons terminées
                 </p>
               </div>
               <div className="flex gap-4 text-center">
                 <div className="bg-white/10 rounded-xl px-4 py-2">
                   <p className="text-xl font-bold">{progress.length}</p>
-                  <p className="text-indigo-300 text-xs">Modules</p>
+                  <p className="text-white/60 text-xs">Modules</p>
                 </div>
                 <div className="bg-white/10 rounded-xl px-4 py-2">
                   <p className="text-xl font-bold">{Math.round(completedMinutes / 60 * 10) / 10}h</p>
-                  <p className="text-indigo-300 text-xs">Complétées</p>
+                  <p className="text-white/60 text-xs">Complétées</p>
                 </div>
                 <div className="bg-white/10 rounded-xl px-4 py-2">
                   <p className="text-xl font-bold">{Math.round(totalMinutes / 60 * 10) / 10}h</p>
-                  <p className="text-indigo-300 text-xs">Total</p>
+                  <p className="text-white/60 text-xs">Total</p>
                 </div>
               </div>
             </div>
@@ -122,7 +122,7 @@ export default function CourseProgress() {
             <p className="text-gray-400 text-sm mt-1">Commencez le cours pour voir votre avancement</p>
             <button
               onClick={() => navigate(`/courses/${course?.id || id}/learn`)}
-              className="mt-4 px-5 py-2.5 bg-indigo-700 text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition"
+              className="mt-4 px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition"
             >
               ▶ Commencer le cours
             </button>
@@ -139,7 +139,7 @@ export default function CourseProgress() {
               <div className={`px-5 py-4 flex items-center justify-between ${isComplete ? "bg-green-50" : "bg-white"}`}>
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                    isComplete ? "bg-green-500 text-white" : "bg-indigo-100 text-indigo-700"
+                    isComplete ? "bg-green-500 text-white" : "bg-[#2d287f]/10 text-[#2d287f]"
                   }`}>
                     {isComplete ? "✓" : idx + 1}
                   </div>
@@ -163,7 +163,7 @@ export default function CourseProgress() {
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isComplete ? "bg-green-500" : "bg-gradient-to-r from-indigo-500 to-purple-500"
+                      isComplete ? "bg-green-500" : "bg-gradient-to-r from-[#2d287f] to-[#5653e1]"
                     }`}
                     style={{ width: `${modPct}%` }}
                   />
@@ -200,7 +200,7 @@ export default function CourseProgress() {
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <button
             onClick={() => navigate(`/courses/${course?.id || id}/learn`)}
-            className="flex-1 py-3 bg-indigo-700 hover:bg-indigo-800 text-white rounded-xl font-semibold text-sm transition text-center"
+            className="flex-1 py-3 bg-[#2d287f] hover:bg-[#3b3aab] text-white rounded-xl font-semibold text-sm transition text-center"
           >
             ▶ Continuer le cours
           </button>

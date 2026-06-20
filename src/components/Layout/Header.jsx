@@ -173,6 +173,11 @@ export default function Header() {
           
           {/* Menu Instructeurs visible pour tous */}
           <NavLink to="/instructors" className={navLinkClass}>Instructeurs</NavLink>
+          <NavLink to="/bootcamps" className={navLinkClass}>
+            <span style={{ display:"flex", alignItems:"center", gap:4 }}>
+              Bootcamps
+            </span>
+          </NavLink>
           
           {/* Menu Instructeur (visible seulement pour les instructeurs) */}
           {isInstructor() && (

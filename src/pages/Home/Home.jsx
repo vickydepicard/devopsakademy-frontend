@@ -7,11 +7,11 @@ import {
   ArrowRight, BookOpen, Star, Users, Clock,
   CheckCircle, Play, Award, Zap, Shield,
   MessageSquare, ChevronRight, Trophy,
-  BarChart2, Terminal, Globe, Eye
+  BarChart2, Terminal, Globe, Eye, Quote,
+  TrendingUp, Layers
 } from "lucide-react";
 
-// ─── Données statiques ───────────────────────────────────────────
-
+// ─── Tech Stack ──────────────────────────────────────────────
 const TECH_STACK = [
   { name: "Docker",         color: "#0db7ed", icon: "🐳" },
   { name: "Kubernetes",     color: "#326ce5", icon: "⚙️" },
@@ -27,72 +27,11 @@ const TECH_STACK = [
   { name: "Nginx",          color: "#009639", icon: "🛡️" },
 ];
 
-const STATS = [
-  { value: "20+", label: "Apprenants formés",   icon: Users },
-  { value: "30+",    label: "Cours disponibles",    icon: BookOpen },
-  { value: "95%",    label: "Taux de satisfaction", icon: Star },
-  { value: "12+",    label: "Pays représentés",     icon: Globe },
-];
-
 const FEATURES = [
-  {
-    icon: Terminal,
-    title: "Labs interactifs",
-    desc: "Environnements Docker & K8s préconfigurés, directement dans votre navigateur. Zéro configuration.",
-    color: "from-violet-500 to-purple-600",
-    link: "/courses",
-  },
-  {
-    icon: Award,
-    title: "Certifications vérifiables",
-    desc: "Chaque parcours aboutit à un certificat numérique authentifié, valorisé par les recruteurs tech.",
-    color: "from-amber-400 to-orange-500",
-    link: "/certificates/verify",
-  },
-  {
-    icon: MessageSquare,
-    title: "Communauté active",
-    desc: "Forum, entraide et webinaires mensuels. Vous n'apprenez jamais seul chez DevOpsAkademy.",
-    color: "from-emerald-400 to-teal-600",
-    link: "/forum",
-  },
-  {
-    icon: BarChart2,
-    title: "Progression trackée",
-    desc: "Tableau de bord personnel, classement, points. Chaque complétion vous fait progresser.",
-    color: "from-sky-400 to-blue-600",
-    link: "/leaderboard",
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    name: "Jean Dupont",
-    role: "DevOps Engineer",
-    company: "Scale-up Dakar",
-    initials: "JD",
-    gradient: "from-violet-600 to-purple-700",
-    rating: 5,
-    text: "Les cours DevOpsAkademy m'ont permis de décrocher ma première mission Cloud en moins de 3 mois. Le contenu est dense et 100% pratique.",
-  },
-  {
-    name: "Amina Traoré",
-    role: "SRE Junior",
-    company: "Fintech Abidjan",
-    initials: "AT",
-    gradient: "from-emerald-500 to-teal-600",
-    rating: 5,
-    text: "Une plateforme claire, complète et très interactive. Les labs Kubernetes sont particulièrement bien faits. Je recommande sans hésitation.",
-  },
-  {
-    name: "Lucas M.",
-    role: "Cloud Architect",
-    company: "Freelance",
-    initials: "LM",
-    gradient: "from-sky-500 to-blue-600",
-    rating: 5,
-    text: "J'ai adoré les projets pratiques sur Docker et Terraform. La communauté répond vite et les instructeurs sont de vrais praticiens.",
-  },
+  { icon: Terminal, title: "Labs interactifs", desc: "Environnements Docker & K8s préconfigurés, directement dans votre navigateur. Zéro configuration.", color: "from-violet-500 to-purple-600", link: "/courses" },
+  { icon: Award, title: "Certifications vérifiables", desc: "Chaque parcours aboutit à un certificat numérique authentifié, valorisé par les recruteurs tech.", color: "from-amber-400 to-orange-500", link: "/certificates/verify" },
+  { icon: MessageSquare, title: "Communauté active", desc: "Forum, entraide et webinaires mensuels. Vous n'apprenez jamais seul chez DevOpsAkademy.", color: "from-emerald-400 to-teal-600", link: "/forum" },
+  { icon: BarChart2, title: "Progression trackée", desc: "Tableau de bord personnel, classement, points. Chaque complétion vous fait progresser.", color: "from-sky-400 to-blue-600", link: "/leaderboard" },
 ];
 
 const LEARNING_STEPS = [
@@ -102,7 +41,21 @@ const LEARNING_STEPS = [
   { num: "04", icon: Trophy, title: "Progressez dans le classement", desc: "Montez dans le leaderboard et devenez un référent de la communauté.", link: "/leaderboard", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" },
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────
+// Avatars de fallback si aucune review API
+const FALLBACK_REVIEWS = [
+  { first_name: "Jean", last_name: "Dupont", job_title: "DevOps Engineer", company: "Scale-up Dakar", rating: 5, comment: "Les cours DevOpsAkademy m'ont permis de décrocher ma première mission Cloud en moins de 3 mois. Le contenu est dense et 100% pratique.", course_title: "Docker & Kubernetes en production" },
+  { first_name: "Amina", last_name: "Traoré", job_title: "SRE Junior", company: "Fintech Abidjan", rating: 5, comment: "Une plateforme claire, complète et très interactive. Les labs Kubernetes sont particulièrement bien faits. Je recommande sans hésitation.", course_title: "Kubernetes avancé" },
+  { first_name: "Lucas", last_name: "M.", job_title: "Cloud Architect", company: "Freelance", rating: 5, comment: "J'ai adoré les projets pratiques sur Docker et Terraform. La communauté répond vite et les instructeurs sont de vrais praticiens.", course_title: "Terraform & AWS" },
+];
+
+const GRADIENT_AVATARS = [
+  "from-violet-600 to-purple-700",
+  "from-emerald-500 to-teal-600",
+  "from-sky-500 to-blue-600",
+  "from-rose-500 to-pink-600",
+  "from-amber-500 to-orange-600",
+  "from-indigo-500 to-violet-600",
+];
 
 const getLevelInfo = (level) => {
   const map = {
@@ -113,7 +66,10 @@ const getLevelInfo = (level) => {
   return map[level?.toLowerCase()] || { label: "Tous niveaux", cls: "bg-gray-100 text-gray-600" };
 };
 
-// ─── Composant ligne terminal avec animation ──────────────────────
+const getInitials = (first, last) =>
+  `${first?.[0] || ""}${last?.[0] || ""}`.toUpperCase();
+
+// ─── Terminal animé ───────────────────────────────────────────
 function TerminalLine({ children, delay = 0, prompt = false, color = "text-white" }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -130,48 +86,30 @@ function TerminalLine({ children, delay = 0, prompt = false, color = "text-white
 }
 
 // ═══════════════════════════════════════════════════════════════
-// SECTION HERO
+// HERO
 // ═══════════════════════════════════════════════════════════════
 function HeroSection() {
   const { user } = useAuth();
-
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#1f1b5a] via-[#2d287f] to-[#3b3aab] text-white min-h-[90vh] flex items-center">
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-100"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)`,
-          backgroundSize: "56px 56px",
-        }}
-      />
-      {/* Orbs décoratifs */}
+      <div className="absolute inset-0 pointer-events-none opacity-100" style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px)`, backgroundSize: "56px 56px" }} />
       <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#facc15]/8 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-16 -left-16 w-96 h-96 bg-[#5653e1]/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-6 py-24 lg:py-32 w-full">
         <div className="grid lg:grid-cols-2 gap-14 items-center">
-
-          {/* ── Left ── */}
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#facc15]/15 border border-[#facc15]/30 rounded-full text-[#facc15] text-sm font-bold mb-8">
               <Zap className="w-4 h-4" />
               Plateforme DevOps francophone n°1
             </div>
-
             <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.04] mb-6 tracking-tight">
-              Maîtrisez{" "}
-              <span className="text-[#facc15]">DevOps</span>
-              <br />
-              de A à Z
+              Maîtrisez{" "}<span className="text-[#facc15]">DevOps</span><br />de A à Z
             </h1>
-
             <p className="text-xl text-white/72 leading-relaxed mb-10 max-w-xl">
               Formations pratiques en français — Cloud, Kubernetes, CI/CD, Terraform.
               Construites par des praticiens, pour aller directement en production.
             </p>
-
             <div className="flex flex-wrap gap-4">
               {user ? (
                 <>
@@ -193,14 +131,10 @@ function HeroSection() {
                 </>
               )}
             </div>
-
-            {/* Social proof */}
             <div className="flex items-center gap-6 mt-10 flex-wrap">
               <div className="flex -space-x-2">
                 {[["JD","#7c3aed"],["AT","#059669"],["LM","#0284c7"],["SR","#dc2626"],["KM","#d97706"]].map(([init, bg], i) => (
-                  <div key={i} className="w-9 h-9 rounded-full border-2 border-[#2d287f] flex items-center justify-center text-xs font-bold text-white" style={{ background: bg }}>
-                    {init}
-                  </div>
+                  <div key={i} className="w-9 h-9 rounded-full border-2 border-[#2d287f] flex items-center justify-center text-xs font-bold text-white" style={{ background: bg }}>{init}</div>
                 ))}
               </div>
               <div>
@@ -208,12 +142,12 @@ function HeroSection() {
                   {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-[#facc15] text-[#facc15]" />)}
                   <span className="text-white font-bold ml-1">4.9/5</span>
                 </div>
-                <p className="text-white/55 text-sm">+2 000 apprenants satisfaits</p>
+                <p className="text-white/55 text-sm">+++ apprenants satisfaits</p>
               </div>
             </div>
           </div>
 
-          {/* ── Right : Terminal animé ── */}
+          {/* Terminal */}
           <div className="hidden lg:block">
             <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl" style={{ background: "#0d1117" }}>
               <div className="flex items-center gap-2 px-4 py-3 border-b border-white/8" style={{ background: "#161b22" }}>
@@ -250,20 +184,54 @@ function HeroSection() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// STATS BAR
+// STATS BAR — DYNAMIQUE
 // ═══════════════════════════════════════════════════════════════
 function StatsBar() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/courses/public-stats")
+      .then(r => setStats(r.data?.data || null))
+      .catch(() => setStats(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const items = stats
+    ? [
+        { value: stats.learners > 0 ? `${stats.learners}+` : "20+",  label: "Apprenants formés",    icon: Users },
+        { value: stats.courses  > 0 ? `${stats.courses}+`  : "30+",  label: "Cours disponibles",    icon: BookOpen },
+        { value: stats.avg_rating > 0 ? `${stats.avg_rating}/5` : "4.9/5", label: "Note moyenne",  icon: Star },
+        { value: stats.countries > 0 ? `${stats.countries}+` : "12+", label: "Pays représentés",   icon: Globe },
+      ]
+    : [
+        { value: "20+",  label: "Apprenants formés",    icon: Users },
+        { value: "30+",  label: "Cours disponibles",    icon: BookOpen },
+        { value: "4.9/5", label: "Note moyenne",        icon: Star },
+        { value: "12+",  label: "Pays représentés",     icon: Globe },
+      ];
+
   return (
     <section className="bg-white border-y border-gray-100 py-10">
       <div className="max-w-5xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map(({ value, label, icon: Icon }, i) => (
+          {items.map(({ value, label, icon: Icon }, i) => (
             <div key={i} className="text-center">
-              <div className="w-11 h-11 bg-primary/8 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <Icon className="w-5 h-5 text-primary" />
-              </div>
-              <p className="text-3xl font-black text-[#1f1b5a] leading-none">{value}</p>
-              <p className="text-sm text-gray-500 mt-1">{label}</p>
+              {loading ? (
+                <div className="animate-pulse">
+                  <div className="w-11 h-11 bg-gray-100 rounded-xl mx-auto mb-3" />
+                  <div className="h-8 bg-gray-200 rounded w-16 mx-auto mb-2" />
+                  <div className="h-4 bg-gray-100 rounded w-24 mx-auto" />
+                </div>
+              ) : (
+                <>
+                  <div className="w-11 h-11 bg-[#2d287f]/8 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Icon className="w-5 h-5 text-[#2d287f]" />
+                  </div>
+                  <p className="text-3xl font-black text-[#1f1b5a] leading-none">{value}</p>
+                  <p className="text-sm text-gray-500 mt-1">{label}</p>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -290,33 +258,27 @@ function PopularCoursesSection() {
   }, []);
 
   const getAction = (courseId) => {
-    if (!isAuthenticated) return {
-      label: "S'inscrire", icon: <BookOpen className="w-4 h-4" />,
-      onClick: () => navigate("/login", { state: { from: `/courses/${courseId}` } }),
-      cls: "bg-primary text-white hover:bg-primary-light"
-    };
+    if (!isAuthenticated) return { label: "S'inscrire", icon: <BookOpen className="w-4 h-4" />, onClick: () => navigate("/login", { state: { from: `/courses/${courseId}` } }), cls: "bg-[#2d287f] text-white hover:bg-[#3b3aab]" };
     const status = getEnrollmentStatus(courseId);
     if (status === "approved") return { label: "Continuer", icon: <Play className="w-4 h-4" />, onClick: () => navigate(`/courses/${courseId}/learn`), cls: "bg-emerald-600 text-white hover:bg-emerald-700" };
     if (status === "pending")  return { label: "En attente", icon: <Clock className="w-4 h-4" />, onClick: null, cls: "bg-amber-500 text-white cursor-not-allowed opacity-70" };
-    return { label: "S'inscrire", icon: <BookOpen className="w-4 h-4" />, onClick: () => navigate(`/courses/${courseId}`), cls: "bg-primary text-white hover:bg-primary-light" };
+    return { label: "S'inscrire", icon: <BookOpen className="w-4 h-4" />, onClick: () => navigate(`/courses/${courseId}`), cls: "bg-[#2d287f] text-white hover:bg-[#3b3aab]" };
   };
 
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Header */}
         <div className="flex items-end justify-between mb-12">
           <div>
-            <span className="text-primary font-semibold text-sm uppercase tracking-wider">Formations</span>
+            <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">Formations</span>
             <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">Les plus populaires</h2>
             <p className="text-gray-500 mt-1.5">Plébiscitées par notre communauté d'apprenants</p>
           </div>
-          <Link to="/courses" className="hidden md:inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all duration-200 text-sm">
+          <Link to="/courses" className="hidden md:inline-flex items-center gap-2 text-[#2d287f] font-bold hover:gap-3 transition-all duration-200 text-sm">
             Voir tout <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
-        {/* Grille */}
         <div className="grid md:grid-cols-3 gap-6">
           {loading
             ? [1,2,3].map(i => (
@@ -345,80 +307,37 @@ function PopularCoursesSection() {
                   const action = getAction(course.id);
                   const level = getLevelInfo(course.level);
                   const isFree = course.is_free || !course.price || parseFloat(course.price) === 0;
-
                   return (
-                    <div key={course.id} className="group bg-white rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col overflow-hidden">
-                      {/* Thumbnail */}
+                    <div key={course.id} className="group bg-white rounded-2xl border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col overflow-hidden">
                       <div className="relative h-48 bg-gradient-to-br from-[#2d287f] to-[#5653e1] overflow-hidden">
                         {course.thumbnail_url && (
-                          <img
-                            src={course.thumbnail_url}
-                            alt={course.title}
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                            onError={e => { e.target.style.display = "none"; }}
-                          />
+                          <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" onError={e => { e.target.style.display = "none"; }} />
                         )}
                         {!course.thumbnail_url && (
                           <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-white/70 text-7xl font-black">{course.title?.[0]?.toUpperCase()}</span>
                           </div>
                         )}
-                        {isFree && (
-                          <div className="absolute top-3 left-3">
-                            <span className="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">GRATUIT</span>
-                          </div>
-                        )}
-                        {!isFree && (
-                          <div className="absolute bottom-3 right-3 bg-[#1f1b5a]/85 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-xl">
-                            {parseFloat(course.price || 0).toLocaleString("fr-FR")} FCFA
-                          </div>
-                        )}
+                        {isFree && <div className="absolute top-3 left-3"><span className="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">GRATUIT</span></div>}
+                        {!isFree && <div className="absolute bottom-3 right-3 bg-[#1f1b5a]/85 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-xl">{parseFloat(course.price || 0).toLocaleString("fr-FR")} FCFA</div>}
                       </div>
-
-                      {/* Content */}
                       <div className="p-5 flex-1 flex flex-col">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <span className={"text-xs font-semibold px-2.5 py-0.5 rounded-full " + level.cls}>{level.label}</span>
-                          {course.duration_hours && (
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />{course.duration_hours}h
-                            </span>
-                          )}
+                          {course.duration_hours && <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="w-3 h-3" />{course.duration_hours}h</span>}
                         </div>
-
-                        <h3 className="font-bold text-[#1f1b5a] text-lg leading-snug mb-1 group-hover:text-primary transition-colors line-clamp-2">
-                          {course.title}
-                        </h3>
-                        <p className="text-sm text-gray-400 mb-2">
-                          Par {course.first_name} {course.last_name}
-                        </p>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1 leading-relaxed">
-                          {course.short_description || "Formation complète avec labs pratiques et certification incluse."}
-                        </p>
-
+                        <h3 className="font-bold text-[#1f1b5a] text-lg leading-snug mb-1 group-hover:text-[#2d287f] transition-colors line-clamp-2">{course.title}</h3>
+                        <p className="text-sm text-gray-400 mb-2">Par {course.first_name} {course.last_name}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1 leading-relaxed">{course.short_description || "Formation complète avec labs pratiques et certification incluse."}</p>
                         <div className="flex items-center justify-between text-xs text-gray-400 mb-4 pb-4 border-b border-gray-50">
-                          <span className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                            <strong className="text-gray-600">{parseFloat(course.rating || 0).toFixed(1)}</strong>
-                            <span>({course.review_count || 0})</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" /> {course.student_count || 0}
-                          </span>
+                          <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /><strong className="text-gray-600">{parseFloat(course.rating || 0).toFixed(1)}</strong><span>({course.review_count || 0})</span></span>
+                          <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {course.student_count || 0}</span>
                         </div>
-
                         <div className="grid grid-cols-2 gap-2.5 mt-auto">
-                          <button
-                            onClick={() => navigate(`/courses/${course.id}`)}
-                            className="flex items-center justify-center gap-1.5 py-2.5 px-3 border-2 border-primary/25 text-primary font-semibold rounded-xl text-sm hover:border-primary hover:bg-primary/5 transition-all"
-                          >
+                          <button onClick={() => navigate(`/courses/${course.id}`)} className="flex items-center justify-center gap-1.5 py-2.5 px-3 border-2 border-[#2d287f]/25 text-[#2d287f] font-semibold rounded-xl text-sm hover:border-[#2d287f] hover:bg-[#2d287f]/5 transition-all">
                             <Eye className="w-4 h-4" /> Détails
                           </button>
-                          <button
-                            onClick={action.onClick || undefined}
-                            disabled={!action.onClick}
-                            className={"flex items-center justify-center gap-1.5 py-2.5 px-3 font-bold rounded-xl text-sm transition-all " + action.cls + (!action.onClick ? " cursor-not-allowed" : " hover:shadow-md hover:-translate-y-0.5")}
-                          >
+                          <button onClick={action.onClick || undefined} disabled={!action.onClick} className={"flex items-center justify-center gap-1.5 py-2.5 px-3 font-bold rounded-xl text-sm transition-all " + action.cls + (!action.onClick ? " cursor-not-allowed" : " hover:shadow-md hover:-translate-y-0.5")}>
                             {action.icon} {action.label}
                           </button>
                         </div>
@@ -428,7 +347,6 @@ function PopularCoursesSection() {
                 })
           }
         </div>
-
         <div className="text-center mt-10">
           <Link to="/courses" className="inline-flex items-center gap-2 bg-[#1f1b5a] text-white font-bold py-3.5 px-8 rounded-2xl hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
             Voir toutes les formations <ArrowRight className="w-5 h-5" />
@@ -459,22 +377,18 @@ function FeaturesSection() {
     <section ref={ref} className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14 ri opacity-0 translate-y-8 transition-all duration-700">
-          <span className="text-primary font-semibold text-sm uppercase tracking-wider">Pourquoi nous</span>
+          <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">Pourquoi nous</span>
           <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">Tout pour progresser vite</h2>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {FEATURES.map(({ icon: Icon, title, desc, color, link }, i) => (
-            <Link
-              key={i} to={link}
-              className="ri opacity-0 translate-y-8 transition-all duration-700 group p-6 rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1.5 bg-white block"
-              style={{ transitionDelay: i * 80 + "ms" }}
-            >
+            <Link key={i} to={link} className={"ri opacity-0 translate-y-8 transition-all duration-700 group p-6 rounded-2xl border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-xl hover:-translate-y-1.5 bg-white block"} style={{ transitionDelay: i * 80 + "ms" }}>
               <div className={"w-12 h-12 rounded-2xl bg-gradient-to-br " + color + " flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform duration-300"}>
                 <Icon className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-bold text-[#1f1b5a] text-lg mb-2 leading-snug">{title}</h3>
               <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
-              <div className="flex items-center gap-1 mt-4 text-primary text-sm font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-0 group-hover:translate-x-1">
+              <div className="flex items-center gap-1 mt-4 text-[#2d287f] text-sm font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-0 group-hover:translate-x-1">
                 En savoir plus <ChevronRight className="w-4 h-4" />
               </div>
             </Link>
@@ -493,13 +407,13 @@ function LearningPathSection() {
     <section className="py-20 bg-gray-50">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-14">
-          <span className="text-primary font-semibold text-sm uppercase tracking-wider">Comment ça marche</span>
+          <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">Comment ça marche</span>
           <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">De zéro à expert en 4 étapes</h2>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {LEARNING_STEPS.map(({ num, icon: Icon, title, desc, link, color, bg }, i) => (
             <Link key={i} to={link} className={"group relative p-6 rounded-2xl border text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-white block " + bg}>
-              <span className="absolute top-4 right-4 text-2xl font-black text-gray-100 group-hover:text-primary/15 transition-colors">{num}</span>
+              <span className="absolute top-4 right-4 text-2xl font-black text-gray-100 group-hover:text-[#2d287f]/15 transition-colors">{num}</span>
               <div className={"w-14 h-14 rounded-2xl bg-white border flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:shadow-md transition-shadow " + bg}>
                 <Icon className={"w-7 h-7 " + color} />
               </div>
@@ -526,11 +440,7 @@ function TechStackSection() {
         </div>
         <div className="flex flex-wrap justify-center gap-3">
           {TECH_STACK.map(({ name, color, icon }) => (
-            <div
-              key={name}
-              className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:shadow-sm hover:-translate-y-0.5 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-default"
-              style={{ borderLeftColor: color, borderLeftWidth: "3px" }}
-            >
+            <div key={name} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:shadow-sm hover:-translate-y-0.5 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-default" style={{ borderLeftColor: color, borderLeftWidth: "3px" }}>
               <span className="text-lg leading-none">{icon}</span>
               <span className="font-semibold text-sm text-gray-700">{name}</span>
             </div>
@@ -542,9 +452,24 @@ function TechStackSection() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TÉMOIGNAGES
+// TÉMOIGNAGES — DYNAMIQUES avec fallback
 // ═══════════════════════════════════════════════════════════════
 function TestimonialsSection() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/courses/featured-reviews")
+      .then(r => {
+        const data = r.data?.data || [];
+        setReviews(data.length >= 2 ? data.slice(0, 3) : FALLBACK_REVIEWS);
+      })
+      .catch(() => setReviews(FALLBACK_REVIEWS))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const displayed = loading ? FALLBACK_REVIEWS : reviews;
+
   return (
     <section className="py-20 bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white">
       <div className="max-w-6xl mx-auto px-6">
@@ -553,19 +478,28 @@ function TestimonialsSection() {
           <h2 className="text-3xl lg:text-4xl font-black mt-2">Ce que disent nos apprenants</h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map(({ name, role, company, initials, gradient, rating, text }, i) => (
-            <div key={i} className="bg-white/8 backdrop-blur-sm border border-white/12 rounded-2xl p-6 hover:bg-white/12 transition-all duration-300">
+          {displayed.map((r, i) => (
+            <div key={r.id || i} className={"bg-white/8 backdrop-blur-sm border border-white/12 rounded-2xl p-6 hover:bg-white/12 transition-all duration-300" + (loading ? " animate-pulse" : "")}>
               <div className="flex gap-0.5 mb-4">
-                {[...Array(rating)].map((_, s) => <Star key={s} className="w-4 h-4 fill-[#facc15] text-[#facc15]" />)}
+                {[...Array(r.rating || 5)].map((_, s) => <Star key={s} className="w-4 h-4 fill-[#facc15] text-[#facc15]" />)}
               </div>
-              <p className="text-white/80 text-sm leading-relaxed mb-5 italic">"{text}"</p>
+              {r.course_title && (
+                <p className="text-[#facc15]/70 text-xs font-semibold mb-2 uppercase tracking-wide">{r.course_title}</p>
+              )}
+              <p className="text-white/80 text-sm leading-relaxed mb-5 italic">"{r.comment}"</p>
               <div className="flex items-center gap-3">
-                <div className={"w-10 h-10 rounded-full bg-gradient-to-br " + gradient + " flex items-center justify-center font-bold text-sm text-white shrink-0"}>
-                  {initials}
-                </div>
+                {r.avatar_url ? (
+                  <img src={r.avatar_url} alt={r.first_name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className={"w-10 h-10 rounded-full bg-gradient-to-br " + GRADIENT_AVATARS[i % GRADIENT_AVATARS.length] + " flex items-center justify-center font-bold text-sm text-white shrink-0"}>
+                    {getInitials(r.first_name, r.last_name)}
+                  </div>
+                )}
                 <div>
-                  <p className="font-bold text-sm">{name}</p>
-                  <p className="text-white/50 text-xs">{role} · {company}</p>
+                  <p className="font-bold text-sm">{r.first_name} {r.last_name}</p>
+                  <p className="text-white/50 text-xs">
+                    {r.job_title || "Apprenant"}{r.company ? ` · ${r.company}` : ""}
+                  </p>
                 </div>
               </div>
             </div>
@@ -588,16 +522,13 @@ function CTASection() {
   const { user } = useAuth();
   return (
     <section className="py-24 bg-white relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(45,40,127,0.05) 0%, transparent 70%)"
-      }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(45,40,127,0.05) 0%, transparent 70%)" }} />
       <div className="relative max-w-3xl mx-auto px-6 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/8 border border-primary/15 rounded-2xl mb-8">
-          <Zap className="w-8 h-8 text-primary" />
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-[#2d287f]/8 border border-[#2d287f]/15 rounded-2xl mb-8">
+          <Zap className="w-8 h-8 text-[#2d287f]" />
         </div>
         <h2 className="text-4xl lg:text-5xl font-black text-[#1f1b5a] mb-5 leading-tight">
-          Prêt à booster<br />votre carrière{" "}
-          <span className="text-primary">DevOps</span> ?
+          Prêt à booster<br />votre carrière{" "}<span className="text-[#2d287f]">DevOps</span> ?
         </h2>
         <p className="text-xl text-gray-500 mb-10 leading-relaxed">
           Rejoignez +2 000 ingénieurs qui ont transformé leur carrière avec DevOpsAkademy.
@@ -606,19 +537,19 @@ function CTASection() {
         <div className="flex flex-wrap justify-center gap-4">
           {user ? (
             <>
-              <Link to="/courses" className="inline-flex items-center gap-2 bg-[#1f1b5a] hover:bg-[#2d287f] text-white font-black py-4 px-10 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-primary/20">
+              <Link to="/courses" className="inline-flex items-center gap-2 bg-[#1f1b5a] hover:bg-[#2d287f] text-white font-black py-4 px-10 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-[#2d287f]/20">
                 Explorer les cours <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link to="/forum" className="inline-flex items-center gap-2 border-2 border-primary/25 hover:border-primary text-primary font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
+              <Link to="/forum" className="inline-flex items-center gap-2 border-2 border-[#2d287f]/25 hover:border-[#2d287f] text-[#2d287f] font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
                 Rejoindre le forum
               </Link>
             </>
           ) : (
             <>
-              <Link to="/register" className="inline-flex items-center gap-2 bg-[#1f1b5a] hover:bg-[#2d287f] text-white font-black py-4 px-10 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-primary/20">
+              <Link to="/register" className="inline-flex items-center gap-2 bg-[#1f1b5a] hover:bg-[#2d287f] text-white font-black py-4 px-10 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-[#2d287f]/20">
                 Créer un compte gratuit <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link to="/pricing" className="inline-flex items-center gap-2 border-2 border-primary/25 hover:border-primary text-primary font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
+              <Link to="/pricing" className="inline-flex items-center gap-2 border-2 border-[#2d287f]/25 hover:border-[#2d287f] text-[#2d287f] font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
                 Voir les tarifs
               </Link>
             </>
@@ -631,7 +562,7 @@ function CTASection() {
             [Users, "Communauté active"],
           ].map(([Icon, label]) => (
             <div key={label} className="flex items-center gap-2">
-              <Icon className="w-4 h-4 text-primary" />
+              <Icon className="w-4 h-4 text-[#2d287f]" />
               {label}
             </div>
           ))}

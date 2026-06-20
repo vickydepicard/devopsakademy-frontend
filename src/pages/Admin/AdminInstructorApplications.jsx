@@ -279,7 +279,16 @@ export default function AdminInstructorApplications() {
       const params = filter !== "all" ? `?status=${filter}` : "";
       const res = await api.get(`/instructor-applications${params}`);
       setApps(res.data?.data || []);
-      setStats(res.data?.stats || {});
+      // Use API stats if available, otherwise calculate locally
+      const apiStats = res.data?.stats || {};
+      const localApps = res.data?.data || [];
+      const localStats = {
+        pending:      localApps.filter(a => a.status === 'pending').length,
+        under_review: localApps.filter(a => a.status === 'under_review').length,
+        accepted:     localApps.filter(a => a.status === 'accepted').length,
+        rejected:     localApps.filter(a => a.status === 'rejected').length,
+      };
+      setStats(Object.keys(apiStats).length > 0 ? apiStats : localStats);
     } catch (e) {
       setError(e?.response?.data?.message || "Erreur de chargement");
     } finally {
@@ -315,7 +324,7 @@ export default function AdminInstructorApplications() {
   );
 
   const FILTERS = [
-    { key: "all",          label: "Toutes",       count: Object.values(stats).reduce((a, b) => (Number(a) || 0) + (Number(b) || 0), 0) },
+    { key: "all",          label: "Toutes",       count: Object.values(stats).reduce((acc, v) => acc + (Number(v) || 0), 0) },
     { key: "pending",      label: "En attente",   count: stats.pending || 0 },
     { key: "under_review", label: "En révision",  count: stats.under_review || 0 },
     { key: "accepted",     label: "Approuvées",   count: stats.accepted || 0 },

@@ -41,7 +41,7 @@ export default function LessonDetail() {
       <div className="text-center">
         <div className="text-5xl mb-4">😕</div>
         <p className="font-bold text-lg mb-2">{error || "Leçon introuvable"}</p>
-        <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-indigo-600 rounded-xl text-sm font-bold hover:bg-indigo-700 transition mt-3">← Retour</button>
+        <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-[#2d287f] rounded-xl text-sm font-bold hover:bg-[#3b3aab] transition mt-3">← Retour</button>
       </div>
     </div>
   );
@@ -55,7 +55,7 @@ export default function LessonDetail() {
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Bouton retour */}
-        <button onClick={() => navigate(`/courses/${id}/learn`)} className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition text-sm mb-6">
+        <button onClick={() => navigate(`/courses/${id}/learn`)} className="flex items-center gap-2 text-[#5653e1] hover:text-[#2d287f] transition text-sm mb-6">
           ← Retour au cours
         </button>
 
@@ -92,7 +92,7 @@ export default function LessonDetail() {
                   text-gray-200 leading-relaxed
                   prose-headings:text-white prose-h2:border-b prose-h2:border-gray-600 prose-h2:pb-2
                   prose-p:text-gray-300 prose-p:leading-7
-                  prose-a:text-indigo-400
+                  prose-a:text-[#5653e1]
                   prose-code:bg-gray-900 prose-code:text-green-400 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
                   prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700 prose-pre:rounded-xl
                   prose-blockquote:border-indigo-500 prose-blockquote:bg-indigo-900/20
@@ -118,7 +118,7 @@ export default function LessonDetail() {
               <p className="text-gray-400 text-xs mt-0.5">Ressource téléchargeable</p>
             </div>
             <a href={lesson.content_url} download target="_blank" rel="noopener noreferrer"
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition">
+              className="px-4 py-2 bg-indigo-600 hover:bg-[#3b3aab] text-white text-sm font-semibold rounded-xl transition">
               Télécharger
             </a>
           </div>

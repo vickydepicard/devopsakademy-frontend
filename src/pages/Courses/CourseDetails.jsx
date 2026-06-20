@@ -876,87 +876,185 @@ export default function CourseDetails() {
                   {/* ── Programme ── */}
                   {activeTab === "curriculum" && (
                     <div>
+                      {/* ── En-tête ── */}
                       <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-xl font-black text-gray-900">Programme du cours</h3>
-                        {course.modules?.length > 0 && (
-                          <span className="text-sm text-gray-500">{course.modules.length} modules · {totalLessons} leçons</span>
+                        <div>
+                          <h3 className="text-xl font-black text-gray-900">Programme du cours</h3>
+                          {course.modules?.length > 0 && (
+                            <p className="text-sm text-gray-400 mt-0.5">
+                              {course.modules.length} module{course.modules.length > 1 ? "s" : ""}
+                              {totalLessons > 0 && ` · ${totalLessons} leçon${totalLessons > 1 ? "s" : ""}`}
+                            </p>
+                          )}
+                        </div>
+                        {access.status !== "approved" && access.status !== "pending" && (
+                          <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#2d287f] bg-[#2d287f]/8 border border-[#2d287f]/20 px-3 py-1.5 rounded-full font-medium">
+                            <Lock className="w-3 h-3" />
+                            {isAuthenticated ? "Inscrivez-vous pour accéder" : "Connectez-vous pour accéder"}
+                          </div>
                         )}
                       </div>
 
                       {course.modules?.length > 0 ? (
                         <div className="space-y-3">
-                          {course.modules.map((mod, mi) => (
-                            <div key={mod.id || mi} className="border border-gray-200 rounded-2xl overflow-hidden">
-                              <button
-                                onClick={() => setExpandedMods(p =>
-                                  p.includes(mod.id || mi)
-                                    ? p.filter(x => x !== (mod.id || mi))
-                                    : [...p, (mod.id || mi)]
-                                )}
-                                className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition text-left"
-                              >
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0"
-                                    style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
-                                    {mi + 1}
+                          {course.modules.map((mod, mi) => {
+                            const modKey = mod.id || mi;
+                            const isExpanded = !expandedMods.includes(modKey);
+                            const lessonList = mod.lessons || [];
+                            const lessonCount = lessonList.length || mod.lesson_count || 0;
+                            const previewCount = lessonList.filter(l => l.is_preview).length;
+                            return (
+                              <div key={modKey} className="border border-gray-200 rounded-2xl overflow-hidden">
+                                {/* ── En-tête module (cliquable) ── */}
+                                <button
+                                  onClick={() => setExpandedMods(p =>
+                                    p.includes(modKey) ? p.filter(x => x !== modKey) : [...p, modKey]
+                                  )}
+                                  className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition text-left"
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0"
+                                      style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                                      {mi + 1}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-gray-900 truncate">{mod.title}</p>
+                                      <p className="text-xs text-gray-500 mt-0.5">
+                                        {lessonCount} leçon{lessonCount !== 1 ? "s" : ""}
+                                        {mod.total_duration > 0 && ` · ${Math.round(mod.total_duration / 60)}h`}
+                                        {previewCount > 0 && access.status !== "approved" && (
+                                          <span className="ml-2 text-amber-600 font-semibold">{previewCount} aperçu{previewCount > 1 ? "s" : ""} gratuit{previewCount > 1 ? "s" : ""}</span>
+                                        )}
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div className="min-w-0">
-                                    <p className="font-bold text-gray-900 truncate">{mod.title}</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">
-                                      {mod.lesson_count || 0} leçon{mod.lesson_count !== 1 ? "s" : ""}
-                                      {mod.total_duration > 0 && ` · ${Math.round(mod.total_duration / 60)}h`}
-                                    </p>
-                                  </div>
-                                </div>
-                                {expandedMods.includes(mod.id || mi)
-                                  ? <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                  : <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                }
-                              </button>
+                                  {isExpanded
+                                    ? <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                    : <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                  }
+                                </button>
 
-                              {expandedMods.includes(mod.id || mi) && mod.lessons?.length > 0 && (
-                                <div className="divide-y divide-gray-50">
-                                  {mod.lessons.map((les, li) => {
-                                    const lt = LESSON_TYPES[les.content_type] || LESSON_TYPES.video;
-                                    const Icon = lt.icon;
-                                    return (
-                                      <div key={les.id || li} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${lt.bg}`}>
-                                            <Icon className="w-4 h-4" />
+                                {/* ── Liste des leçons — visibles si module ouvert ── */}
+                                {isExpanded && (
+                                  <div className="divide-y divide-gray-50">
+                                    {lessonList.length > 0 ? lessonList.map((les, li) => {
+                                      const lt = LESSON_TYPES[les.content_type] || LESSON_TYPES.video;
+                                      const LesIcon = lt.icon;
+                                      const canAccess  = access.status === "approved";
+                                      const isPreview  = !!les.is_preview;
+
+                                      return (
+                                        <div key={les.id || li}
+                                          className="flex items-center justify-between px-5 py-3 group hover:bg-gray-50/60 transition">
+
+                                          {/* Gauche : icône + titre + durée */}
+                                          <div className="flex items-center gap-3 min-w-0">
+                                            {/* Icône type */}
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition ${
+                                              canAccess  ? lt.bg :
+                                              isPreview  ? "bg-amber-50" :
+                                              "bg-gray-100"
+                                            }`}>
+                                              {canAccess || isPreview
+                                                ? <LesIcon className={`w-4 h-4 ${canAccess ? "" : "text-amber-600"}`} />
+                                                : <Lock className="w-3.5 h-3.5 text-gray-400" />
+                                              }
+                                            </div>
+
+                                            <div className="min-w-0">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-[11px] text-gray-300 font-mono shrink-0 w-5">{String(li + 1).padStart(2, "0")}</span>
+                                                <p className={`text-sm font-medium truncate leading-snug ${
+                                                  canAccess ? "text-gray-900" :
+                                                  isPreview ? "text-gray-800" :
+                                                  "text-gray-500"
+                                                }`}>
+                                                  {les.title}
+                                                </p>
+                                              </div>
+                                              <p className="text-[11px] text-gray-400 mt-0.5 ml-7">
+                                                {lt.label}
+                                                {les.duration_minutes > 0 && ` · ${les.duration_minutes} min`}
+                                              </p>
+                                            </div>
                                           </div>
-                                          <div className="min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 truncate">{les.title}</p>
-                                            <p className="text-xs text-gray-400">{lt.label}{les.duration_minutes ? ` · ${les.duration_minutes} min` : ""}</p>
+
+                                          {/* Droite : badge / bouton action */}
+                                          <div className="flex-shrink-0 ml-3">
+                                            {canAccess ? (
+                                              <button onClick={() => navigate(`/courses/${course.id}/learn`)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition hover:opacity-90"
+                                                style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                                                <PlayCircle className="w-3.5 h-3.5" /> Continuer
+                                              </button>
+                                            ) : isPreview ? (
+                                              <button onClick={() => navigate(`/courses/${course.id}/preview`)}
+                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition">
+                                                <PlayCircle className="w-3 h-3" /> Aperçu
+                                              </button>
+                                            ) : (
+                                              <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-gray-400 bg-gray-50 border border-gray-100 select-none">
+                                                <Lock className="w-3 h-3" />
+                                                {isAuthenticated ? "Inscrit requis" : "Connexion requise"}
+                                              </span>
+                                            )}
                                           </div>
                                         </div>
-                                        {access.status === "approved" ? (
-                                          <button
-                                            onClick={() => navigate(`/courses/${course.id}/lessons/${les.id}`)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white flex-shrink-0"
-                                            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                                            <PlayCircle className="w-3.5 h-3.5" /> Accéder
-                                          </button>
-                                        ) : les.is_preview ? (
-                                          <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full font-medium flex-shrink-0">
-                                            Aperçu libre
-                                          </span>
-                                        ) : (
-                                          <Lock className="w-4 h-4 text-gray-300 flex-shrink-0" />
-                                        )}
+                                      );
+                                    }) : (
+                                      /* Fallback si API ne retourne pas encore les leçons */
+                                      <div className="px-5 py-4 flex items-center gap-3 text-sm text-gray-400">
+                                        <Lock className="w-4 h-4" />
+                                        <span>{lessonCount} leçon{lessonCount > 1 ? "s" : ""} disponible{lessonCount > 1 ? "s" : ""} — {isAuthenticated ? "inscrivez-vous" : "connectez-vous"} pour y accéder</span>
                                       </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
                           <FileCode className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                           <p className="font-bold text-gray-700 mb-1">Programme en cours de finalisation</p>
                           <p className="text-sm text-gray-500">Le programme détaillé sera disponible prochainement.</p>
+                        </div>
+                      )}
+
+                      {/* ── Bannière CTA si non inscrit ── */}
+                      {access.status !== "approved" && access.status !== "pending" && course.modules?.length > 0 && (
+                        <div className="mt-6 rounded-2xl overflow-hidden border border-[#2d287f]/20"
+                          style={{ background: "linear-gradient(135deg,#f8f7ff,#ede9fe)" }}>
+                          <div className="flex flex-col sm:flex-row items-center gap-4 px-6 py-5">
+                            <div className="flex-1 text-center sm:text-left">
+                              <p className="font-bold text-[#1f1b5a] text-sm">
+                                {isAuthenticated
+                                  ? "Inscrivez-vous pour accéder à tout le programme"
+                                  : "Connectez-vous pour accéder au programme complet"}
+                              </p>
+                              <p className="text-xs text-[#2d287f]/70 mt-0.5">
+                                {totalLessons} leçons · Accès à vie · Certificat inclus
+                              </p>
+                            </div>
+                            <button
+                              onClick={handleEnroll}
+                              className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                              {isAuthenticated ? "S'inscrire maintenant" : "Se connecter"} →
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ── Bannière attente si inscription pending ── */}
+                      {access.status === "pending" && (
+                        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 flex items-center gap-3">
+                          <Clock className="w-5 h-5 text-amber-600 shrink-0" />
+                          <div>
+                            <p className="font-bold text-amber-800 text-sm">Validation en cours</p>
+                            <p className="text-xs text-amber-600 mt-0.5">Votre paiement est en cours de vérification. Accès sous 24h.</p>
+                          </div>
                         </div>
                       )}
                     </div>
