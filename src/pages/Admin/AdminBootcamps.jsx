@@ -104,8 +104,11 @@ function BootcampModal({ boot, onClose, onSaved }) {
   const [form, setForm] = useState({
     title:            boot?.title            || "",
     description:      boot?.description      || "",
-    scheduled_at:     boot?.scheduled_at
-      ? new Date(boot.scheduled_at).toISOString().slice(0,16) : "",
+    scheduled_at:     (() => {
+      if (!boot?.scheduled_at) return "";
+      const d = new Date(boot.scheduled_at);
+      return isNaN(d.getTime()) ? "" : d.toISOString().slice(0,16);
+    })(),
     duration_minutes: boot?.duration_minutes || 120,
     is_free:          boot?.is_free !== undefined ? Number(boot.is_free) : 1,
     price:            boot?.price            || 0,
@@ -482,7 +485,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
                   <Play size={12} /> Tester le replay
                 </button>
               )}
-              <a href={`/bootcamps/${boot.id}`} target="_blank" rel="noreferrer"
+              <a href={`/bootcamps`} target="_blank" rel="noreferrer"
                 style={{ flex:1, padding:"8px", borderRadius:10,
                   border:"1px solid #a7f3d0", background:"white",
                   color:"#065f46", fontWeight:700, fontSize:12,
@@ -519,15 +522,28 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
             </button>
           )}
 
+          {boot.status === "scheduled" && (
+            <div style={{ background:"#fffbeb", borderRadius:10, padding:"10px 12px",
+              border:"1px solid #fde68a" }}>
+              <p style={{ fontSize:11, color:"#92400e", fontWeight:700, margin:"0 0 4px" }}>
+                📅 Bootcamp planifié
+              </p>
+              <p style={{ fontSize:11, color:"#b45309", margin:0 }}>
+                Les étudiants voient ce bootcamp et peuvent s'inscrire.
+                Quand le live démarre, cliquez "Démarrer le live" pour ouvrir l'accès.
+              </p>
+            </div>
+          )}
           {boot.status === "live" && (
             <div style={{ background:"#fef2f2", borderRadius:10, padding:"10px 12px",
               border:"1px solid #fecaca" }}>
               <p style={{ fontSize:11, color:"#991b1b", fontWeight:700, margin:"0 0 4px" }}>
-                🔴 Live en cours
+                🔴 Live en cours — {boot.registered_count || 0} inscrit(s) ont accès
               </p>
               <p style={{ fontSize:11, color:"#dc2626", margin:0 }}>
-                Les étudiants inscrits peuvent regarder maintenant.
-                Cliquez "Terminer" quand c'est fini.
+                {boot.stream_url
+                  ? "Les étudiants voient le bouton \"Rejoindre le live\" qui ouvre votre URL de stream."
+                  : "⚠️ Aucune URL de stream configurée ! Les étudiants ne peuvent pas rejoindre. Modifiez le bootcamp pour ajouter l'URL."}
               </p>
             </div>
           )}
@@ -563,8 +579,15 @@ export default function AdminBootcamps() {
     try {
       await api.patch(`/bootcamps/admin/${boot.id}/status`, { status });
       setBoots(prev => prev.map(b => b.id === boot.id ? {...b, status} : b));
+      // Mettre à jour le panel latéral immédiatement
       if (selected?.id === boot.id) setSelected(prev => ({...prev, status}));
-    } catch {}
+      // Si on passe en LIVE → afficher un message
+      if (status === 'live') {
+        alert('🔴 Le bootcamp est maintenant EN DIRECT ! Les étudiants inscrits peuvent y accéder.');
+      }
+    } catch (e) {
+      alert('Erreur lors du changement de statut : ' + (e.response?.data?.message || e.message));
+    }
   };
 
   const handleDelete = async (boot) => {
