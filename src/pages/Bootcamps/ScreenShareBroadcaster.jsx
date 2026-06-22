@@ -39,20 +39,26 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
   const captureMedia = async () => {
     const tracks = [];
     if (shareScreen) {
+      // getDisplayMedia peut lancer NotAllowedError si l'user refuse
       const s = await navigator.mediaDevices.getDisplayMedia({
-        video: { cursor: "always", frameRate: 30 }, audio: false,
+        video: { cursor: "always", frameRate: 30 }, audio: true,
       });
-      tracks.push(...s.getVideoTracks());
+      tracks.push(...s.getTracks()); // inclut audio si disponible
       // Arrêt si l'utilisateur clique "Arrêter le partage" dans le navigateur
-      s.getVideoTracks()[0].addEventListener("ended", stopBroadcast);
+      s.getVideoTracks()[0]?.addEventListener("ended", stopBroadcast);
     }
     if (shareWebcam) {
-      const c = await navigator.mediaDevices.getUserMedia({ video: true });
-      tracks.push(...c.getVideoTracks());
+      try {
+        const c = await navigator.mediaDevices.getUserMedia({ video: true });
+        tracks.push(...c.getVideoTracks());
+      } catch (_) { /* Webcam non disponible — continuer sans */ }
     }
-    if (shareMic) {
-      const m = await navigator.mediaDevices.getUserMedia({ audio: true });
-      tracks.push(...m.getAudioTracks());
+    if (shareMic && !tracks.some(t => t.kind === "audio")) {
+      // N'ajouter le micro que si pas déjà capturé depuis getDisplayMedia
+      try {
+        const m = await navigator.mediaDevices.getUserMedia({ audio: true });
+        tracks.push(...m.getAudioTracks());
+      } catch (_) { /* Micro non disponible — continuer sans */ }
     }
     if (!tracks.length) throw new Error("Aucun flux sélectionné");
     return new MediaStream(tracks);
@@ -146,8 +152,22 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
       });
 
     } catch (err) {
-      setError(err.message || "Impossible de démarrer le partage");
-      setStatus("error");
+      // Gérer l'annulation du partage d'écran par l'utilisateur
+      const msg = err.message || "";
+      if (msg.includes("Permission denied") || msg.includes("NotAllowedError") || 
+          err.name === "NotAllowedError" || msg.includes("cancelled") || msg.includes("abort")) {
+        setError("Partage d'écran annulé. Cliquez à nouveau sur 'Démarrer le live' et autorisez le partage.");
+      } else if (msg.includes("NotReadableError") || msg.includes("hardware")) {
+        setError("Impossible d'accéder à l'écran. Vérifiez qu'aucune autre app ne l'utilise.");
+      } else {
+        setError(msg || "Impossible de démarrer le partage");
+      }
+      setStatus("idle"); // Retour à idle (pas error) pour permettre de réessayer directement
+      // Nettoyer le stream si partiellement initialisé
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+      peerRef.current?.destroy();
+      peerRef.current = null;
     }
   }, [shareScreen, shareWebcam, shareMic, accessMode, bootcamp, pollViewers, onStatusChange]);
 

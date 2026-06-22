@@ -138,19 +138,33 @@ export default function BootcampLive() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Vérifier inscription
+  // Vérifier inscription via le champ is_registered retourné par l'API bootcamp
   useEffect(() => {
     if (!user || !boot) return;
-    api.get(`/bootcamps/${id}/messages`)
+    // is_registered est retourné directement par GET /bootcamps/:id
+    if (boot.is_registered) { setIsReg(true); return; }
+    // Fallback : vérifier via register (409 = déjà inscrit)
+    api.post(`/bootcamps/${id}/register`, {})
       .then(() => setIsReg(true))
-      .catch(() => {});
+      .catch(e => { if (e.response?.status === 409) setIsReg(true); });
   }, [user, boot]);
 
   // Poll messages
+  const lastMsgTime = useRef(null);
+
   const loadMessages = useCallback(async () => {
     try {
-      const r = await api.get(`/bootcamps/${id}/messages`);
-      setMessages(r.data?.data || []);
+      const params = lastMsgTime.current ? `?since=${encodeURIComponent(lastMsgTime.current)}` : "";
+      const r = await api.get(`/bootcamps/${id}/messages${params}`);
+      const newMsgs = r.data?.data || [];
+      if (newMsgs.length > 0) {
+        lastMsgTime.current = newMsgs[newMsgs.length - 1].created_at;
+        if (params) {
+          setMessages(prev => [...prev, ...newMsgs]); // ajouter les nouveaux
+        } else {
+          setMessages(newMsgs); // premier chargement
+        }
+      }
     } catch {}
   }, [id]);
 
@@ -442,10 +456,16 @@ export default function BootcampLive() {
                     <MessageSquare size={28} style={{ margin:"0 auto 8px", display:"block" }} />
                     <p style={{ fontSize:13 }}>Chat disponible pendant le live</p>
                   </div>
-                ) : !isReg && !isAdmin ? (
+                ) : !isReg && !isAdmin && boot?.access_mode !== 'public' ? (
                   <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.3)" }}>
                     <Lock size={28} style={{ margin:"0 auto 8px", display:"block" }} />
                     <p style={{ fontSize:13 }}>Inscrivez-vous pour accéder au chat</p>
+                    <button onClick={handleRegister}
+                      style={{ marginTop:12, padding:"8px 20px", borderRadius:10,
+                        border:"none", background:"linear-gradient(135deg,#2d287f,#5653e1)",
+                        color:"white", fontWeight:700, fontSize:12, cursor:"pointer" }}>
+                      {boot?.is_free ? "S'inscrire gratuitement" : `S'inscrire`}
+                    </button>
                   </div>
                 ) : messages.length === 0 ? (
                   <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.3)" }}>
@@ -460,7 +480,7 @@ export default function BootcampLive() {
               </div>
 
               {/* Input */}
-              {isLiveOrEnded && (isReg || isAdmin) && boot.status === "live" && (
+              {(isReg || isAdmin || boot?.access_mode === 'public') && boot?.status === "live" && (
                 <form onSubmit={handleSend}
                   style={{ padding:"10px 12px",
                     borderTop:"1px solid rgba(255,255,255,0.06)",
