@@ -250,10 +250,15 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
       const eid  = data?.data?.enrollment_id || data?.data?.id
       if (res.status === 409) {
         const status = data?.data?.payment_status
-        if (status === "pending") { setStep(2); return }
+        const hasProof = data?.data?.payment_proof_url
         if (status === "verified" || status === "free" || data?.data?.is_approved) {
           onSuccess?.(); navigate(`/courses/${course.id}/learn`); return
         }
+        if (status === "pending" && !hasProof) {
+          // Inscription existe mais sans preuve → aller à l'upload directement
+          setStep(2); return
+        }
+        if (status === "pending") { setStep(2); return }
         setStep(isFree ? 3 : 1); return
       }
       if (!res.ok) throw new Error(data?.message || "Erreur lors de l'inscription")

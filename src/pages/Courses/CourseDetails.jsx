@@ -529,6 +529,12 @@ export default function CourseDetails() {
     }
     // Déjà inscrit mais en attente
     if (isUserEnrolled(cid)) {
+      const s = getEnrollmentStatus(cid);
+      // Si pending sans preuve → ouvrir le modal pour uploader la preuve
+      if (s === 'pending') {
+        setShowRealPayment(true); // Le modal détectera le 409 et ira à l'étape upload
+        return;
+      }
       setNotif("⏳ Votre inscription est en attente de validation par l'admin.");
       return;
     }
@@ -1174,6 +1180,7 @@ export default function CourseDetails() {
                     <CourseReviews
                       courseId={course.id || id}
                       isEnrolled={isUserEnrolled(String(course?.id || id)) && isEnrollmentApproved(String(course?.id || id))}
+                      userRole={user?.role}
                     />
                   )}
                 </div>
