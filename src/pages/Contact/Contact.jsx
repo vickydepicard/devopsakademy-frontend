@@ -22,8 +22,8 @@ const CONTACT_INFO = [
   {
     icon: Mail,
     label: "Email",
-    value: "devopseduque@gmail.com",
-    href: "mailto:devopseduque@gmail.com",
+    value: "contact@devopsakademy.cloud",
+    href: "mailto:contact@devopsakademy.cloud",
     color: "bg-[#2d287f]/10 text-[#2d287f]",
   },
   {
@@ -306,7 +306,7 @@ export default function Contact() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[#1f1b5a]">Vous avez une urgence ?</p>
-                <p className="text-xs text-gray-500">Écrivez-nous directement sur <a href="mailto:devopseduque@gmail.com" className="text-[#2d287f] font-semibold hover:underline">devopseduque@gmail.com</a></p>
+                <p className="text-xs text-gray-500">Écrivez-nous directement sur <a href="mailto:contact@devopsakademy.cloud" className="text-[#2d287f] font-semibold hover:underline">contact@devopsakademy.cloud</a></p>
               </div>
               <Link to="/courses"
                 className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-[#2d287f] hover:gap-2.5 transition-all">

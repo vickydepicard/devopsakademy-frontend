@@ -60,7 +60,7 @@ export default function ContactSuccess() {
         {/* Contact direct */}
         <div className="mt-6 pt-6 border-t border-gray-100 flex items-center justify-center gap-2 text-xs text-gray-400">
           <Mail className="w-3.5 h-3.5" />
-          Urgent ? <a href="mailto:devopseduque@gmail.com" className="text-[#2d287f] font-semibold hover:underline">devopseduque@gmail.com</a>
+          Urgent ? <a href="mailto:contact@devopsakademy.cloud" className="text-[#2d287f] font-semibold hover:underline">contact@devopsakademy.cloud</a>
         </div>
       </div>
     </div>

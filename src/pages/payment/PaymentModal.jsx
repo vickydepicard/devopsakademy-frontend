@@ -22,7 +22,7 @@ import {
    VITE_PAYMENT_WAVE_ENABLED=false
    VITE_PAYMENT_WAVE_NUMBER=691706006
    VITE_PAYMENT_WAVE_NAME=DevOpsAkademy Wave
-   VITE_PAYMENT_EMAIL=devopseduque@gmail.com
+   VITE_PAYMENT_EMAIL=contact@devopsakademy.cloud
 ══════════════════════════════════════════ */
 
 const env = import.meta.env

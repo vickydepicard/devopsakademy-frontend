@@ -135,7 +135,7 @@ export default function Header() {
       >
         <div className="flex items-center gap-2">
           <Mail size={14} className="text-accent" />
-          <span>devopseduque@gmail.com</span>
+          <span>contact@devopsakademy.cloud</span>
         </div>
         <div className="hidden sm:flex items-center gap-3">
           <a
