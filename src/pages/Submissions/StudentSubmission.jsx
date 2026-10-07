@@ -20,8 +20,11 @@ import {
   Award,
   BarChart
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
 
 export default function StudentSubmission() {
+  const { t } = useTranslation("studentSubmission");
   const { courseId } = useParams();
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -86,12 +89,12 @@ export default function StudentSubmission() {
       const maxSize = 10 * 1024 * 1024; // 10MB
       
       if (!validTypes.includes(file.type)) {
-        alert(`Format non supporté: ${file.name}. Formats acceptés: PDF, Word, Excel, ZIP, Images, TXT, JSON, YAML`);
+        alert(t("format_non_supporte_formats_acceptes_pdf", { name: file.name }));
         return false;
       }
       
       if (file.size > maxSize) {
-        alert(`Fichier trop volumineux: ${file.name}. Taille max: 10MB`);
+        alert(t("fichier_trop_volumineux_taille_max_10mb", { name: file.name }));
         return false;
       }
       
@@ -109,12 +112,12 @@ export default function StudentSubmission() {
     e.preventDefault();
     
     if (!newSubmission.title.trim()) {
-      alert("Veuillez donner un titre à votre soumission");
+      alert(t("veuillez_donner_un_titre_a_votre"));
       return;
     }
     
     if (selectedFiles.length === 0) {
-      alert("Veuillez sélectionner au moins un fichier");
+      alert(t("veuillez_selectionner_au_moins_un_fichier"));
       return;
     }
 
@@ -138,14 +141,14 @@ export default function StudentSubmission() {
       });
 
       if (res.data?.success) {
-        alert("✅ Soumission envoyée avec succès !");
+        alert(t("soumission_envoyee_avec_succes"));
         setSubmissions(prev => [res.data.data, ...prev]);
         setNewSubmission({ title: "", description: "", files: [] });
         setSelectedFiles([]);
       }
     } catch (error) {
       console.error("Erreur soumission:", error);
-      alert(error.response?.data?.message || "❌ Erreur lors de l'envoi de la soumission");
+      alert(error.response?.data?.message || t("erreur_lors_de_l_envoi_de"));
     } finally {
       setUploading(false);
     }
@@ -155,34 +158,34 @@ export default function StudentSubmission() {
     switch(submission.status) {
       case 'approved':
         return {
-          text: "Validé",
+          text: t("valide"),
           color: "bg-emerald-100 text-emerald-800",
           border: "border-emerald-200",
           icon: <CheckCircle className="w-4 h-4" />,
-          description: "Votre travail a été approuvé"
+          description: t("votre_travail_a_ete_approuve")
         };
       case 'rejected':
         return {
-          text: "Rejeté",
+          text: t("rejete"),
           color: "bg-red-100 text-red-800",
           border: "border-red-200",
           icon: <XCircle className="w-4 h-4" />,
-          description: submission.feedback || "Veuillez corriger"
+          description: submission.feedback || t("veuillez_corriger")
         };
       case 'pending':
       default:
         return {
-          text: "En attente",
+          text: t("en_attente"),
           color: "bg-yellow-100 text-yellow-800",
           border: "border-yellow-200",
           icon: <Clock className="w-4 h-4" />,
-          description: "En attente de revue"
+          description: t("en_attente_de_revue")
         };
     }
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return t("0_bytes");
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -190,7 +193,7 @@ export default function StudentSubmission() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    return new Date(dateString).toLocaleDateString(getLocale(), {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -224,21 +227,15 @@ export default function StudentSubmission() {
             onClick={() => navigate(`/courses/${courseId}/learn`)}
             className="flex items-center gap-2 text-[#2d287f] hover:text-[#5653e1] transition-colors mb-6"
           >
-            <ExternalLink className="w-4 h-4 rotate-180" />
-            Retour au cours
-          </button>
+            <ExternalLink className="w-4 h-4 rotate-180" />{t("retour_au_cours")}</button>
           
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                📤 Soumissions de travaux
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Soumettez vos travaux pour validation
-              </p>
+              <h1 className="text-3xl font-bold text-gray-900">{t("soumissions_de_travaux")}</h1>
+              <p className="text-gray-600 mt-2">{t("soumettez_vos_travaux_pour_validation")}</p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-600">Cours</div>
+              <div className="text-sm text-gray-600">{t("cours")}</div>
               <div className="font-bold text-gray-900">{course?.title}</div>
             </div>
           </div>
@@ -250,32 +247,28 @@ export default function StudentSubmission() {
             <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
                 <Upload className="w-6 h-6 text-[#2d287f]" />
-                <h2 className="text-xl font-bold text-gray-900">Nouvelle soumission</h2>
+                <h2 className="text-xl font-bold text-gray-900">{t("nouvelle_soumission")}</h2>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Titre de la soumission *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">{t("titre_de_la_soumission")}</label>
                   <input
                     type="text"
                     value={newSubmission.title}
                     onChange={(e) => setNewSubmission({...newSubmission, title: e.target.value})}
-                    placeholder="Ex: Projet Docker, TP Kubernetes..."
+                    placeholder={t("ex_projet_docker_tp_kubernetes")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Description (optionnelle)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">{t("description_optionnelle")}</label>
                   <textarea
                     value={newSubmission.description}
                     onChange={(e) => setNewSubmission({...newSubmission, description: e.target.value})}
-                    placeholder="Décrivez votre travail..."
+                    placeholder={t("decrivez_votre_travail")}
                     rows="4"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all resize-none"
                   />
@@ -283,32 +276,24 @@ export default function StudentSubmission() {
 
                 {/* Zone de téléchargement */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Fichiers joints *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">{t("fichiers_joints")}</label>
                   <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-[#2d287f] transition-colors">
                     <Paperclip className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">
-                      Glissez-déposez vos fichiers
-                    </p>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Formats acceptés: PDF, Word, Excel, ZIP, Images, TXT, JSON, YAML
-                    </p>
+                    <p className="text-gray-600 mb-2">{t("glissez_deposez_vos_fichiers")}</p>
+                    <p className="text-sm text-gray-500 mb-4">{t("formats_acceptes_pdf_word_excel_zip")}</p>
                     <label className="inline-block px-6 py-3 bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer">
                       <input
                         type="file"
                         multiple
                         onChange={handleFileSelect}
                         className="hidden"
-                      />
-                      Sélectionner des fichiers
-                    </label>
+                      />{t("selectionner_des_fichiers")}</label>
                   </div>
 
                   {/* Liste des fichiers sélectionnés */}
                   {selectedFiles.length > 0 && (
                     <div className="mt-4 space-y-3">
-                      <h4 className="font-medium text-gray-900">Fichiers sélectionnés ({selectedFiles.length})</h4>
+                      <h4 className="font-medium text-gray-900">{t("fichiers_selectionnes", { length: selectedFiles.length })}</h4>
                       {selectedFiles.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-3">
@@ -338,14 +323,10 @@ export default function StudentSubmission() {
                 >
                   {uploading ? (
                     <>
-                      <RefreshCw className="w-5 h-5 animate-spin" />
-                      Envoi en cours...
-                    </>
+                      <RefreshCw className="w-5 h-5 animate-spin" />{t("envoi_en_cours")}</>
                   ) : (
                     <>
-                      <Send className="w-5 h-5" />
-                      Soumettre le travail
-                    </>
+                      <Send className="w-5 h-5" />{t("soumettre_le_travail")}</>
                   )}
                 </button>
               </form>
@@ -355,25 +336,19 @@ export default function StudentSubmission() {
           {/* Historique des soumissions */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Historique des soumissions</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t("historique_des_soumissions")}</h2>
               <button
                 onClick={fetchData}
                 className="flex items-center gap-2 text-sm text-[#2d287f] hover:text-[#5653e1]"
               >
-                <RefreshCw className="w-4 h-4" />
-                Actualiser
-              </button>
+                <RefreshCw className="w-4 h-4" />{t("actualiser")}</button>
             </div>
 
             {submissions.length === 0 ? (
               <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
                 <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Aucune soumission
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Soumettez votre premier travail
-                </p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t("aucune_soumission")}</h3>
+                <p className="text-gray-600 mb-6">{t("soumettez_votre_premier_travail")}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -412,14 +387,12 @@ export default function StudentSubmission() {
                           <div className="flex items-start gap-3">
                             <User className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
                             <div>
-                              <h4 className="font-medium text-gray-900 mb-1">Retour de l'administrateur</h4>
+                              <h4 className="font-medium text-gray-900 mb-1">{t("retour_de_l_administrateur")}</h4>
                               <p className="text-gray-700">{submission.feedback}</p>
                               {submission.grade && (
                                 <div className="mt-2 flex items-center gap-2">
                                   <Award className="w-4 h-4 text-amber-600" />
-                                  <span className="text-sm font-medium text-gray-900">
-                                    Note: {submission.grade}/20
-                                  </span>
+                                  <span className="text-sm font-medium text-gray-900">{t("note_20", { grade: submission.grade })}</span>
                                 </div>
                               )}
                             </div>

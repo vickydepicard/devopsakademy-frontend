@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, BookOpen, Users, Star, MapPin, Linkedin, Github, Globe, Twitter } from "lucide-react";
 import api from "../../api/api";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 function Avatar({ src, name = "", size = 72 }) {
   const [failed, setFailed] = useState(false);
@@ -39,6 +41,7 @@ function StarRating({ val }) {
 }
 
 function InstructorCard({ inst }) {
+  const { t } = useTranslation("instructors");
   const skills = (Array.isArray(inst.skills) ? inst.skills : []).slice(0, 2);
   return (
     <Link to={`/instructors/${inst.id}`} style={{ textDecoration:"none" }}>
@@ -78,7 +81,7 @@ function InstructorCard({ inst }) {
         {/* Bio */}
         <p style={{ fontSize:12, color:"#6b7280", lineHeight:1.6, margin:0,
           display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
-          {inst.bio || "Passionné de DevOps et des technologies Cloud."}
+          {inst.bio || t("passionne_de_devops_et_des_technologies")}
         </p>
 
         {/* Skills */}
@@ -102,8 +105,8 @@ function InstructorCard({ inst }) {
         {/* Stats */}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
           {[
-            { icon: BookOpen, val: inst.course_count,  label:"Cours" },
-            { icon: Users,    val: inst.student_count, label:"Étudiants" },
+            { icon: BookOpen, val: inst.course_count,  label:t("cours") },
+            { icon: Users,    val: inst.student_count, label:t("etudiants") },
           ].map(({ icon: Icon, val, label }) => (
             <div key={label} style={{ background:"#f8f7ff", borderRadius:10,
               padding:"8px", textAlign:"center" }}>
@@ -133,9 +136,7 @@ function InstructorCard({ inst }) {
             ))}
           </div>
           <span style={{ fontSize:11, fontWeight:800, color:"#5653e1" }}
-            className="group-hover:underline">
-            Voir le profil →
-          </span>
+            className="group-hover:underline">{t("voir_le_profil")}</span>
         </div>
       </div>
     </Link>
@@ -143,6 +144,7 @@ function InstructorCard({ inst }) {
 }
 
 export default function Instructors() {
+  const { t } = useTranslation("instructors");
   const [instructors, setInstructors] = useState([]);
   const [search, setSearch]           = useState("");
   const [loading, setLoading]         = useState(true);
@@ -173,19 +175,16 @@ export default function Instructors() {
           DevOps Akademy
         </p>
         <h1 style={{ color:"white", fontSize:"clamp(24px,4vw,38px)", fontWeight:900,
-          margin:"0 0 6px", letterSpacing:"-0.02em" }}>
-          Nos <span style={{ color:"#facc15" }}>Instructeurs</span>
+          margin:"0 0 6px", letterSpacing:"-0.02em" }}>{t("nos")}{" "}<span style={{ color:"#facc15" }}>{t("instructeurs")}</span>
         </h1>
-        <p style={{ color:"rgba(255,255,255,0.55)", fontSize:13, margin:"0 0 20px" }}>
-          {instructors.length} expert{instructors.length > 1 ? "s" : ""} DevOps & Cloud
-        </p>
+        <p style={{ color:"rgba(255,255,255,0.55)", fontSize:13, margin:"0 0 20px" }}>{i18n.t("instructors:expert", { length: instructors.length, s: instructors.length > 1 ? "s" : "" })}{" "}{t("devops_cloud")}</p>
 
         {/* Search */}
         <div style={{ maxWidth:400, margin:"0 auto", position:"relative" }}>
           <Search size={14} color="#9ca3af"
             style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)" }} />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Nom, spécialité, compétence..."
+            placeholder={t("nom_specialite_competence")}
             style={{ width:"100%", paddingLeft:38, paddingRight:16, paddingTop:11, paddingBottom:11,
               borderRadius:14, border:"none", outline:"none", fontSize:13,
               background:"white", boxSizing:"border-box",
@@ -199,14 +198,14 @@ export default function Instructors() {
           <div style={{ textAlign:"center", padding:"60px 0" }}>
             <div style={{ width:36, height:36, border:"3px solid #5653e1", borderTopColor:"transparent",
               borderRadius:"50%", animation:"spin 1s linear infinite", margin:"0 auto 12px" }} />
-            <p style={{ color:"#9ca3af", fontSize:13 }}>Chargement...</p>
+            <p style={{ color:"#9ca3af", fontSize:13 }}>{t("chargement")}</p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign:"center", padding:"60px 0" }}>
             <Users size={40} color="#d1d5db" style={{ margin:"0 auto 12px", display:"block" }} />
             <p style={{ color:"#9ca3af", fontWeight:600 }}>
-              {search ? `Aucun résultat pour "${search}"` : "Aucun instructeur."}
+              {search ? t("aucun_resultat_pour", { search }) : t("aucun_instructeur")}
             </p>
           </div>
         ) : (

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { initialsAvatar, coverPlaceholder, onAvatarError } from "../../utils/avatar";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import { ProofButton } from "../payment/ProofViewer";
@@ -19,8 +20,10 @@ import {
   Download,
   Eye
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function AdminEnrollments() {
+  const { t } = useTranslation("adminEnrollments");
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +42,7 @@ export default function AdminEnrollments() {
       setLoading(true);
       
       const response = await api.get("/enrollments");
-      if (!response.data.success) throw new Error("Failed to load data");
+      if (!response.data.success) throw new Error(t("failed_to_load_data"));
       
       const enrollments = response.data.data || [];
       const studentsMap = new Map();
@@ -84,7 +87,7 @@ export default function AdminEnrollments() {
       
     } catch (err) {
       console.error("Error loading data:", err);
-      alert("Error loading data");
+      alert(t("error_loading_data"));
     } finally {
       setLoading(false);
     }
@@ -115,12 +118,12 @@ export default function AdminEnrollments() {
   // Get student status
   const getStudentStatus = (student) => {
     if (student.pending > 0) {
-      return { text: "Pending", color: "bg-yellow-100 text-yellow-800", icon: <Clock className="w-4 h-4" /> };
+      return { text: t("pending"), color: "bg-yellow-100 text-yellow-800", icon: <Clock className="w-4 h-4" /> };
     }
     if (student.rejected > 0) {
-      return { text: "Rejected", color: "bg-red-100 text-red-800", icon: <XCircle className="w-4 h-4" /> };
+      return { text: t("rejected"), color: "bg-red-100 text-red-800", icon: <XCircle className="w-4 h-4" /> };
     }
-    return { text: "Approved", color: "bg-green-100 text-green-800", icon: <CheckCircle className="w-4 h-4" /> };
+    return { text: t("approved"), color: "bg-green-100 text-green-800", icon: <CheckCircle className="w-4 h-4" /> };
   };
 
   // Get progress percentage
@@ -156,21 +159,15 @@ export default function AdminEnrollments() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                Student Management
-              </h1>
-              <p className="text-gray-600">
-                View and manage student enrollments
-              </p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t("student_management")}</h1>
+              <p className="text-gray-600">{t("view_and_manage_student_enrollments")}</p>
             </div>
             
             <button
               onClick={fetchStudents}
               className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
             >
-              <Loader2 className="w-4 h-4" />
-              Refresh
-            </button>
+              <Loader2 className="w-4 h-4" />{t("refresh")}</button>
           </div>
 
           {/* Stats */}
@@ -178,7 +175,7 @@ export default function AdminEnrollments() {
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Students</p>
+                  <p className="text-sm text-gray-600">{t("total_students")}</p>
                   <p className="text-xl font-bold text-gray-900">{stats.total}</p>
                 </div>
                 <Users className="w-6 h-6 text-blue-600" />
@@ -188,7 +185,7 @@ export default function AdminEnrollments() {
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">With Pending</p>
+                  <p className="text-sm text-gray-600">{t("with_pending")}</p>
                   <p className="text-xl font-bold text-gray-900">{stats.pending}</p>
                 </div>
                 <Clock className="w-6 h-6 text-yellow-600" />
@@ -198,7 +195,7 @@ export default function AdminEnrollments() {
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">All Approved</p>
+                  <p className="text-sm text-gray-600">{t("all_approved")}</p>
                   <p className="text-xl font-bold text-gray-900">{stats.approved}</p>
                 </div>
                 <CheckCircle className="w-6 h-6 text-green-600" />
@@ -208,7 +205,7 @@ export default function AdminEnrollments() {
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">With Rejected</p>
+                  <p className="text-sm text-gray-600">{t("with_rejected")}</p>
                   <p className="text-xl font-bold text-gray-900">{stats.rejected}</p>
                 </div>
                 <XCircle className="w-6 h-6 text-red-600" />
@@ -225,7 +222,7 @@ export default function AdminEnrollments() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search by name or email..."
+                  placeholder={t("search_by_name_or_email")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -235,10 +232,10 @@ export default function AdminEnrollments() {
             
             <div className="flex flex-wrap gap-2">
               {[
-                { id: "all", label: "All", icon: Users, count: stats.total },
-                { id: "pending", label: "Pending", icon: Clock, count: stats.pending },
-                { id: "approved", label: "Approved", icon: CheckCircle, count: stats.approved },
-                { id: "rejected", label: "Rejected", icon: XCircle, count: stats.rejected },
+                { id: "all", label: t("all"), icon: Users, count: stats.total },
+                { id: "pending", label: t("pending"), icon: Clock, count: stats.pending },
+                { id: "approved", label: t("approved"), icon: CheckCircle, count: stats.approved },
+                { id: "rejected", label: t("rejected"), icon: XCircle, count: stats.rejected },
               ].map(item => (
                 <button
                   key={item.id}
@@ -267,13 +264,11 @@ export default function AdminEnrollments() {
           {filteredStudents.length === 0 ? (
             <div className="p-12 text-center">
               <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
-                No students found
-              </h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t("no_students_found")}</h3>
               <p className="text-gray-600 mb-6">
                 {search 
-                  ? `No results for "${search}"` 
-                  : "No students match the selected filter."}
+                  ? t("no_results_for", { search }) 
+                  : t("no_students_match_the_selected_filter")}
               </p>
               <button
                 onClick={() => {
@@ -281,9 +276,7 @@ export default function AdminEnrollments() {
                   setFilter("all");
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-              >
-                Show all students
-              </button>
+              >{t("show_all_students")}</button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
@@ -302,7 +295,8 @@ export default function AdminEnrollments() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <img
-                            src={student.avatar || `https://ui-avatars.com/api/?name=${student.name}&background=3B3A82&color=fff&size=64`}
+                            src={student.avatar || initialsAvatar(student.name)}
+                            onError={onAvatarError(student.name)}
                             alt={student.name}
                             className="w-12 h-12 rounded-full"
                           />
@@ -330,7 +324,7 @@ export default function AdminEnrollments() {
                       {/* Progress */}
                       <div className="mb-4">
                         <div className="flex justify-between text-xs mb-1">
-                          <span className="text-gray-600">Progress</span>
+                          <span className="text-gray-600">{t("progress")}</span>
                           <span className="font-semibold">{progress}%</span>
                         </div>
                         <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -345,15 +339,15 @@ export default function AdminEnrollments() {
                       <div className="grid grid-cols-3 gap-2 mb-4">
                         <div className="text-center p-2 bg-gray-50 rounded">
                           <div className="font-bold text-gray-900">{student.enrollments.length}</div>
-                          <div className="text-xs text-gray-500">Total</div>
+                          <div className="text-xs text-gray-500">{t("total")}</div>
                         </div>
                         <div className="text-center p-2 bg-yellow-50 rounded">
                           <div className="font-bold text-yellow-700">{student.pending}</div>
-                          <div className="text-xs text-yellow-600">Pending</div>
+                          <div className="text-xs text-yellow-600">{t("pending")}</div>
                         </div>
                         <div className="text-center p-2 bg-green-50 rounded">
                           <div className="font-bold text-green-700">{student.approved}</div>
-                          <div className="text-xs text-green-600">Approved</div>
+                          <div className="text-xs text-green-600">{t("approved")}</div>
                         </div>
                       </div>
 
@@ -366,18 +360,14 @@ export default function AdminEnrollments() {
                           }}
                           className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center justify-center gap-1"
                         >
-                          <Eye className="w-3.5 h-3.5" />
-                          View Details
-                        </button>
+                          <Eye className="w-3.5 h-3.5" />{t("view_details")}</button>
                       </div>
                     </div>
 
                     {/* Recent Courses */}
                     {student.enrollments.length > 0 && (
                       <div className="border-t border-gray-100 bg-gray-50/50 p-3">
-                        <h4 className="text-xs font-semibold text-gray-700 mb-2">
-                          Recent Courses
-                        </h4>
+                        <h4 className="text-xs font-semibold text-gray-700 mb-2">{t("recent_courses")}</h4>
                         <div className="space-y-1">
                           {student.enrollments.slice(0, 2).map((enrollment, idx) => (
                             <div key={idx} className="flex items-center justify-between text-xs">
@@ -390,13 +380,13 @@ export default function AdminEnrollments() {
                                   (enrollment.payment_status === 'rejected' || enrollment.status === 'rejected') ? 'bg-red-100 text-red-800' :
                                   'bg-yellow-100 text-yellow-800'
                                 }`}>
-                                  {enrollment.is_approved ? 'Validé' : 
-                                   (enrollment.payment_status === 'rejected' || enrollment.status === 'rejected') ? 'Rejeté' : 'En attente'}
+                                  {enrollment.is_approved ? t("valide") : 
+                                   (enrollment.payment_status === 'rejected' || enrollment.status === 'rejected') ? t("rejete") : t("en_attente")}
                                 </span>
                                 {enrollment.payment_proof_url && (
                                   <ProofButton
                                     url={enrollment.payment_proof_url}
-                                    label="Preuve"
+                                    label={t("preuve")}
                                     size="xs"
                                   />
                                 )}
@@ -417,13 +407,13 @@ export default function AdminEnrollments() {
         <div className="mt-6 bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-4">
             <BarChart className="w-5 h-5 text-gray-700" />
-            <h3 className="font-bold text-gray-900">Overview</h3>
+            <h3 className="font-bold text-gray-900">{t("overview")}</h3>
           </div>
           
           <div className="text-sm text-gray-600 space-y-2">
-            <p>• {stats.pending} student(s) have pending course approvals</p>
-            <p>• {stats.approved} student(s) have all courses approved</p>
-            <p>• Click on any student to manage their enrollments</p>
+            <p>{t("student_s_have_pending_course_approvals", { pending: stats.pending })}</p>
+            <p>{t("student_s_have_all_courses_approved", { approved: stats.approved })}</p>
+            <p>{t("click_on_any_student_to_manage")}</p>
           </div>
         </div>
 
@@ -431,12 +421,12 @@ export default function AdminEnrollments() {
         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <GraduationCap className="w-5 h-5 text-blue-600" />
-            <h4 className="font-semibold text-gray-900">Quick Tips</h4>
+            <h4 className="font-semibold text-gray-900">{t("quick_tips")}</h4>
           </div>
           <div className="text-sm text-gray-600 space-y-1">
-            <p>1. Use filters to find students by status</p>
-            <p>2. Click student cards to view detailed enrollment information</p>
-            <p>3. Approve or reject enrollments from student detail pages</p>
+            <p>{t("1_use_filters_to_find_students")}</p>
+            <p>{t("2_click_student_cards_to_view")}</p>
+            <p>{t("3_approve_or_reject_enrollments_from")}</p>
           </div>
         </div>
 

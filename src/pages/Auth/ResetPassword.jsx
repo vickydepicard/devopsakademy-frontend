@@ -5,10 +5,12 @@ import { useState } from "react"
 import { Link, useParams, useNavigate } from "react-router-dom"
 import api from "../../api/api"
 import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle, ShieldCheck, Loader, AlertCircle } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" }
 
 function PwdStrength({ pwd }) {
+  const { t } = useTranslation("auth")
   if (!pwd) return null
   const checks = {
     length:  pwd.length >= 8,
@@ -18,10 +20,10 @@ function PwdStrength({ pwd }) {
   }
   const score = Object.values(checks).filter(Boolean).length
   const levels = [
-    { label: "Trop court",  color: "#ef4444", w: "20%" },
-    { label: "Faible",      color: "#f97316", w: "45%" },
-    { label: "Moyen",       color: "#eab308", w: "70%" },
-    { label: "Fort",        color: "#22c55e", w: "100%" },
+    { label: t("strength.veryWeak"),  color: "#ef4444", w: "20%" },
+    { label: t("strength.weak"),      color: "#f97316", w: "45%" },
+    { label: t("strength.medium"),       color: "#eab308", w: "70%" },
+    { label: t("strength.strong"),        color: "#22c55e", w: "100%" },
   ]
   const lv = levels[score - 1] || levels[0]
   return (
@@ -33,7 +35,7 @@ function PwdStrength({ pwd }) {
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold" style={{ color: lv.color }}>{lv.label}</span>
         <div className="flex gap-1">
-          {[["length","8+"],["upper","Maj"],["number","123"],["special","#@"]].map(([k,l]) => (
+          {[["length","8+"],["upper","A-Z"],["number","0-9"],["special","#@"]].map(([k,l]) => (
             <span key={k} className={`text-[9px] px-1 py-0.5 rounded font-medium ${checks[k] ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
               {checks[k] ? "✓" : "·"}{l}
             </span>
@@ -45,6 +47,7 @@ function PwdStrength({ pwd }) {
 }
 
 export default function ResetPassword() {
+  const { t } = useTranslation("auth")
   const { token }   = useParams()
   const navigate    = useNavigate()
   const [form,      setForm]      = useState({ password: "", confirm: "" })
@@ -58,11 +61,11 @@ export default function ResetPassword() {
     e.preventDefault()
     setError("")
     if (!form.password || form.password.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caractères.")
+      setError(t("reset.tooShort"))
       return
     }
     if (form.password !== form.confirm) {
-      setError("Les mots de passe ne correspondent pas.")
+      setError(t("reset.mismatch"))
       return
     }
     setLoading(true)
@@ -70,10 +73,10 @@ export default function ResetPassword() {
       await api.post("/auth/reset-password", { token, password: form.password })
       setDone(true)
       setTimeout(() => navigate("/login", {
-        state: { message: "✅ Mot de passe mis à jour ! Connectez-vous." }
+        state: { notice: "passwordUpdated" }
       }), 3000)
     } catch (err) {
-      setError(err?.message || "Lien invalide ou expiré. Demandez un nouveau lien.")
+      setError(err?.message || t("reset.invalidLink"))
     } finally {
       setLoading(false)
     }
@@ -110,19 +113,19 @@ export default function ResetPassword() {
                   <CheckCircle className="w-8 h-8 text-emerald-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-gray-900">Mot de passe mis à jour !</h2>
+                  <h2 className="text-xl font-black text-gray-900">{t("reset.doneTitle")}</h2>
                   <p className="text-gray-500 text-sm mt-2 leading-relaxed">
-                    Votre mot de passe a été modifié avec succès.
+                    {t("reset.doneText")}
                   </p>
                   <p className="text-gray-400 text-xs mt-2 flex items-center justify-center gap-1">
                     <Loader className="w-3 h-3 animate-spin" />
-                    Redirection automatique dans 3 secondes...
+                    {t("reset.redirect")}
                   </p>
                 </div>
                 <Link to="/login"
                   className="block w-full py-3 rounded-xl font-black text-white text-sm text-center hover:opacity-90 transition"
                   style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
-                  → Se connecter maintenant
+                  {t("reset.loginNow")}
                 </Link>
               </div>
 
@@ -135,9 +138,9 @@ export default function ResetPassword() {
                     style={{ background: "linear-gradient(135deg,#ede9fe,#ddd6fe)" }}>
                     <Lock className="w-6 h-6" style={{ color: C.primary }} />
                   </div>
-                  <h1 className="text-xl font-black text-gray-900">Nouveau mot de passe</h1>
+                  <h1 className="text-xl font-black text-gray-900">{t("reset.title")}</h1>
                   <p className="text-gray-500 text-xs mt-1.5">
-                    Choisissez un mot de passe sécurisé d'au moins 8 caractères.
+                    {t("reset.intro")}
                   </p>
                 </div>
 
@@ -160,7 +163,7 @@ export default function ResetPassword() {
                         type={showPwd ? "text" : "password"}
                         value={form.password}
                         onChange={e => { setForm(p => ({ ...p, password: e.target.value })); setError("") }}
-                        placeholder="Nouveau mot de passe"
+                        placeholder={t("reset.newPassword")}
                         autoFocus
                         className={inp}
                         autoComplete="new-password"
@@ -187,7 +190,7 @@ export default function ResetPassword() {
                         type={showConf ? "text" : "password"}
                         value={form.confirm}
                         onChange={e => { setForm(p => ({ ...p, confirm: e.target.value })); setError("") }}
-                        placeholder="Confirmer le mot de passe"
+                        placeholder={t("reset.confirm")}
                         className={inp}
                         autoComplete="new-password"
                       />
@@ -197,11 +200,11 @@ export default function ResetPassword() {
                       </button>
                     </div>
                     {form.confirm && form.password !== form.confirm && (
-                      <p className="mt-0.5 text-[10px] text-red-500">Les mots de passe ne correspondent pas</p>
+                      <p className="mt-0.5 text-[10px] text-red-500">{t("reset.mismatchShort")}</p>
                     )}
                     {form.confirm && form.password === form.confirm && form.confirm && (
                       <p className="mt-0.5 text-[10px] text-emerald-600 flex items-center gap-1">
-                        <CheckCircle className="w-2.5 h-2.5" /> Mots de passe identiques
+                        <CheckCircle className="w-2.5 h-2.5" /> {t("reset.match")}
                       </p>
                     )}
                   </div>
@@ -211,15 +214,15 @@ export default function ResetPassword() {
                     className="w-full py-3 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
                     style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
                     {loading
-                      ? <><Loader className="w-4 h-4 animate-spin" /> Mise à jour...</>
-                      : "Réinitialiser le mot de passe"
+                      ? <><Loader className="w-4 h-4 animate-spin" /> {t("reset.updating")}</>
+                      : t("reset.submit")
                     }
                   </button>
                 </form>
 
                 <p className="text-center text-[11px] text-gray-400 mt-3 flex items-center justify-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-indigo-400" />
-                  Toutes vos sessions seront déconnectées
+                  {t("reset.sessions")}
                 </p>
               </>
             )}
@@ -231,7 +234,7 @@ export default function ResetPassword() {
           <div className="text-center mt-4">
             <Link to="/login"
               className="inline-flex items-center gap-1.5 text-indigo-300/70 hover:text-white text-sm transition font-medium">
-              <ArrowLeft className="w-3.5 h-3.5" /> Retour à la connexion
+              <ArrowLeft className="w-3.5 h-3.5" /> {t("reset.backToLogin")}
             </Link>
           </div>
         )}

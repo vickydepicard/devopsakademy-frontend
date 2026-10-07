@@ -1,0 +1,7 @@
+{
+  "usepermissions_must_be_used_within_a": "usePermissions must be used within a PermissionProvider",
+  "impossible_de_charger_vos_inscriptions": "Impossible de charger vos inscriptions.",
+  "deja_inscrit_a_ce_cours": "Déjà inscrit à ce cours",
+  "erreur_inscription": "Erreur inscription",
+  "erreur_upload_preuve": "Erreur upload preuve"
+}

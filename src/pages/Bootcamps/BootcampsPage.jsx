@@ -7,29 +7,32 @@ import {
   Lock, ChevronRight, Loader, AlertCircle,
   MapPin, Tag, ArrowRight, Filter, CheckCircle
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 // ─── Constantes ────────────────────────────────────────────
-const STATUS_MAP = {
-  live:      { label: "En direct",  color: "text-red-600",   bg: "bg-red-50 border-red-200",   dot: "bg-red-500",    pulse: true  },
-  scheduled: { label: "Planifié",   color: "text-amber-600", bg: "bg-amber-50 border-amber-200",dot: "bg-amber-500",  pulse: false },
-  ended:     { label: "Terminé",    color: "text-emerald-600",bg:"bg-emerald-50 border-emerald-200",dot:"bg-emerald-500",pulse:false},
-  cancelled: { label: "Annulé",     color: "text-gray-400",  bg: "bg-gray-50 border-gray-200",  dot: "bg-gray-400",   pulse: false },
-};
+const STATUS_MAP = () => ({
+  live:      { label: i18n.t("bootcampsPage:en_direct"),  color: "text-red-600",   bg: "bg-red-50 border-red-200",   dot: "bg-red-500",    pulse: true  },
+  scheduled: { label: i18n.t("bootcampsPage:planifie"),   color: "text-amber-600", bg: "bg-amber-50 border-amber-200",dot: "bg-amber-500",  pulse: false },
+  ended:     { label: i18n.t("bootcampsPage:termine"),    color: "text-emerald-600",bg:"bg-emerald-50 border-emerald-200",dot:"bg-emerald-500",pulse:false},
+  cancelled: { label: i18n.t("bootcampsPage:annule"),     color: "text-gray-400",  bg: "bg-gray-50 border-gray-200",  dot: "bg-gray-400",   pulse: false },
+});
 
-const LEVEL_MAP = {
-  beginner:     { label: "Débutant",     cls: "bg-emerald-100 text-emerald-700" },
-  intermediate: { label: "Intermédiaire",cls: "bg-blue-100 text-blue-700" },
-  advanced:     { label: "Avancé",       cls: "bg-purple-100 text-purple-700" },
-};
+const LEVEL_MAP = () => ({
+  beginner:     { label: i18n.t("bootcampsPage:debutant"),     cls: "bg-emerald-100 text-emerald-700" },
+  intermediate: { label: i18n.t("bootcampsPage:intermediaire"),cls: "bg-blue-100 text-blue-700" },
+  advanced:     { label: i18n.t("bootcampsPage:avance"),       cls: "bg-purple-100 text-purple-700" },
+});
 
-const FILTERS = [
-  { value: "all",       label: "Tous" },
-  { value: "live",      label: "🔴 En direct" },
-  { value: "scheduled", label: "📅 Planifiés" },
-  { value: "ended",     label: "▶ Replays" },
-];
+const FILTERS = () => ([
+  { value: "all",       label: i18n.t("bootcampsPage:tous") },
+  { value: "live",      label: i18n.t("bootcampsPage:en_direct") },
+  { value: "scheduled", label: i18n.t("bootcampsPage:planifies") },
+  { value: "ended",     label: i18n.t("bootcampsPage:replays") },
+]);
 
-const fmt = (n) => Number(n || 0).toLocaleString("fr-FR");
+const fmt = (n) => Number(n || 0).toLocaleString(getLocale());
 
 // ─── Skeleton card ─────────────────────────────────────────
 function SkeletonCard() {
@@ -50,8 +53,9 @@ function SkeletonCard() {
 
 // ─── Carte bootcamp ────────────────────────────────────────
 function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
-  const st  = STATUS_MAP[b.status]  || STATUS_MAP.scheduled;
-  const lvl = LEVEL_MAP[b.level]    || LEVEL_MAP.beginner;
+  const { t } = useTranslation("bootcampsPage");
+  const st  = STATUS_MAP()[b.status]  || STATUS_MAP().scheduled;
+  const lvl = LEVEL_MAP()[b.level]    || LEVEL_MAP().beginner;
   // Formatage date sécurisé
   const rawDate = b.scheduled_at ? new Date(b.scheduled_at) : null;
   const validDate = rawDate && !isNaN(rawDate.getTime()) ? rawDate : null;
@@ -93,7 +97,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
 
         {/* Prix */}
         <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
-          {b.is_free ? "Gratuit 🎉" : `${fmt(b.price)} FCFA`}
+          {b.is_free ? t("gratuit") : `${fmt(b.price)} FCFA`}
         </div>
 
         {/* Replay overlay */}
@@ -108,9 +112,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
         {/* Live badge */}
         {isLive && (
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-full">
-            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-            LIVE MAINTENANT
-          </div>
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />{t("live_maintenant")}</div>
         )}
       </div>
 
@@ -131,34 +133,29 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
           {b.title}
         </h3>
 
-        <p className="text-xs text-[#5653e1] font-semibold mb-3">
-          Par {b.instructor_name}
-        </p>
+        <p className="text-xs text-[#5653e1] font-semibold mb-3">{t("par", { instructor_name: b.instructor_name })}</p>
 
         {/* Méta */}
         <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-4">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             {validDate
-              ? validDate.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
-                + " à " + validDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-              : "Date à confirmer"}
+              ? validDate.toLocaleDateString(getLocale(), { day: "numeric", month: "short", year: "numeric" })
+                + " à " + validDate.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
+              : t("date_a_confirmer")}
           </span>
           <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            {b.duration_minutes} min
-          </span>
+            <Clock className="w-3.5 h-3.5" />{i18n.t("bootcampsPage:min", { vduration_minutes: b.duration_minutes })}</span>
           <span className="flex items-center gap-1">
             <Users className="w-3.5 h-3.5" />
-            {fmt(b.registered_count)} inscrit{b.registered_count > 1 ? "s" : ""}
-            {b.max_participants && <span className="text-gray-300"> / {fmt(b.max_participants)}</span>}
+            {fmt(b.registered_count)}{" "}{i18n.t("bootcampsPage:inscrit_2", { s: b.registered_count > 1 ? "s" : "" })}{b.max_participants && <span className="text-gray-300"> / {fmt(b.max_participants)}</span>}
           </span>
         </div>
 
         {/* Places restantes */}
         {spotsLeft !== null && spotsLeft <= 10 && !isEnded && (
           <div className={`text-xs font-semibold mb-3 px-2.5 py-1.5 rounded-lg ${isFull ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700"}`}>
-            {isFull ? "🔴 Complet" : `⚠️ Plus que ${spotsLeft} place${spotsLeft > 1 ? "s" : ""} !`}
+            {isFull ? t("complet") : t("plus_que_place", { spotsLeft, v: spotsLeft > 1 ? "s" : "" })}
           </div>
         )}
 
@@ -172,36 +169,30 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
             b.replay_url ? (
               <a href={b.replay_url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-xs font-bold text-[#2d287f] hover:gap-2.5 transition-all">
-                <Play className="w-3.5 h-3.5" /> Voir le replay
-              </a>
+                <Play className="w-3.5 h-3.5" />{" "}{t("voir_le_replay")}</a>
             ) : (
-              <span className="text-xs text-gray-400 font-medium">Replay indisponible</span>
+              <span className="text-xs text-gray-400 font-medium">{t("replay_indisponible")}</span>
             )
           ) : isFull ? (
             <span className="text-xs text-red-500 font-semibold flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5" /> Complet
-            </span>
+              <Lock className="w-3.5 h-3.5" />{" "}{t("complet")}</span>
           ) : isLive && b.stream_url ? (
             /* Live actif → ouvrir le stream directement sans re-s'inscrire */
             <a href={b.stream_url} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-bold text-white px-3 py-1.5 rounded-lg transition hover:opacity-90 bg-red-600 hover:bg-red-500">
-              <Play className="w-3.5 h-3.5" /> Rejoindre le live
-            </a>
+              <Play className="w-3.5 h-3.5" />{" "}{t("rejoindre_le_live")}</a>
           ) : isRegistered ? (
             /* Inscrit → selon statut : rejoindre si live, badge sinon */
             isLive && b.stream_url ? (
               <a href={b.stream_url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-xs font-bold text-white px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 transition">
-                <Play className="w-3.5 h-3.5" /> Rejoindre le live
-              </a>
+                <Play className="w-3.5 h-3.5" />{" "}{t("rejoindre_le_live")}</a>
             ) : isLive ? (
               <span className="flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">
-                <Radio className="w-3.5 h-3.5" /> En cours — lien indisponible
-              </span>
+                <Radio className="w-3.5 h-3.5" />{" "}{t("en_cours_lien_indisponible")}</span>
             ) : (
               <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-                <CheckCircle className="w-3.5 h-3.5" /> Inscrit
-              </span>
+                <CheckCircle className="w-3.5 h-3.5" />{" "}{t("inscrit")}</span>
             )
           ) : (
             <button
@@ -211,7 +202,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
               style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
               {registering === b.id
                 ? <Loader className="w-3.5 h-3.5 animate-spin" />
-                : "S'inscrire"
+                : t("s_inscrire")
               }
               {registering !== b.id && <ChevronRight className="w-3.5 h-3.5" />}
             </button>
@@ -224,6 +215,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
 
 // ─── PAGE PRINCIPALE ───────────────────────────────────────
 export default function BootcampsPage() {
+  const { t } = useTranslation("bootcampsPage");
   const { token, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -247,7 +239,7 @@ export default function BootcampsPage() {
       const res = await api.get(`/bootcamps${params}`);
       setBootcamps(res.data?.data || []);
     } catch {
-      setError("Impossible de charger les bootcamps. Vérifiez votre connexion.");
+      setError(t("impossible_de_charger_les_bootcamps_verifiez"));
     } finally {
       setLoading(false);
     }
@@ -264,17 +256,17 @@ export default function BootcampsPage() {
     try {
       await api.post(`/bootcamps/${b.id}/register`);
       // Marquer localement sans attendre le rechargement
-      setBootcamps(prev => prev.map(bc => bc.id === b.id ? {...bc, is_registered: true} : bc));
-      showToast(b.is_free ? `✅ Inscrit à "${b.title}" !` : `✅ Inscription enregistrée — paiement en attente`);
+      setBootcamps(prev => prev.map(bc => bc.id === b.id ? {...bc, is_registered: true, registered_count: (bc.registered_count || 0) + 1} : bc));
+      showToast(b.is_free ? t("inscrit_a", { title: b.title }) : t("inscription_enregistree_paiement_en_attente"));
     } catch (err) {
-      const msg = err.response?.data?.message || "Erreur lors de l'inscription.";
+      const msg = err.response?.data?.message || i18n.t("bootcampsPage:erreur_lors_de_l_inscription");
       if (err.response?.status === 409) {
         // Déjà inscrit → marquer localement + ouvrir stream si live
         setBootcamps(prev => prev.map(bc => bc.id === b.id ? {...bc, is_registered: true} : bc));
         if (b.stream_url && b.status === "live") {
           window.open(b.stream_url, "_blank");
         } else {
-          showToast("Vous êtes déjà inscrit.", "info");
+          showToast(t("vous_etes_deja_inscrit"), "info");
         }
       } else {
         showToast(msg, "error");
@@ -296,7 +288,7 @@ export default function BootcampsPage() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div className={`fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-3 animate-in slide-in-from-right-4 transition-all ${
+        <div className={`fixed top-24 left-4 right-4 sm:left-auto sm:right-6 z-50 px-5 py-3.5 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-3 animate-in slide-in-from-right-4 transition-all ${
           toast.type === "error" ? "bg-red-600 text-white" :
           toast.type === "info"  ? "bg-[#2d287f] text-white" :
           "bg-emerald-600 text-white"
@@ -314,22 +306,17 @@ export default function BootcampsPage() {
 
         <div className="relative max-w-5xl mx-auto px-6 text-center">
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#facc15]/15 border border-[#facc15]/30 rounded-full text-[#facc15] text-sm font-bold mb-6">
-            <Radio className="w-4 h-4" /> Sessions live & formations intensives
-          </span>
-          <h1 className="text-4xl lg:text-5xl font-black mb-4">
-            Bootcamps <span className="text-[#facc15]">&amp; Lives</span>
+            <Radio className="w-4 h-4" />{" "}{t("sessions_live_formations_intensives")}</span>
+          <h1 className="text-4xl lg:text-5xl font-black mb-4">{t("bootcamps")}{" "}<span className="text-[#facc15]">{t("lives")}</span>
           </h1>
-          <p className="text-white/70 text-lg max-w-xl mx-auto mb-10">
-            Rejoignez des sessions live animées par des experts, suivez des bootcamps intensifs
-            et accédez aux replays à la demande.
-          </p>
+          <p className="text-white/70 text-lg max-w-xl mx-auto mb-10">{t("rejoignez_des_sessions_live_animees_par")}</p>
 
           {/* Stats rapides */}
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             {[
-              { val: counts.live,      label: "En direct",  color: "text-red-400" },
-              { val: counts.scheduled, label: "Planifiés",  color: "text-amber-400" },
-              { val: counts.ended,     label: "Replays",    color: "text-emerald-400" },
+              { val: counts.live,      label: t("en_direct"),  color: "text-red-400" },
+              { val: counts.scheduled, label: t("planifies"),  color: "text-amber-400" },
+              { val: counts.ended,     label: t("replays"),    color: "text-emerald-400" },
             ].map(({ val, label, color }) => (
               <div key={label} className="text-center">
                 <p className={`text-2xl font-black ${color}`}>{val}</p>
@@ -344,7 +331,7 @@ export default function BootcampsPage() {
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-3 flex-wrap">
           <Filter className="w-4 h-4 text-gray-400 shrink-0" />
-          {FILTERS.map(({ value, label }) => (
+          {FILTERS().map(({ value, label }) => (
             <button key={value}
               onClick={() => setFilter(value)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
@@ -371,7 +358,7 @@ export default function BootcampsPage() {
           <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5 mb-8 text-sm">
             <AlertCircle className="w-5 h-5 shrink-0" />
             {error}
-            <button onClick={fetchBootcamps} className="ml-auto text-xs font-bold underline">Réessayer</button>
+            <button onClick={fetchBootcamps} className="ml-auto text-xs font-bold underline">{t("reessayer")}</button>
           </div>
         )}
 
@@ -387,21 +374,19 @@ export default function BootcampsPage() {
               <Radio className="w-10 h-10 text-gray-300" />
             </div>
             <h3 className="font-bold text-gray-700 text-lg mb-2">
-              {filter === "live"      ? "Aucun live en cours"
-               : filter === "scheduled" ? "Aucun bootcamp planifié"
-               : filter === "ended"     ? "Aucun replay disponible"
-               : "Aucun bootcamp disponible"}
+              {filter === "live"      ? t("aucun_live_en_cours")
+               : filter === "scheduled" ? t("aucun_bootcamp_planifie")
+               : filter === "ended"     ? t("aucun_replay_disponible")
+               : t("aucun_bootcamp_disponible")}
             </h3>
             <p className="text-gray-400 text-sm mb-6">
               {filter !== "all"
-                ? "Essayez un autre filtre pour voir les autres sessions."
-                : "Les prochains bootcamps seront annoncés bientôt. Revenez vite !"}
+                ? t("essayez_un_autre_filtre_pour_voir")
+                : t("les_prochains_bootcamps_seront_annonces_bientot")}
             </p>
             {filter !== "all" && (
               <button onClick={() => setFilter("all")}
-                className="px-5 py-2.5 bg-[#2d287f] text-white font-semibold rounded-xl text-sm hover:bg-[#3b3aab] transition">
-                Voir tous les bootcamps
-              </button>
+                className="px-5 py-2.5 bg-[#2d287f] text-white font-semibold rounded-xl text-sm hover:bg-[#3b3aab] transition">{t("voir_tous_les_bootcamps")}</button>
             )}
           </div>
         ) : (
@@ -414,7 +399,7 @@ export default function BootcampsPage() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                     <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
                   </span>
-                  <h2 className="font-black text-red-600 text-lg">En direct maintenant</h2>
+                  <h2 className="font-black text-red-600 text-lg">{t("en_direct_maintenant")}</h2>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {bootcamps.filter(b => b.status === "live").map(b => (
@@ -430,7 +415,7 @@ export default function BootcampsPage() {
                 ? bootcamps.filter(b => b.status !== "live")
                 : bootcamps
               ).map(b => (
-                <BootcampCard key={b.id} b={b} onRegister={handleRegister} registering={registering} />
+                <BootcampCard key={b.id} b={b} onRegister={handleRegister} registering={registering} isRegistered={!!b.is_registered} />
               ))}
             </div>
           </>
@@ -442,23 +427,16 @@ export default function BootcampsPage() {
             style={{ background: "linear-gradient(135deg,#1f1b5a,#2d287f)" }}>
             <div className="px-8 py-10 flex flex-col md:flex-row items-center gap-6">
               <div className="text-white flex-1">
-                <p className="text-[#facc15] text-sm font-bold uppercase tracking-wider mb-2">
-                  Vous êtes expert DevOps ?
-                </p>
-                <h3 className="text-2xl font-black mb-2">Animez votre propre bootcamp</h3>
-                <p className="text-white/65 text-sm leading-relaxed">
-                  Partagez votre expertise avec notre communauté. Nous gérons la plateforme, vous vous concentrez sur le contenu.
-                </p>
+                <p className="text-[#facc15] text-sm font-bold uppercase tracking-wider mb-2">{t("vous_etes_expert_devops")}</p>
+                <h3 className="text-2xl font-black mb-2">{t("animez_votre_propre_bootcamp")}</h3>
+                <p className="text-white/65 text-sm leading-relaxed">{t("partagez_votre_expertise_avec_notre_communaute")}</p>
               </div>
               <div className="flex gap-3 shrink-0">
                 <Link to="/become-instructor"
-                  className="flex items-center gap-2 bg-[#facc15] hover:bg-[#fde047] text-[#1f1b5a] font-black py-3 px-6 rounded-2xl transition hover:-translate-y-0.5 text-sm shadow-lg">
-                  Devenir instructeur <ArrowRight className="w-4 h-4" />
+                  className="flex items-center gap-2 bg-[#facc15] hover:bg-[#fde047] text-[#1f1b5a] font-black py-3 px-6 rounded-2xl transition hover:-translate-y-0.5 text-sm shadow-lg">{t("devenir_instructeur")}{" "}<ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link to="/contact"
-                  className="flex items-center gap-2 border border-white/30 hover:border-white text-white font-semibold py-3 px-5 rounded-2xl transition text-sm">
-                  Nous contacter
-                </Link>
+                  className="flex items-center gap-2 border border-white/30 hover:border-white text-white font-semibold py-3 px-5 rounded-2xl transition text-sm">{t("nous_contacter")}</Link>
               </div>
             </div>
           </div>

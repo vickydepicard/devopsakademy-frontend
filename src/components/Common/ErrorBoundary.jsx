@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from "../../i18n";
 
 
 class ErrorBoundary extends React.Component {
@@ -20,9 +21,9 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Quelque chose s'est mal passé.</h2>
+          <h2 className="text-2xl font-bold mb-4">{i18n.t("errorBoundary:quelque_chose_s_est_mal_passe")}</h2>
           <p className="mb-4">{String(this.state.error)}</p>
-          <p>Recharge la page ou contacte le développeur si le problème persiste.</p>
+          <p>{i18n.t("errorBoundary:recharge_la_page_ou_contacte_le")}</p>
         </div>
       );
     }

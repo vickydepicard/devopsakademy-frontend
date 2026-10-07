@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { initialsAvatar, coverPlaceholder, onAvatarError } from "../../utils/avatar";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { usePermissions } from "../../contexts/PermissionContext";
@@ -103,7 +104,7 @@ const CourseDetails = () => {
     fetchCourseDetails();
   }, [id, isAuthenticated]);
 
-  // 🎯 LOGIQUE UNIFIÉE POUR L'ACCÈS
+  // LOGIQUE UNIFIÉE POUR L'ACCÈS
   const accessStatus = useMemo(() => {
     if (!isAuthenticated) {
       return {
@@ -257,7 +258,7 @@ const CourseDetails = () => {
     }
   };
 
-  // 🎯 FONCTIONS UTILITAIRES
+  // FONCTIONS UTILITAIRES
   const formatDuration = (hours) => {
     if (!hours) return 'Durée flexible';
     if (hours < 1) return `${Math.round(hours * 60)} minutes`;
@@ -281,19 +282,16 @@ const CourseDetails = () => {
       'beginner': { 
         text: 'Débutant', 
         class: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-        icon: '🟢',
         description: 'Aucune connaissance préalable requise'
       },
       'intermediate': { 
         text: 'Intermédiaire', 
         class: 'bg-blue-100 text-blue-800 border-blue-200',
-        icon: '🔵',
         description: 'Connaissances de base requises'
       },
       'advanced': { 
         text: 'Avancé', 
         class: 'bg-purple-100 text-purple-800 border-purple-200',
-        icon: '🟣',
         description: 'Expérience significative requise'
       }
     };
@@ -301,19 +299,18 @@ const CourseDetails = () => {
     return levels[level?.toLowerCase()] || { 
       text: 'Tous niveaux', 
       class: 'bg-gray-100 text-gray-800 border-gray-200',
-      icon: '⚪',
       description: 'Adapté à tous les niveaux'
     };
   };
 
   const getLanguageInfo = (language) => {
     const languages = {
-      'fr': { name: 'Français', flag: '🇫🇷' },
-      'en': { name: 'English', flag: '🇬🇧' },
-      'es': { name: 'Español', flag: '🇪🇸' },
-      'de': { name: 'Deutsch', flag: '🇩🇪' }
+      'fr': { name: 'Français' },
+      'en': { name: 'English' },
+      'es': { name: 'Español' },
+      'de': { name: 'Deutsch' }
     };
-    return languages[language] || { name: language?.toUpperCase() || 'Multilingue', flag: '🌐' };
+    return languages[language] || { name: language?.toUpperCase() || 'Multilingue' };
   };
 
   const calculateDiscount = () => {
@@ -462,7 +459,7 @@ const CourseDetails = () => {
                           <p className="font-medium text-gray-900">
                             {lesson.title}
                           </p>
-                          {lesson.is_preview && (
+                          {!!lesson.is_preview && (
                             <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                               Aperçu
                             </span>
@@ -513,7 +510,8 @@ const CourseDetails = () => {
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
-                src={course.instructor_avatar || `https://ui-avatars.com/api/?name=${course.first_name}+${course.last_name}&background=3B3A82&color=fff&size=128`}
+                src={course.instructor_avatar || initialsAvatar(`${course.first_name} ${course.last_name}`)}
+                onError={onAvatarError(`${course.first_name} ${course.last_name}`)}
                 alt={`${course.first_name} ${course.last_name}`}
                 className="w-16 h-16 rounded-full border-2 border-white shadow-lg"
               />
@@ -624,7 +622,7 @@ const CourseDetails = () => {
     );
   };
 
-  // 🎯 LOADING STATE
+  // LOADING STATE
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -648,7 +646,7 @@ const CourseDetails = () => {
     );
   }
 
-  // 🎯 ERROR STATE
+  // ERROR STATE
   if (error || !course) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center py-12">
@@ -685,7 +683,7 @@ const CourseDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* 🎯 HEADER AVEC MESSAGE */}
+      {/* HEADER AVEC MESSAGE */}
       {location.state?.message && (
         <div className={`${location.state?.success ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'} border p-4`}>
           <div className="max-w-7xl mx-auto px-4">
@@ -711,7 +709,7 @@ const CourseDetails = () => {
         </div>
       )}
 
-      {/* 🎯 HERO SECTION */}
+      {/* HERO SECTION */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#3B3A82]/10 via-white to-[#4F46E5]/10">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Breadcrumb */}
@@ -734,17 +732,17 @@ const CourseDetails = () => {
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* 🎯 MAIN CONTENT */}
+            {/* MAIN CONTENT */}
             <div className="lg:col-span-2">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <div className="flex items-center gap-3 mb-3">
                     <span className={`px-3 py-1.5 rounded-full text-sm font-medium border ${levelInfo.class}`}>
-                      {levelInfo.icon} {levelInfo.text}
+                      {levelInfo.text}
                     </span>
                     <span className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200 flex items-center gap-1">
                       <Globe className="w-3 h-3" />
-                      {languageInfo.flag} {languageInfo.name}
+                      {languageInfo.name}
                     </span>
                     {discount && (
                       <span className="px-3 py-1.5 bg-red-100 text-red-800 rounded-full text-sm font-bold border border-red-200">
@@ -779,7 +777,7 @@ const CourseDetails = () => {
                 </div>
               </div>
 
-              {/* 🎯 COURSE IMAGE */}
+              {/* COURSE IMAGE */}
               <div className="rounded-3xl overflow-hidden mb-8 shadow-2xl border border-gray-200">
                 {course.thumbnail_url ? (
                   <img
@@ -799,10 +797,10 @@ const CourseDetails = () => {
                 )}
               </div>
 
-              {/* 🎯 STATS */}
+              {/* STATS */}
               {renderStats()}
 
-              {/* 🎯 TABS */}
+              {/* TABS */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-8">
                 <div className="border-b border-gray-200">
                   <nav className="flex overflow-x-auto">
@@ -829,7 +827,7 @@ const CourseDetails = () => {
                   </nav>
                 </div>
 
-                {/* 🎯 TAB CONTENT */}
+                {/* TAB CONTENT */}
                 <div className="p-6">
                   {activeTab === 'overview' && (
                     <div className="space-y-8">
@@ -925,7 +923,7 @@ const CourseDetails = () => {
               </div>
             </div>
 
-            {/* 🎯 SIDEBAR */}
+            {/* SIDEBAR */}
             <div className="lg:col-span-1">
               <div className="sticky top-8 space-y-6">
                 {/* Pricing Card */}
@@ -1094,7 +1092,7 @@ const CourseDetails = () => {
             </div>
           </div>
 
-          {/* 🎯 CTA SECTION */}
+          {/* CTA SECTION */}
           <div className="mt-16 bg-gradient-to-r from-[#3B3A82] to-[#4F46E5] rounded-3xl p-8 text-center text-white">
             <h2 className="text-3xl font-bold mb-4">Prêt à maîtriser DevOps ?</h2>
             <p className="text-lg opacity-90 mb-6 max-w-2xl mx-auto">

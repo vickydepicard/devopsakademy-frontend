@@ -1,22 +1,18 @@
-// src/pages/Courses/CourseLearn.jsx — Design Udemy/OpenClassrooms
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { usePermissions } from "../../contexts/PermissionContext";
-import { useAuth } from "../../contexts/AuthContext";
+// src/pages/Courses/CourseLearn.jsx — Lecteur de cours (thème clair)
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../api/api";
 import {
-  ChevronLeft, ChevronRight, CheckCircle, Play,
-  FileText, Brain, Zap, Film, Paperclip, Clock,
-  Menu, X, Lock, AlertCircle, BarChart2, Home,
-  ChevronDown, ChevronUp, Circle
+  ChevronLeft, ChevronRight, CheckCircle2, Play, FileText, HelpCircle, Wrench,
+  Film, Clock, AlertCircle, ChevronDown, Circle, Download, Eye, ListChecks,
 } from "lucide-react";
+import { FileTypeIcon } from "../../components/UI/Icons";
+import { useTranslation } from "react-i18next";
+import useFeedback, { apiError } from "../../components/Common/useFeedback";
 
-// ─── Types de leçon ────────────────────────────────────────
-const TYPE_ICON  = { video: Film, article: FileText, quiz: Brain, exercise: Zap };
-const TYPE_COLOR = { video: "#5653e1", article: "#0ea5e9", quiz: "#a855f7", exercise: "#f97316" };
+const TYPE_ICON = { video: Film, article: FileText, quiz: HelpCircle, exercise: Wrench };
 
-// ─── Helpers ───────────────────────────────────────────────
-const getYtId = (url) => (url||"").match(/(?:v=|youtu\.be\/|embed\/)([^&?/]+)/)?.[1] || null;
+const getYtId = (url) => (url || "").match(/(?:v=|youtu\.be\/|embed\/)([^&?/]+)/)?.[1] || null;
 const normalUrl = (url) => {
   if (!url) return null;
   if (url.startsWith("/")) return url;
@@ -26,552 +22,336 @@ const normalUrl = (url) => {
     return url;
   } catch { return url; }
 };
-const isPdf = (url) => /\.pdf(\?|$)/i.test(url||"");
-const isVid = (url) => /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url||"");
-const fmtDur = (min) => !min ? "" : min < 60 ? `${min}min` : `${Math.floor(min/60)}h${min%60>0?`${min%60}m`:""}`;
-const fmtSz  = (b) => !b ? "" : b<1048576 ? `${(b/1024).toFixed(0)} Ko` : `${(b/1048576).toFixed(1)} Mo`;
+const isPdf = (url) => /\.pdf(\?|$)/i.test(url || "");
+const isVid = (url) => /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url || "");
+const fmtDur = (min) => !min ? "" : min < 60 ? `${min} min` : `${Math.floor(min / 60)} h${min % 60 > 0 ? ` ${min % 60}` : ""}`;
+const fmtSz = (b) => !b ? "" : b < 1048576 ? `${(b / 1024).toFixed(0)} Ko` : `${(b / 1048576).toFixed(1)} Mo`;
+const extOf = (url) => (url || "").split("?")[0].split(".").pop().toLowerCase();
+const ICON_BY_EXT = { pdf: "pdf", doc: "doc", docx: "doc", ppt: "ppt", pptx: "ppt", xls: "xls", xlsx: "xls", zip: "zip", mp4: "mp4", mp3: "mp3" };
 
-const EXT_INFO = {
-  pdf:  { icon:"📄", label:"PDF" },
-  docx: { icon:"📝", label:"Word" }, doc: { icon:"📝", label:"Word" },
-  pptx: { icon:"📊", label:"Slides" }, ppt: { icon:"📊", label:"Slides" },
-  xlsx: { icon:"📈", label:"Excel" }, zip: { icon:"📦", label:"ZIP" },
-  mp4:  { icon:"🎬", label:"Vidéo" }, mp3: { icon:"🎵", label:"Audio" },
-};
-const extInfo = (url) => EXT_INFO[(url||"").split(".").pop().split("?")[0].toLowerCase()] || { icon:"📎", label:"Fichier" };
-
-// ─── ArticleContent ────────────────────────────────────────
-function ArticleContent({ content, resources=[], contentUrl=null }) {
-  const resolved = normalUrl(contentUrl);
-  const hasPdf   = isPdf(resolved||"");
-
-  if (hasPdf && !content) {
-    return (
-      <div className="bg-gray-900 rounded-xl overflow-hidden" style={{height:640}}>
-        <iframe
-          src={`${resolved}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-          className="w-full h-full border-none"
-          title="Document"
-        />
-      </div>
-    );
-  }
-
-  if (content) {
-    return (
-      <div className="bg-[#1a1f2e] rounded-xl border border-gray-700/50 p-6 md:p-8">
-        <div
-          className="prose prose-invert prose-sm max-w-none text-gray-200 leading-relaxed
-            prose-headings:text-white prose-h2:text-lg prose-h2:font-bold prose-h2:border-b prose-h2:border-gray-700 prose-h2:pb-2 prose-h2:mb-4
-            prose-p:text-gray-300 prose-p:leading-7 prose-a:text-[#5653e1]
-            prose-code:bg-gray-800 prose-code:text-green-400 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs
-            prose-pre:bg-gray-800 prose-pre:border prose-pre:border-gray-700 prose-pre:rounded-xl prose-pre:text-sm
-            prose-blockquote:border-[#5653e1] prose-blockquote:bg-indigo-900/20 prose-blockquote:rounded-r-xl
-            prose-strong:text-white prose-ul:text-gray-300 prose-ol:text-gray-300"
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
-      </div>
-    );
-  }
-
-  if (resources.length > 0) {
-    return (
-      <div className="bg-[#1a1f2e] rounded-xl border border-gray-700/50 overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-gray-700/50">
-          <p className="text-white font-semibold text-sm">Ressources de la leçon</p>
-        </div>
-        {resources.map((r, i) => {
-          const url  = normalUrl(r.file_url);
-          const info = extInfo(r.file_url);
-          return (
-            <div key={r.id||i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-700/30 last:border-0 hover:bg-gray-700/20 transition">
-              <span className="text-2xl flex-shrink-0">{info.icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-medium truncate">{r.title || r.file_url?.split("/").pop()}</p>
-                <p className="text-gray-500 text-xs mt-0.5">{info.label}{r.file_size ? ` · ${fmtSz(r.file_size)}` : ""}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-[#1a1f2e] rounded-xl border border-dashed border-gray-700 p-12 text-center">
-      <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-      <p className="text-gray-400 font-medium">Contenu en cours de rédaction</p>
-      <p className="text-gray-600 text-sm mt-1">L&apos;instructeur n&apos;a pas encore ajouté le contenu.</p>
-    </div>
-  );
-}
+const card = "bg-white border border-slate-200 rounded-lg";
 
 // ─── Lecteur vidéo ─────────────────────────────────────────
 function VideoPlayer({ url, title }) {
+  const { t } = useTranslation("courseLearn");
   const [playing, setPlaying] = useState(false);
-  const ytId = getYtId(url||"");
+  const ytId = getYtId(url || "");
   useEffect(() => { setPlaying(false); }, [url]);
 
   if (!url) return (
-    <div className="aspect-video bg-black flex items-center justify-center">
-      <div className="text-center">
-        <Film className="w-16 h-16 text-gray-700 mx-auto mb-3" />
-        <p className="text-gray-500 text-sm">Vidéo non disponible</p>
-      </div>
+    <div className="aspect-video bg-slate-100 flex items-center justify-center text-slate-400">
+      <div className="text-center"><Film className="w-10 h-10 mx-auto mb-2" /><p className="text-sm">{t("video_non_disponible")}</p></div>
     </div>
   );
 
   return (
-    <div className="aspect-video bg-black relative overflow-hidden">
+    <div className="aspect-video bg-slate-900 relative">
       {!playing ? (
-        <div className="absolute inset-0 cursor-pointer group" onClick={() => setPlaying(true)}>
-          {ytId && <img src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`} alt={title} className="w-full h-full object-cover" onError={e => { e.target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`; }} />}
-          {!ytId && <div className="w-full h-full bg-gradient-to-br from-[#1a1f2e] to-[#0f1117] flex items-center justify-center"><Film className="w-20 h-20 text-gray-700" /></div>}
-          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center hover:scale-110 transition-transform">
-              <Play className="w-8 h-8 text-white fill-white ml-1" />
-            </div>
-          </div>
-        </div>
+        <button type="button" onClick={() => setPlaying(true)} className="absolute inset-0 w-full h-full group bg-slate-900" aria-label={title}>
+          {ytId && <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} alt="" className="w-full h-full object-cover opacity-90" />}
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Play className="w-6 h-6 text-primary fill-primary ml-0.5" />
+            </span>
+          </span>
+        </button>
       ) : ytId ? (
         <iframe key={ytId} src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`}
           className="absolute inset-0 w-full h-full border-none" allowFullScreen title={title} />
       ) : (
-        <video key={url} src={url} autoPlay controls controlsList="nodownload"
-          className="absolute inset-0 w-full h-full" />
+        <video key={url} src={url} autoPlay controls controlsList="nodownload" className="absolute inset-0 w-full h-full" />
       )}
     </div>
   );
 }
 
-// ─── Élément de leçon dans la sidebar ──────────────────────
-function LessonItem({ lesson, isActive, isDone, onClick, moduleExpanded }) {
-  const Icon = TYPE_ICON[lesson.content_type] || FileText;
-  const color = TYPE_COLOR[lesson.content_type] || "#888";
-
+// ─── Ressources téléchargeables ────────────────────────────
+function Resources({ resources, onDownload, busyId }) {
+  const { t } = useTranslation("courseLearn");
+  if (!resources.length) return null;
   return (
-    <button onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all group ${
-        isActive ? "bg-[#5653e1]/15 border-l-2 border-[#5653e1]" : "hover:bg-white/5 border-l-2 border-transparent"
-      }`}>
-      {/* Icône statut */}
-      <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-        {isDone
-          ? <CheckCircle className="w-5 h-5 text-emerald-400" />
-          : isActive
-            ? <div className="w-4 h-4 rounded-full border-2 border-[#5653e1] bg-[#5653e1]/20" />
-            : <Circle className="w-4 h-4 text-gray-600" />
-        }
-      </div>
+    <section className={`${card} mt-6`}>
+      <header className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200">
+        <h2 className="text-sm font-semibold text-slate-900">{t("ressources_a_telecharger")}</h2>
+        <span className="text-xs text-slate-500">{resources.length}</span>
+      </header>
+      <ul className="divide-y divide-slate-100">
+        {resources.map((r) => {
+          const ext = extOf(r.file_url);
+          return (
+            <li key={r.id} className="flex items-center gap-4 px-5 py-3.5">
+              <span className="flex-shrink-0 w-9 h-9 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600">
+                <FileTypeIcon type={ICON_BY_EXT[ext] || "file"} className="w-5 h-5" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900 truncate">{r.title || r.file_url?.split("/").pop()}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{ext ? ext.toUpperCase() : t("fichier")}{r.file_size ? ` · ${fmtSz(r.file_size)}` : ""}</p>
+              </div>
+              <button type="button" onClick={() => onDownload(r)} disabled={busyId === r.id}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:bg-slate-50 hover:border-primary hover:text-primary transition disabled:opacity-50">
+                <Download className="w-4 h-4" />{t("telecharger")}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
 
-      {/* Texte */}
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm leading-snug truncate ${isActive ? "text-white font-semibold" : isDone ? "text-gray-400" : "text-gray-300 group-hover:text-white"}`}>
-          {lesson.title}
-        </p>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <Icon className="w-3 h-3 flex-shrink-0" style={{ color }} />
-          <span className="text-xs text-gray-600">{TYPE_LABEL?.[lesson.content_type] || "Leçon"}</span>
-          {lesson.duration_minutes > 0 && <span className="text-xs text-gray-600">· {fmtDur(lesson.duration_minutes)}</span>}
-        </div>
-      </div>
+// ─── Élément de leçon (sidebar) ────────────────────────────
+function LessonItem({ lesson, isActive, isDone, onClick }) {
+  const Icon = TYPE_ICON[lesson.content_type] || FileText;
+  return (
+    <button type="button" onClick={onClick}
+      className={`w-full flex items-start gap-3 px-4 py-2.5 text-left bg-transparent border-l-2 transition ${
+        isActive ? "bg-primary/5 border-primary" : "border-transparent hover:bg-slate-50"}`}>
+      <span className="mt-0.5 flex-shrink-0">
+        {isDone ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Circle className="w-4 h-4 text-slate-300" />}
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className={`block text-sm leading-snug ${isActive ? "text-primary font-semibold" : "text-slate-700"}`}>{lesson.title}</span>
+        <span className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
+          <Icon className="w-3 h-3" />
+          {lesson.duration_minutes > 0 && fmtDur(lesson.duration_minutes)}
+        </span>
+      </span>
     </button>
   );
 }
 
-const TYPE_LABEL = { video:"Vidéo", article:"Article", quiz:"Quiz", exercise:"Exercice" };
-
-// ═══════════════════════════════════════════════════════════
-// PAGE PRINCIPALE
-// ═══════════════════════════════════════════════════════════
+// ═══════════════ PAGE ═══════════════
 export default function CourseLearn() {
-  const { id }      = useParams();
-  const navigate    = useNavigate();
-  const { token }   = useAuth();
-  const { canAccessCourseContent, isAdmin, isInstructor } = usePermissions();
+  const { t } = useTranslation("courseLearn");
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { ui, notify } = useFeedback();
 
-  const [course,        setCourse]    = useState(null);
-  const [modules,       setModules]   = useState([]);
-  const [activeLesson,  setActive]    = useState(null);
-  const [completed,     setCompleted] = useState(new Set());
-  const [sidebar,       setSidebar]   = useState(true);
-  const [loading,       setLoading]   = useState(true);
-  const [error,         setError]     = useState(null);
-  const [completing,    setCompleting]= useState(false);
-  const [expandedMods,  setExpanded]  = useState({});
-  const [notif,         setNotif]     = useState(null);
+  const [course, setCourse] = useState(null);
+  const [modules, setModules] = useState([]);
+  const [activeLesson, setActive] = useState(null);
+  const [completed, setCompleted] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [completing, setCompleting] = useState(false);
+  const [collapsed, setCollapsed] = useState({});
+  const [teacherMode, setTeacherMode] = useState(false);
+  const [busyId, setBusyId] = useState(null);
 
-  // Charger le cours
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [cRes, mRes] = await Promise.all([
-        api.get(`/courses/${id}`),
-        api.get(`/courses/${id}/modules`),
-      ]);
-      const courseData   = cRes.data?.data || cRes.data;
-      const raw          = mRes.data?.data || mRes.data;
-      const modulesData  = Array.isArray(raw) ? raw : (raw?.modules || []);
-      setCourse(courseData);
-      setModules(modulesData);
-
-      // Leçons terminées
-      let doneSet = new Set(
-        modulesData.flatMap(m => (m.lessons||[]).filter(l => l.is_completed||l.completed).map(l=>l.id))
-      );
-      try {
-        const pRes = await api.get(`/courses/${id}/progress`);
-        const fromP = new Set((pRes.data?.data||[]).flatMap(m=>(m.lessons||[]).filter(l=>l.completed||l.is_completed).map(l=>l.id)));
-        if (fromP.size > 0) doneSet = fromP;
-      } catch(_) {}
-      setCompleted(doneSet);
-
-      // Première leçon non terminée
-      const allLessons = modulesData.flatMap(m => m.lessons||[]);
-      const first = allLessons.find(l => !doneSet.has(l.id)) || allLessons[0];
-      if (first) {
-        // Développer le module de la première leçon
-        const modOfFirst = modulesData.find(m => (m.lessons||[]).some(l=>l.id===first.id));
-        if (modOfFirst) setExpanded(prev => ({ ...prev, [modOfFirst.id]: true }));
-        await selectLesson(first);
-      }
-    } catch (err) {
-      if (err.response?.status === 403) setError("enrollment");
-      else setError("server");
-    } finally { setLoading(false); }
-  }, [id]);
-
-  useEffect(() => { load(); }, [id]);
-
-  // Charger leçon complète (avec resources + article_content)
-  const selectLesson = async (lesson) => {
+  const selectLesson = useCallback(async (lesson) => {
     setActive(lesson);
     try {
       const r = await api.get(`/courses/${id}/lessons/${lesson.id}`);
       const full = r.data?.data;
-      if (full) setActive(prev => prev?.id === lesson.id ? {...lesson, ...full} : prev);
-    } catch(_) {}
-  };
+      if (full?.teacher_mode) setTeacherMode(true);
+      if (full) setActive((prev) => (prev?.id === lesson.id ? { ...lesson, ...full } : prev));
+    } catch (_) { /* le contenu de base reste affiché */ }
+  }, [id]);
 
-  const handleSelectLesson = async (lesson) => {
-    // Développer le module correspondant
-    const mod = modules.find(m => (m.lessons||[]).some(l=>l.id===lesson.id));
-    if (mod) setExpanded(prev => ({ ...prev, [mod.id]: true }));
-    await selectLesson(lesson);
-    if (window.innerWidth < 768) setSidebar(false);
-  };
+  const load = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const [cRes, mRes] = await Promise.all([api.get(`/courses/${id}`), api.get(`/courses/${id}/modules`)]);
+      const courseData = cRes.data?.data || cRes.data;
+      const raw = mRes.data?.data || mRes.data;
+      const modulesData = Array.isArray(raw) ? raw : (raw?.modules || []);
+      if (mRes.data?.teacher_mode) setTeacherMode(true);
+      setCourse(courseData); setModules(modulesData);
 
-  const allLessons   = modules.flatMap(m => m.lessons||[]);
-  const currentIdx   = allLessons.findIndex(l => l.id === activeLesson?.id);
-  const totalLessons = allLessons.length;
-  const doneCount    = completed.size;
-  const progressPct  = totalLessons > 0 ? Math.round((doneCount/totalLessons)*100) : 0;
+      let doneSet = new Set(modulesData.flatMap((m) => (m.lessons || []).filter((l) => l.is_completed || l.completed).map((l) => l.id)));
+      try {
+        const pRes = await api.get(`/courses/${id}/progress`);
+        const fromP = new Set((pRes.data?.data || []).flatMap((m) => (m.lessons || []).filter((l) => l.completed || l.is_completed).map((l) => l.id)));
+        if (fromP.size > 0) doneSet = fromP;
+      } catch (_) { /* optionnel */ }
+      setCompleted(doneSet);
 
-  const goNext = () => { if (currentIdx < allLessons.length-1) handleSelectLesson(allLessons[currentIdx+1]); };
-  const goPrev = () => { if (currentIdx > 0) handleSelectLesson(allLessons[currentIdx-1]); };
+      const all = modulesData.flatMap((m) => m.lessons || []);
+      const first = all.find((l) => !doneSet.has(l.id)) || all[0];
+      if (first) await selectLesson(first);
+    } catch (err) {
+      setError(err.response?.status === 403 ? "enrollment" : "server");
+    } finally { setLoading(false); }
+  }, [id, selectLesson]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const allLessons = modules.flatMap((m) => m.lessons || []);
+  const currentIdx = allLessons.findIndex((l) => l.id === activeLesson?.id);
+  const total = allLessons.length;
+  const doneCount = allLessons.filter((l) => completed.has(l.id)).length;
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  const go = (i) => { if (allLessons[i]) { selectLesson(allLessons[i]); window.scrollTo({ top: 0, behavior: "smooth" }); } };
 
   const handleComplete = async () => {
     if (!activeLesson || completing) return;
     setCompleting(true);
     try {
       await api.post(`/courses/${id}/lessons/${activeLesson.id}/complete`);
-      const next = allLessons[currentIdx+1];
-      setCompleted(prev => new Set([...prev, activeLesson.id]));
-      setNotif("✅ Leçon terminée !");
-      setTimeout(() => setNotif(null), 3000);
-      if (next) await handleSelectLesson(next);
-    } catch(_) {}
+      setCompleted((prev) => new Set([...prev, activeLesson.id]));
+      notify(t("lecon_terminee"), "success");
+      if (allLessons[currentIdx + 1]) go(currentIdx + 1);
+    } catch (e) { notify(apiError(e)); }
     setCompleting(false);
   };
 
-  // ── États de chargement / erreur ──────────────────────────
-  if (loading) return (
-    <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 border-3 border-[#5653e1] border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{borderWidth:3}} />
-        <p className="text-gray-400 text-sm">Chargement du cours…</p>
-      </div>
-    </div>
-  );
+  const handleDownload = async (r) => {
+    setBusyId(r.id);
+    try {
+      const res = await api.post(`/courses/${id}/resources/${r.id}/download`);
+      const url = normalUrl(res.data?.file_url || res.data?.data?.file_url || r.file_url);
+      const a = document.createElement("a");
+      a.href = url; a.download = r.title || ""; a.rel = "noopener"; a.target = "_blank";
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) { notify(apiError(e)); }
+    setBusyId(null);
+  };
 
-  if (error === "enrollment") return (
-    <div className="min-h-screen bg-[#0f1117] flex items-center justify-center p-6">
-      <div className="bg-[#1a1f2e] border border-gray-700/50 rounded-2xl p-10 text-center max-w-md">
-        <AlertCircle className="w-14 h-14 text-amber-400 mx-auto mb-5" />
-        <h2 className="text-white font-black text-xl mb-3">Accès non autorisé</h2>
-        <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-          Votre inscription est en attente de validation par l&apos;administrateur.
-          Vous recevrez un email dès que votre accès est confirmé.
-        </p>
-        <div className="flex gap-3 justify-center">
-          <button onClick={() => navigate(`/courses/${id}`)}
-            className="px-5 py-2.5 bg-[#5653e1] text-white font-bold text-sm rounded-xl hover:bg-[#4340c0] transition">
-            Voir le cours
-          </button>
-          <button onClick={() => navigate("/dashboard")}
-            className="px-5 py-2.5 border border-gray-600 text-gray-300 font-semibold text-sm rounded-xl hover:bg-gray-800 transition">
-            Tableau de bord
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  const Shell = ({ children }) => <div className="min-h-[60vh] flex items-center justify-center p-6">{children}</div>;
 
-  if (error) return (
-    <div className="min-h-screen bg-[#0f1117] flex items-center justify-center p-6">
-      <div className="text-center">
-        <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-        <p className="text-gray-300 font-semibold mb-4">Une erreur est survenue</p>
-        <button onClick={load} className="px-5 py-2.5 bg-[#5653e1] text-white rounded-xl text-sm font-bold hover:bg-[#4340c0] transition">
-          Réessayer
-        </button>
-      </div>
-    </div>
-  );
+  if (loading) return <Shell><div className="text-center text-slate-500">
+    <div className="w-9 h-9 border-[3px] border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+    <p className="text-sm">{t("chargement_du_cours")}</p></div></Shell>;
 
-  // Contenu actif
-  const lessonUrl    = normalUrl(activeLesson?.content_url);
-  const isVideoLesson= activeLesson?.content_type === "video" || isVid(lessonUrl||"");
-  const isPdfLesson  = isPdf(lessonUrl||"") && !isVideoLesson;
-  const resources    = activeLesson?.resources || [];
+  if (error) return <Shell><div className={`${card} p-8 text-center max-w-md`}>
+    <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-4" />
+    <h2 className="text-slate-900 font-semibold text-lg mb-2">{error === "enrollment" ? t("acces_non_autorise") : t("une_erreur_est_survenue")}</h2>
+    {error === "enrollment" && <p className="text-slate-600 text-sm mb-5">{t("votre_inscription_est_en_attente_de")}</p>}
+    <div className="flex gap-3 justify-center">
+      {error === "enrollment" ? (<>
+        <button onClick={() => navigate(`/courses/${id}`)} className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-700">{t("voir_le_cours")}</button>
+        <button onClick={() => navigate("/dashboard")} className="px-4 py-2 border border-slate-300 bg-white text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50">{t("tableau_de_bord")}</button>
+      </>) : <button onClick={load} className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-700">{t("reessayer")}</button>}
+    </div></div></Shell>;
+
+  const lessonUrl = normalUrl(activeLesson?.content_url);
+  const isVideo = activeLesson?.content_type === "video" || isVid(lessonUrl || "");
+  const showPdf = isPdf(lessonUrl || "") && !isVideo && !activeLesson?.article_content;
+  const resources = activeLesson?.resources || [];
+  const isDone = completed.has(activeLesson?.id);
+  const modOfActive = modules.find((m) => (m.lessons || []).some((l) => l.id === activeLesson?.id));
 
   return (
-    <div className="min-h-screen bg-[#0f1117] flex flex-col" style={{fontFamily:"inherit"}}>
-
-      {/* ══ TOPBAR ══════════════════════════════════════════ */}
-      <header className="bg-[#1a1f2e] border-b border-gray-700/50 h-14 flex items-center gap-4 px-4 flex-shrink-0 z-40">
-        <button onClick={() => navigate(`/courses/${id}`)}
-          className="flex items-center gap-1.5 text-gray-400 hover:text-white transition text-sm">
-          <ChevronLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Retour</span>
-        </button>
-
-        <div className="w-px h-6 bg-gray-700" />
-
-        <div className="flex-1 min-w-0">
-          <p className="text-white font-bold text-sm truncate">{course?.title}</p>
-          {activeLesson && <p className="text-gray-500 text-xs truncate hidden sm:block">{activeLesson.title}</p>}
+    <div className="bg-slate-50 text-left">
+      {ui}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
+        {/* Fil d'Ariane */}
+        <div className="flex items-center gap-3 mb-5 min-w-0">
+          <Link to={`/courses/${id}`} className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-primary flex-shrink-0">
+            <ChevronLeft className="w-4 h-4" />{t("retour")}
+          </Link>
+          <span className="text-slate-300">/</span>
+          <h1 className="text-sm font-semibold text-slate-900 truncate">{course?.title}</h1>
         </div>
 
-        {/* Progress bar */}
-        <div className="hidden md:flex items-center gap-3">
-          <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 rounded-full transition-all" style={{width:`${progressPct}%`}} />
+        {teacherMode && (
+          <div className="mb-5 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-700">
+            <Eye className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+            <p><strong className="font-semibold text-primary">{t("mode_enseignant")}</strong> — {t("mode_enseignant_desc")}</p>
           </div>
-          <span className="text-xs text-gray-400 whitespace-nowrap font-semibold">{progressPct}% · {doneCount}/{totalLessons}</span>
-        </div>
+        )}
 
-        <button onClick={() => setSidebar(v => !v)}
-          className="flex items-center gap-1.5 text-gray-400 hover:text-white text-sm transition px-2 py-1.5 rounded-lg hover:bg-white/5">
-          <Menu className="w-4 h-4" />
-          <span className="hidden sm:inline text-xs">Contenu</span>
-        </button>
-      </header>
-
-      {/* Toast notif */}
-      {notif && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-xl">
-          {notif}
-        </div>
-      )}
-
-      {/* ══ CORPS ════════════════════════════════════════════ */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* ── Contenu principal ── */}
-        <main className={`flex-1 flex flex-col overflow-y-auto transition-all duration-300 ${sidebar ? "md:mr-80" : ""}`}>
-
-          {/* Zone vidéo / PDF */}
-          {activeLesson ? (
-            <>
-              <div className="bg-black">
-                {isVideoLesson ? (
-                  <VideoPlayer url={lessonUrl} title={activeLesson.title} />
-                ) : isPdfLesson ? (
-                  <div style={{height:600}} className="bg-[#1a1f2e]">
-                    <iframe
-                      src={`${lessonUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-                      className="w-full h-full border-none"
-                      title="Document"
-                    />
-                  </div>
-                ) : activeLesson.content_type === "quiz" ? (
-                  <div className="aspect-video bg-gradient-to-br from-purple-900/30 to-[#0f1117] flex items-center justify-center">
-                    <div className="text-center">
-                      <Brain className="w-20 h-20 text-purple-400/40 mx-auto mb-4" />
-                      <p className="text-purple-300 font-bold text-lg">Quiz interactif</p>
-                    </div>
-                  </div>
-                ) : activeLesson.content_type === "exercise" ? (
-                  <div className="aspect-video bg-gradient-to-br from-orange-900/20 to-[#0f1117] flex items-center justify-center">
-                    <div className="text-center">
-                      <Zap className="w-20 h-20 text-orange-400/40 mx-auto mb-4" />
-                      <p className="text-orange-300 font-bold text-lg">Exercice pratique</p>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Navigation prev/next */}
-              <div className="flex items-center justify-between gap-3 px-5 py-3 bg-[#161b27] border-b border-gray-700/50">
-                <button onClick={goPrev} disabled={currentIdx <= 0}
-                  className="flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition px-3 py-2 rounded-lg hover:bg-white/5">
-                  <ChevronLeft className="w-4 h-4" /> Précédent
-                </button>
-
-                <button onClick={handleComplete} disabled={completing || completed.has(activeLesson?.id)}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-black transition-all ${
-                    completed.has(activeLesson?.id)
-                      ? "bg-emerald-700/30 text-emerald-400 cursor-default"
-                      : "bg-[#5653e1] hover:bg-[#4340c0] text-white hover:shadow-lg hover:shadow-[#5653e1]/20"
-                  }`}>
-                  {completing
-                    ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    : <CheckCircle className="w-4 h-4" />
-                  }
-                  {completed.has(activeLesson?.id) ? "Terminé ✓" : "Marquer comme terminé"}
-                </button>
-
-                <button onClick={goNext} disabled={currentIdx >= allLessons.length-1}
-                  className="flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition px-3 py-2 rounded-lg hover:bg-white/5">
-                  Suivant <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Infos leçon + contenu texte */}
-              <div className="max-w-3xl w-full mx-auto px-5 py-8 flex-1">
-                {/* Titre + métadonnées */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {modules.find(m=>(m.lessons||[]).some(l=>l.id===activeLesson.id)) && (
-                      <span className="text-xs text-[#5653e1] font-bold uppercase tracking-wider">
-                        {modules.find(m=>(m.lessons||[]).some(l=>l.id===activeLesson.id))?.title}
-                      </span>
-                    )}
-                  </div>
-                  <h1 className="text-white text-2xl font-black leading-tight mb-3">{activeLesson.title}</h1>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 flex-wrap">
-                    {activeLesson.content_type && (
-                      <span className="flex items-center gap-1.5">
-                        {(() => { const I = TYPE_ICON[activeLesson.content_type]||FileText; return <I className="w-4 h-4" />; })()}
-                        {TYPE_LABEL[activeLesson.content_type]}
-                      </span>
-                    )}
-                    {activeLesson.duration_minutes > 0 && (
-                      <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {fmtDur(activeLesson.duration_minutes)}</span>
-                    )}
-                    {completed.has(activeLesson.id) && (
-                      <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                        <CheckCircle className="w-4 h-4" /> Terminé
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Contenu article / PDF / resources */}
-                <ArticleContent
-                  content={activeLesson.article_content}
-                  resources={resources}
-                  contentUrl={!isVideoLesson ? lessonUrl : null}
-                />
-
-                {/* Ressources attachées (si vidéo avec fichiers supplémentaires) */}
-                {isVideoLesson && resources.length > 0 && (
-                  <div className="mt-6 bg-[#1a1f2e] rounded-xl border border-gray-700/50 overflow-hidden">
-                    <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-700/50">
-                      <Paperclip className="w-4 h-4 text-gray-400" />
-                      <p className="text-gray-300 font-semibold text-sm">Fichiers du cours</p>
-                      <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full ml-1">{resources.length}</span>
-                    </div>
-                    {resources.map((r, i) => {
-                      const info = extInfo(r.file_url);
-                      return (
-                        <div key={r.id||i} className="flex items-center gap-4 px-5 py-3.5 border-b border-gray-700/30 last:border-0 hover:bg-gray-700/20 transition">
-                          <span className="text-xl flex-shrink-0">{info.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-white text-sm font-medium truncate">{r.title || r.file_url?.split("/").pop()}</p>
-                            <p className="text-gray-600 text-xs">{info.label}{r.file_size ? ` · ${fmtSz(r.file_size)}` : ""}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
+          {/* ── Contenu ── */}
+          <main className="min-w-0">
+            {activeLesson ? (
+              <>
+                {(isVideo || showPdf) && (
+                  <div className={`${card} overflow-hidden`}>
+                    {isVideo ? <VideoPlayer url={lessonUrl} title={activeLesson.title} />
+                      : <iframe src={`${lessonUrl}#toolbar=0&navpanes=0&view=FitH`} title={activeLesson.title} className="w-full border-none block" style={{ height: 640 }} />}
                   </div>
                 )}
 
-                {/* Espace bas */}
-                <div className="h-16" />
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center text-gray-600">
-                <Film className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <p>Sélectionnez une leçon</p>
-              </div>
-            </div>
-          )}
-        </main>
+                <article className={`${card} p-6 md:p-8 ${(isVideo || showPdf) ? "mt-6" : ""}`}>
+                  {modOfActive && <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-2">{modOfActive.title}</p>}
+                  <h2 className="text-2xl font-bold text-slate-900 leading-tight">{activeLesson.title}</h2>
+                  <div className="flex items-center gap-4 mt-2 mb-6 text-sm text-slate-500 flex-wrap">
+                    {activeLesson.content_type && (() => { const I = TYPE_ICON[activeLesson.content_type] || FileText;
+                      return <span className="inline-flex items-center gap-1.5"><I className="w-4 h-4" />{t(activeLesson.content_type, { defaultValue: t("lecon") })}</span>; })()}
+                    {activeLesson.duration_minutes > 0 && <span className="inline-flex items-center gap-1.5"><Clock className="w-4 h-4" />{fmtDur(activeLesson.duration_minutes)}</span>}
+                    {isDone && <span className="inline-flex items-center gap-1.5 text-emerald-700 font-medium"><CheckCircle2 className="w-4 h-4" />{t("termine_2")}</span>}
+                  </div>
 
-        {/* ── Sidebar ── */}
-        {sidebar && (
-          <aside className="fixed right-0 top-14 bottom-0 w-80 bg-[#1a1f2e] border-l border-gray-700/50 flex flex-col z-30 overflow-hidden">
-            {/* Header sidebar */}
-            <div className="px-4 py-4 border-b border-gray-700/50 flex-shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-white font-black text-sm">Contenu du cours</p>
-                <button onClick={() => setSidebar(false)} className="text-gray-500 hover:text-white transition">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              {/* Progression */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{width:`${progressPct}%`}} />
-                </div>
-                <span className="text-xs text-gray-400 font-bold whitespace-nowrap">{doneCount}/{totalLessons}</span>
-              </div>
-            </div>
+                  {activeLesson.article_content ? (
+                    <div className="lesson-content" dangerouslySetInnerHTML={{ __html: activeLesson.article_content }} />
+                  ) : activeLesson.content_type === "quiz" ? (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
+                      <ListChecks className="w-8 h-8 text-primary mx-auto mb-3" />
+                      <p className="text-sm text-slate-600 mb-4">{t("quiz_intro")}</p>
+                      {activeLesson.quiz_id ? (
+                        <Link to={`/courses/${id}/quizzes/${activeLesson.quiz_id}`} className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-700">{t("passer_le_quiz")}</Link>
+                      ) : <p className="text-xs text-slate-400">{t("quiz_indisponible")}</p>}
+                    </div>
+                  ) : !isVideo && !showPdf && resources.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400">
+                      <FileText className="w-9 h-9 mx-auto mb-3" />
+                      <p className="font-medium text-slate-500">{t("contenu_en_cours_de_redaction")}</p>
+                      <p className="text-sm mt-1">{t("l_instructeur_n_a_pas_encore")}</p>
+                    </div>
+                  ) : null}
+                </article>
 
-            {/* Liste modules + leçons */}
-            <div className="flex-1 overflow-y-auto">
-              {modules.map((mod, mi) => {
-                const isExpanded = expandedMods[mod.id] !== false; // ouvert par défaut
-                const modLessons = mod.lessons || [];
-                const modDone    = modLessons.filter(l => completed.has(l.id)).length;
+                <Resources resources={resources} onDownload={handleDownload} busyId={busyId} />
 
-                return (
-                  <div key={mod.id || mi}>
-                    {/* En-tête module */}
-                    <button onClick={() => setExpanded(prev => ({...prev, [mod.id]: !isExpanded}))}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 bg-[#161b27] hover:bg-[#1e2435] transition text-left border-b border-gray-700/30">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold text-xs uppercase tracking-wider truncate">{mod.title}</p>
-                        <p className="text-gray-600 text-xs mt-0.5">{modDone}/{modLessons.length} · {fmtDur(mod.total_duration||0)}</p>
-                      </div>
-                      {isExpanded
-                        ? <ChevronUp className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                        : <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                      }
+                {/* Navigation */}
+                <div className="mt-6 flex items-center justify-between gap-3">
+                  <button type="button" onClick={() => go(currentIdx - 1)} disabled={currentIdx <= 0}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                    <ChevronLeft className="w-4 h-4" />{t("precedent")}
+                  </button>
+                  {!teacherMode && (
+                    <button type="button" onClick={handleComplete} disabled={completing || isDone}
+                      className={`inline-flex items-center gap-2 px-5 py-2 rounded-md text-sm font-medium transition ${
+                        isDone ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default" : "bg-primary text-white hover:bg-primary-700"}`}>
+                      <CheckCircle2 className="w-4 h-4" />{isDone ? t("termine_2") : t("marquer_comme_termine")}
                     </button>
+                  )}
+                  <button type="button" onClick={() => go(currentIdx + 1)} disabled={currentIdx >= total - 1}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                    {t("suivant")}<ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className={`${card} p-12 text-center text-slate-400`}><Film className="w-10 h-10 mx-auto mb-3" /><p>{t("selectionnez_une_lecon")}</p></div>
+            )}
+          </main>
 
-                    {/* Leçons */}
-                    {isExpanded && modLessons.map(lesson => (
-                      <LessonItem
-                        key={lesson.id}
-                        lesson={lesson}
-                        isActive={activeLesson?.id === lesson.id}
-                        isDone={completed.has(lesson.id)}
-                        onClick={() => handleSelectLesson(lesson)}
-                      />
+          {/* ── Sommaire ── */}
+          <aside className={`${card} lg:sticky lg:top-20 overflow-hidden`}>
+            <div className="px-4 py-4 border-b border-slate-200">
+              <h2 className="text-sm font-semibold text-slate-900 mb-3">{t("contenu_du_cours")}</h2>
+              {!teacherMode && (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} /></div>
+                  <span className="text-xs text-slate-500 whitespace-nowrap">{pct}% · {doneCount}/{total}</span>
+                </div>
+              )}
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto">
+              {modules.map((mod, mi) => {
+                const open = collapsed[mod.id] !== true;
+                const ls = mod.lessons || [];
+                return (
+                  <div key={mod.id || mi} className="border-b border-slate-100 last:border-0">
+                    <button type="button" onClick={() => setCollapsed((p) => ({ ...p, [mod.id]: open }))}
+                      className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-slate-100 text-left transition">
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-sm font-semibold text-slate-900 truncate">{mod.title}</span>
+                        <span className="block text-xs text-slate-500 mt-0.5">{ls.filter((l) => completed.has(l.id)).length}/{ls.length}</span>
+                      </span>
+                      <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+                    </button>
+                    {open && ls.map((l) => (
+                      <LessonItem key={l.id} lesson={l} isActive={activeLesson?.id === l.id} isDone={completed.has(l.id)} onClick={() => go(allLessons.findIndex((x) => x.id === l.id))} />
                     ))}
                   </div>
                 );
               })}
             </div>
           </aside>
-        )}
+        </div>
       </div>
     </div>
   );

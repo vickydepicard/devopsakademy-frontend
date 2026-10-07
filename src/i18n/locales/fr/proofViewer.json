@@ -1,0 +1,17 @@
+{
+  "fetch_failed": "fetch failed",
+  "erreur_reseau": "Erreur réseau",
+  "preuve_de_paiement": "Preuve de paiement",
+  "dezoomer": "Dézoomer",
+  "zoomer": "Zoomer",
+  "rotation": "Rotation",
+  "ouvrir_dans_un_nouvel_onglet": "Ouvrir dans un nouvel onglet",
+  "telecharger": "Télécharger",
+  "preuve_pdf": "Preuve PDF",
+  "impossible_d_afficher_l_image": "Impossible d'afficher l'image",
+  "ouvrir": "Ouvrir",
+  "document_pdf": "Document PDF",
+  "image_zoom_rotation": "Image · Zoom: {{Math}}% · Rotation: {{rotate}}°",
+  "fermer": "Fermer",
+  "voir_la_preuve": "Voir la preuve"
+}

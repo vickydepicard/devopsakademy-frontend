@@ -10,6 +10,7 @@ import {
   Trophy, Flame, Target, ArrowRight, Lock, Download, BadgeCheck,
   RefreshCw
 } from "lucide-react";
+import { Search, User, Award as AwardIcon, Trophy as TrophyIcon, Settings } from "lucide-react";
 
 /* ─── helpers ─── */
 const STATUS = {
@@ -243,9 +244,9 @@ export default function Dashboard() {
     const file = e.target.files[0];
     if (!file) return;
     if (!["image/jpeg","image/png","image/jpg","application/pdf"].includes(file.type)) {
-      alert("❌ JPG, PNG ou PDF uniquement."); return;
+      alert("JPG, PNG ou PDF uniquement."); return;
     }
-    if (file.size > 5 * 1024 * 1024) { alert("❌ Max 5MB."); return; }
+    if (file.size > 5 * 1024 * 1024) { alert("Max 5MB."); return; }
     const fd = new FormData();
     fd.append("payment_proof", file);
     try {
@@ -254,9 +255,9 @@ export default function Dashboard() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       await fetchCourses();
-      alert("✅ Preuve envoyée ! Validation sous 24h.");
+      alert("Preuve envoyée ! Validation sous 24h.");
     } catch (err) {
-      alert(err.response?.data?.message || "❌ Erreur envoi.");
+      alert(err.response?.data?.message || "Erreur envoi.");
     } finally {
       setUploadingId(null);
     }
@@ -323,7 +324,7 @@ export default function Dashboard() {
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#1a1740]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-indigo-300 text-xs font-medium">Bonjour 👋</p>
+              <p className="text-indigo-300 text-xs font-medium">Bonjour</p>
               <h1 className="text-white text-lg font-black truncate leading-tight">{fullName}</h1>
               <p className="text-indigo-400 text-xs capitalize">{user?.role} · DevOps Akademy</p>
             </div>
@@ -339,7 +340,7 @@ export default function Dashboard() {
               { label:"Inscrits",  value:stats.total,     clr:"text-sky-300",    bg:"bg-sky-500/15",    icon:BookOpen },
               { label:"En cours",  value:stats.active,    clr:"text-orange-300", bg:"bg-orange-500/15", icon:Flame },
               { label:"Attente",   value:stats.pending,   clr:"text-amber-300",  bg:"bg-amber-500/15",  icon:Clock },
-              { label:"Terminés",  value:stats.completed, clr:"text-violet-300", bg:"bg-violet-500/15", icon:Trophy },
+              { label:"Terminés",  value:stats.completed, clr:"text-violet-300", bg:"bg-violet-500/15", icon:TrophyIcon },
             ].map(s => {
               const Icon = s.icon;
               return (
@@ -422,7 +423,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1">
                   <p className="font-black text-purple-900 text-sm">
-                    🎉 Félicitations ! {groups.completed.length} cours {groups.completed.length > 1 ? "complétés" : "complété"}.
+                    Félicitations ! {groups.completed.length} cours {groups.completed.length > 1 ? "complétés" : "complété"}.
                   </p>
                   <p className="text-purple-600 text-xs">Téléchargez vos certificats depuis votre espace de formation.</p>
                 </div>
@@ -550,15 +551,15 @@ export default function Dashboard() {
         {/* ══════ RACCOURCIS ══════ */}
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {[
-            { to:"/courses",      emoji:"🔍", label:"Explorer",    cls:"from-indigo-50 border-indigo-100" },
-            { to:"/profile",      emoji:"👤", label:"Mon profil",  cls:"from-blue-50 border-blue-100" },
-            { to:"/certificates", emoji:"🏆", label:"Certificats", cls:"from-yellow-50 border-yellow-100" },
-            { to:"/leaderboard",  emoji:"🥇", label:"Classement",  cls:"from-orange-50 border-orange-100" },
-            { to:"/settings",     emoji:"⚙️",  label:"Paramètres", cls:"from-gray-50 border-gray-200" },
+            { to:"/courses",      icon:Search, label:"Explorer",    cls:"from-indigo-50 border-indigo-100" },
+            { to:"/profile",      icon:User, label:"Mon profil",  cls:"from-blue-50 border-blue-100" },
+            { to:"/certificates", icon:AwardIcon, label:"Certificats", cls:"from-yellow-50 border-yellow-100" },
+            { to:"/leaderboard",  icon:Trophy, label:"Classement",  cls:"from-orange-50 border-orange-100" },
+            { to:"/settings",     icon:Settings,  label:"Paramètres", cls:"from-gray-50 border-gray-200" },
           ].map(item => (
             <Link key={item.to} to={item.to}
               className={`bg-gradient-to-br ${item.cls} to-white rounded-xl p-3 border shadow-sm hover:shadow-md transition text-center group hover:scale-[1.02]`}>
-              <div className="text-xl mb-1">{item.emoji}</div>
+              <item.icon className="w-5 h-5 mx-auto mb-1.5 text-indigo-600" />
               <p className="text-xs font-bold text-gray-600 group-hover:text-indigo-700 transition leading-tight">{item.label}</p>
             </Link>
           ))}
@@ -568,7 +569,7 @@ export default function Dashboard() {
         {courses.length === 0 && (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
             <h3 className="text-base font-black text-gray-800 mb-5 flex items-center gap-2">
-              <span>📋</span> Comment accéder à vos cours ?
+              Comment accéder à vos cours ?
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[

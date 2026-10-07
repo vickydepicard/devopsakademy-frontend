@@ -1,10 +1,13 @@
 // src/contexts/ProfileContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { useAuth } from "./AuthContext"
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 
 const ProfileContext = createContext(null)
 
 export const ProfileProvider = ({ children }) => {
+  const { t } = useTranslation("profileContext");
   const { token, isAuthenticated } = useAuth()
   const [profile, setProfile]   = useState(null)
   const [loading, setLoading]   = useState(false)
@@ -27,25 +30,25 @@ export const ProfileProvider = ({ children }) => {
         credentials: "include",
       })
 
-      // ✅ Vérifier que c'est bien du JSON avant de parser
+      // Vérifier que c'est bien du JSON avant de parser
       const contentType = res.headers.get("content-type") || ""
       if (!contentType.includes("application/json")) {
-        throw new Error(`Route /api/profile introuvable (réponse: ${res.status})`)
+        throw new Error(t("route_api_profile_introuvable_reponse", { status: res.status }))
       }
 
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data?.message || "Erreur lors du chargement du profil")
+        throw new Error(data?.message || t("erreur_lors_du_chargement_du_profil"))
       }
 
       if (data?.success) {
         setProfile(data.data)
       } else {
-        throw new Error(data?.message || "Erreur profil")
+        throw new Error(data?.message || t("erreur_profil"))
       }
     } catch (err) {
-      console.error("❌ ProfileContext fetchProfile:", err.message)
+      console.error("ProfileContext fetchProfile:", err.message)
       setError(err.message)
     } finally {
       setLoading(false)
@@ -54,7 +57,7 @@ export const ProfileProvider = ({ children }) => {
 
   // ── Mettre à jour le profil ────────────────────────────────
   const updateProfile = async (updates) => {
-    if (!token) return { success: false, message: "Non authentifié" }
+    if (!token) return { success: false, message: t("non_authentifie") }
 
     setSaving(true)
     setError(null)
@@ -72,23 +75,23 @@ export const ProfileProvider = ({ children }) => {
 
       const contentType = res.headers.get("content-type") || ""
       if (!contentType.includes("application/json")) {
-        throw new Error(`Route /api/profile introuvable (réponse: ${res.status})`)
+        throw new Error(t("route_api_profile_introuvable_reponse", { status: res.status }))
       }
 
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data?.message || "Erreur lors de la mise à jour")
+        throw new Error(data?.message || t("erreur_lors_de_la_mise_a"))
       }
 
       if (data?.success) {
         setProfile(prev => ({ ...prev, ...data.data }))
         return { success: true }
       } else {
-        throw new Error(data?.message || "Erreur mise à jour")
+        throw new Error(data?.message || t("erreur_mise_a_jour"))
       }
     } catch (err) {
-      console.error("❌ ProfileContext updateProfile:", err.message)
+      console.error("ProfileContext updateProfile:", err.message)
       setError(err.message)
       return { success: false, message: err.message }
     } finally {
@@ -126,7 +129,7 @@ export const ProfileProvider = ({ children }) => {
 export const useProfile = () => {
   const context = useContext(ProfileContext)
   if (!context) {
-    throw new Error("useProfile must be used within a ProfileProvider")
+    throw new Error(i18n.t("profileContext:useprofile_must_be_used_within_a"))
   }
   return context
 }

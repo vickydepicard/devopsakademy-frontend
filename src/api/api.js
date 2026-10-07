@@ -1,4 +1,6 @@
 import axios from 'axios';
+import i18n from '../i18n';
+import { localizeLogos } from '../utils/logos';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -9,6 +11,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers['Accept-Language'] = (i18n.resolvedLanguage || i18n.language || 'fr').slice(0, 2);
   return config;
 }, (error) => Promise.reject(error));
 
@@ -25,8 +28,9 @@ api.interceptors.response.use(
   (response) => {
     // Bloquer les réponses HTML inattendues
     if (response.headers['content-type']?.includes('text/html')) {
-      return Promise.reject(new Error('Réponse serveur invalide (HTML reçu)'));
+      return Promise.reject(new Error(i18n.t('common:api.invalidResponse')));
     }
+    response.data = localizeLogos(response.data);
     return response;
   },
   async (error) => {
@@ -83,9 +87,9 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(
-      error.response?.data?.message || 'Erreur serveur, veuillez réessayer'
-    );
+    // On rejette l'erreur d'origine (réponse, statut, code métier accessibles) avec le message du serveur.
+    error.message = error.response?.data?.message || i18n.t('common:api.serverError');
+    return Promise.reject(error);
   }
 );
 

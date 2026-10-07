@@ -1,71 +1,57 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color-scheme: light;
+  color: #0f172a;
+  background-color: #ffffff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+body { margin: 0; min-width: 320px; min-height: 100vh; }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-}
+a { color: inherit; text-decoration: inherit; }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+button { cursor: pointer; font-family: inherit; }
+button:disabled { cursor: not-allowed; }
+button svg, a svg { flex-shrink: 0; }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+:focus-visible { outline: 2px solid #5653e1; outline-offset: 2px; }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+#root { width: 100%; }
+
+/* Contenu rédactionnel des leçons (HTML saisi par les instructeurs) */
+.lesson-content { color: #334155; font-size: 1rem; line-height: 1.75; text-align: left; overflow-wrap: anywhere; }
+.lesson-content > :first-child { margin-top: 0; }
+.lesson-content h1, .lesson-content h2, .lesson-content h3, .lesson-content h4 { color: #0f172a; font-weight: 700; line-height: 1.3; margin: 1.75em 0 .6em; }
+.lesson-content h1 { font-size: 1.6rem; }
+.lesson-content h2 { font-size: 1.3rem; padding-bottom: .35em; border-bottom: 1px solid #e2e8f0; }
+.lesson-content h3 { font-size: 1.1rem; }
+.lesson-content p { margin: 0 0 1em; }
+.lesson-content ul, .lesson-content ol { margin: 0 0 1em; padding-left: 1.4em; }
+.lesson-content ul { list-style: disc; }
+.lesson-content ol { list-style: decimal; }
+.lesson-content li { margin: .25em 0; }
+.lesson-content a { color: #3b3aab; text-decoration: underline; text-underline-offset: 2px; }
+.lesson-content strong { color: #0f172a; font-weight: 600; }
+.lesson-content code { background: #f1f5f9; color: #0f172a; padding: .12em .4em; border-radius: 4px; font-size: .875em; }
+.lesson-content pre { background: #0f172a; color: #e2e8f0; padding: 1rem 1.1rem; border-radius: 8px; overflow-x: auto; margin: 0 0 1.2em; font-size: .875rem; line-height: 1.6; }
+.lesson-content pre code { background: transparent; color: inherit; padding: 0; }
+.lesson-content blockquote { margin: 0 0 1em; padding: .6em 1em; border-left: 3px solid #2d287f; background: #f8fafc; color: #475569; }
+.lesson-content img, .lesson-content video { max-width: 100%; height: auto; border-radius: 8px; }
+.lesson-content table { width: 100%; border-collapse: collapse; margin: 0 0 1.2em; font-size: .925rem; }
+.lesson-content th, .lesson-content td { border: 1px solid #e2e8f0; padding: .5em .75em; text-align: left; }
+.lesson-content th { background: #f8fafc; font-weight: 600; color: #0f172a; }
+
+/* ── Mobile : les tableaux défilent horizontalement au lieu de s'écraser ── */
+@media (max-width: 767px) {
+  table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table th, table td { white-space: nowrap; }
+  table td.wrap, table th.wrap { white-space: normal; min-width: 14rem; }
 }

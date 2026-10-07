@@ -106,7 +106,7 @@ export default function CoursePlayer() {
               onClick={() => markLessonCompleted(currentLesson.id)}
               className="px-5 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
             >
-              ✅ Marquer comme terminé
+              Marquer comme terminé
             </button>
           ) : (
             <span className="text-green-600 font-semibold">Déjà terminé</span>
@@ -116,7 +116,7 @@ export default function CoursePlayer() {
             onClick={goToNextLesson}
             className="px-5 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700"
           >
-            ▶️ Leçon suivante
+            Leçon suivante
           </button>
         </div>
 
@@ -128,7 +128,7 @@ export default function CoursePlayer() {
 
       {/* RIGHT: Sidebar */}
       <div className="bg-white border-l shadow-md p-4 lg:h-screen lg:overflow-y-auto sticky top-0">
-        <h2 className="text-lg font-bold mb-4">📂 Contenu du cours</h2>
+        <h2 className="text-lg font-bold mb-4">Contenu du cours</h2>
         {course.modules.map((mod) => (
           <div key={mod.id} className="mb-4">
             <h3 className="font-semibold text-indigo-700">{mod.title}</h3>
@@ -151,7 +151,7 @@ export default function CoursePlayer() {
                     }`}
                   >
                     <span>{lesson.title}</span>
-                    {isCompleted && <span className="text-green-500">✔</span>}
+                    {isCompleted && null}
                   </li>
                 )
               })}

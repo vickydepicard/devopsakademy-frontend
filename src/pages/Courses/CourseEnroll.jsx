@@ -5,8 +5,11 @@ import { useState, useEffect } from "react";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { BookOpen, CheckCircle, Loader, AlertCircle, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 export default function CourseEnroll() {
+  const { t } = useTranslation("courseEnroll");
   const { id } = useParams();
   const navigate = useNavigate();
   const { token, user } = useAuth();
@@ -28,7 +31,7 @@ export default function CourseEnroll() {
         // Si payant → rediriger vers la page détail qui gère le modal paiement
         if (!isFree) { navigate(`/courses/${id}`, { replace: true }); }
       })
-      .catch(() => setError("Cours introuvable."))
+      .catch(() => setError(t("cours_introuvable")))
       .finally(() => setLoading(false));
   }, [id, token]);
 
@@ -41,16 +44,16 @@ export default function CourseEnroll() {
         setSuccess(true);
         setTimeout(() => navigate(`/courses/${id}/learn`), 2000);
       } else {
-        setError(res.data?.message || "Erreur lors de l'inscription.");
+        setError(res.data?.message || t("erreur_lors_de_l_inscription"));
       }
     } catch (err) {
       const msg = err.response?.data?.message || "";
-      if (err.response?.status === 409 || msg.toLowerCase().includes("déjà inscrit")) {
+      if (err.response?.status === 409 || msg.toLowerCase().includes(i18n.t("courseEnroll:deja_inscrit"))) {
         // Déjà inscrit — accéder directement
         navigate(`/courses/${id}/learn`);
         return;
       }
-      setError(msg || "Impossible de s'inscrire. Réessayez.");
+      setError(msg || t("impossible_de_s_inscrire_reessayez"));
     } finally {
       setEnrolling(false);
     }
@@ -68,8 +71,8 @@ export default function CourseEnroll() {
         <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="w-8 h-8 text-emerald-600" />
         </div>
-        <h2 className="text-xl font-black text-gray-900 mb-2">Inscription confirmée !</h2>
-        <p className="text-gray-500 text-sm mb-4">Redirection vers le cours…</p>
+        <h2 className="text-xl font-black text-gray-900 mb-2">{t("inscription_confirmee")}</h2>
+        <p className="text-gray-500 text-sm mb-4">{t("redirection_vers_le_cours")}</p>
         <div className="w-8 h-8 border-4 border-[#2d287f] border-t-transparent rounded-full animate-spin mx-auto" />
       </div>
     </div>
@@ -85,19 +88,14 @@ export default function CourseEnroll() {
           <BookOpen className="w-7 h-7 text-white" />
         </div>
 
-        <h1 className="text-2xl font-black text-[#1f1b5a] text-center mb-1">
-          Confirmer l'inscription
-        </h1>
-        <p className="text-gray-500 text-sm text-center mb-6">
-          Bonjour <strong>{user?.first_name || "cher apprenant"}</strong>,<br />
-          vous allez vous inscrire à :
-        </p>
+        <h1 className="text-2xl font-black text-[#1f1b5a] text-center mb-1">{t("confirmer_l_inscription")}</h1>
+        <p className="text-gray-500 text-sm text-center mb-6">{t("bonjour")}{" "}<strong>{user?.first_name || t("cher_apprenant")}</strong>,<br />{t("vous_allez_vous_inscrire_a")}</p>
 
         {/* Nom du cours */}
         {course && (
           <div className="bg-[#2d287f]/5 border border-[#2d287f]/15 rounded-xl p-4 mb-6 text-center">
             <p className="font-bold text-[#1f1b5a] text-base">{course.title}</p>
-            <p className="text-emerald-600 text-sm font-semibold mt-1">Accès gratuit</p>
+            <p className="text-emerald-600 text-sm font-semibold mt-1">{t("acces_gratuit")}</p>
           </div>
         )}
 
@@ -116,15 +114,13 @@ export default function CourseEnroll() {
             className="w-full py-3.5 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base disabled:opacity-70 hover:shadow-lg hover:-translate-y-0.5 transition-all"
             style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
             {enrolling
-              ? <><Loader className="w-5 h-5 animate-spin" /> Inscription en cours…</>
-              : <><CheckCircle className="w-5 h-5" /> Confirmer l'inscription</>
+              ? <><Loader className="w-5 h-5 animate-spin" />{" "}{t("inscription_en_cours")}</>
+              : <><CheckCircle className="w-5 h-5" />{" "}{t("confirmer_l_inscription")}</>
             }
           </button>
 
           <Link to={`/courses/${id}`}
-            className="block w-full py-3 border border-gray-200 rounded-2xl text-gray-600 text-sm font-semibold text-center hover:bg-gray-50 transition">
-            ← Retour au cours
-          </Link>
+            className="block w-full py-3 border border-gray-200 rounded-2xl text-gray-600 text-sm font-semibold text-center hover:bg-gray-50 transition">{t("retour_au_cours")}</Link>
         </div>
       </div>
     </div>

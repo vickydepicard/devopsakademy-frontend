@@ -10,15 +10,19 @@ import {
   Lock, AlertCircle, Star, Trophy, RefreshCw, Phone, Building,
   BadgeCheck, ExternalLink
 } from "lucide-react";
+import { Landmark, Smartphone, Wallet, Banknote } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 /* ── helpers ── */
-const STATUS = {
-  free:     { label:"Accès gratuit",  color:"text-emerald-600 bg-emerald-50 border-emerald-100", icon:CheckCircle },
-  verified: { label:"Validé",         color:"text-emerald-600 bg-emerald-50 border-emerald-100", icon:CheckCircle },
-  pending:  { label:"En vérification",color:"text-amber-600 bg-amber-50 border-amber-100",        icon:Clock },
-  rejected: { label:"Refusé",         color:"text-red-600 bg-red-50 border-red-100",              icon:XCircle },
-  default:  { label:"Non payé",       color:"text-gray-500 bg-gray-50 border-gray-100",           icon:Lock },
-};
+const STATUS = () => ({
+  free:     { label:i18n.t("userProfile:acces_gratuit"),  color:"text-emerald-600 bg-emerald-50 border-emerald-100", icon:CheckCircle },
+  verified: { label:i18n.t("userProfile:valide"),         color:"text-emerald-600 bg-emerald-50 border-emerald-100", icon:CheckCircle },
+  pending:  { label:i18n.t("userProfile:en_verification"),color:"text-amber-600 bg-amber-50 border-amber-100",        icon:Clock },
+  rejected: { label:i18n.t("userProfile:refuse"),         color:"text-red-600 bg-red-50 border-red-100",              icon:XCircle },
+  default:  { label:i18n.t("userProfile:non_paye"),       color:"text-gray-500 bg-gray-50 border-gray-100",           icon:Lock },
+});
 
 const TAB_ICONS = {
   profile:    User,
@@ -68,6 +72,7 @@ function Textarea({ label, value, onChange, placeholder }) {
 
 /* ──────────────────────────── MAIN ──────────────────────────── */
 export default function UserProfile() {
+  const { t } = useTranslation("userProfile");
   const { profile, loading, error, saving, updateProfile, fetchProfile } = useProfile();
   const { user } = useAuth();
 
@@ -75,6 +80,7 @@ export default function UserProfile() {
   const [editing, setEditing] = useState(false);
   const [form, setForm]     = useState({});
   const [saveMsg, setSaveMsg] = useState("");
+  const [saveOk, setSaveOk] = useState(true);
 
   // Données paiements et certificats
   const [enrollments,   setEnrollments]   = useState([]);
@@ -122,11 +128,11 @@ export default function UserProfile() {
   const handleSave = async () => {
     const result = await updateProfile(form);
     if (result?.success) {
-      setSaveMsg("✅ Profil mis à jour !");
+      setSaveMsg(t("profil_mis_a_jour")); setSaveOk(true);
       setEditing(false);
       fetchProfile();
     } else {
-      setSaveMsg(`❌ ${result?.message || "Erreur"}`);
+      setSaveMsg(result?.message || t("erreur")); setSaveOk(false);
     }
   };
 
@@ -142,12 +148,12 @@ export default function UserProfile() {
     instructor:  "bg-purple-100 text-purple-700 border-purple-200",
     student:     "bg-blue-100 text-blue-700 border-blue-200",
   };
-  const ROLE_LABEL = { admin:"Administrateur", superadmin:"Super Admin", instructor:"Instructeur", student:"Étudiant" };
+  const ROLE_LABEL = { admin:i18n.t("userProfile:administrateur"), superadmin:i18n.t("userProfile:super_admin"), instructor:i18n.t("userProfile:instructeur"), student:i18n.t("userProfile:etudiant") };
 
   const TABS = [
-    { key:"profile",      label:"Mon profil",    icon:User },
-    { key:"payments",     label:"Paiements",     icon:CreditCard },
-    { key:"certificates", label:"Certificats",   icon:Award },
+    { key:"profile",      label:t("mon_profil"),    icon:User },
+    { key:"payments",     label:t("paiements"),     icon:CreditCard },
+    { key:"certificates", label:t("certificats"),   icon:Award },
   ];
 
   if (loading) return (
@@ -161,9 +167,7 @@ export default function UserProfile() {
       <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
         <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
         <p className="text-red-700 font-bold mb-3">{error}</p>
-        <button onClick={fetchProfile} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition">
-          Réessayer
-        </button>
+        <button onClick={fetchProfile} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition">{t("reessayer")}</button>
       </div>
     </div>
   );
@@ -173,7 +177,7 @@ export default function UserProfile() {
 
       {/* ── Header profil ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
-        <div className="bg-gradient-to-r from-[#1e1b4b] to-[#4c1d95] px-6 py-6 flex items-center gap-4">
+        <div className="bg-gradient-to-r from-[#1e1b4b] to-[#4c1d95] px-4 sm:px-6 py-6 flex flex-wrap sm:flex-nowrap items-center gap-4">
           {/* Avatar */}
           <div className="flex-shrink-0 relative">
             {avatar ? (
@@ -201,8 +205,7 @@ export default function UserProfile() {
               )}
               {profile?.created_at && (
                 <span className="text-xs text-indigo-300 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  Membre depuis {new Date(profile.created_at).toLocaleDateString("fr-FR", { month:"long", year:"numeric" })}
+                  <Calendar className="w-3 h-3" />{t("membre_depuis")}{" "}{new Date(profile.created_at).toLocaleDateString(getLocale(), { month:"long", year:"numeric" })}
                 </span>
               )}
             </div>
@@ -211,8 +214,7 @@ export default function UserProfile() {
           {!editing && (
             <button onClick={handleEdit}
               className="flex-shrink-0 px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
-              <Edit3 className="w-3.5 h-3.5" /> Modifier
-            </button>
+              <Edit3 className="w-3.5 h-3.5" />{" "}{t("modifier")}</button>
           )}
         </div>
 
@@ -234,15 +236,14 @@ export default function UserProfile() {
             {profile.website_url && (
               <a href={profile.website_url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-lg text-xs font-semibold text-indigo-700 transition">
-                <Globe className="w-3.5 h-3.5" /> Site web
-              </a>
+                <Globe className="w-3.5 h-3.5" />{" "}{t("site_web")}</a>
             )}
           </div>
         )}
       </div>
 
       {/* ── Onglets ── */}
-      <div className="flex gap-1.5 mb-5">
+      <div className="flex flex-wrap gap-1.5 mb-5">
         {TABS.map(t => {
           const Icon = t.icon;
           const isActive = tab === t.key;
@@ -266,7 +267,7 @@ export default function UserProfile() {
           {editing ? (
             <div className="p-6">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-black text-gray-800">Modifier mon profil</h2>
+                <h2 className="font-black text-gray-800">{t("modifier_mon_profil")}</h2>
                 <button onClick={() => setEditing(false)}
                   className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
                   <X className="w-4 h-4" />
@@ -275,32 +276,32 @@ export default function UserProfile() {
 
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Prénom" value={form.first_name} onChange={set("first_name")} required />
-                  <Input label="Nom"    value={form.last_name}  onChange={set("last_name")}  required />
+                  <Input label={t("prenom")} value={form.first_name} onChange={set("first_name")} required />
+                  <Input label={t("nom")}    value={form.last_name}  onChange={set("last_name")}  required />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Poste / Titre"  value={form.job_title}   onChange={set("job_title")}   placeholder="Ex: DevOps Engineer" />
-                  <Input label="Entreprise"     value={form.company}     onChange={set("company")}     placeholder="Ex: CloudTech" />
+                  <Input label={t("poste_titre")}  value={form.job_title}   onChange={set("job_title")}   placeholder={t("ex_devops_engineer")} />
+                  <Input label={t("entreprise")}     value={form.company}     onChange={set("company")}     placeholder={t("ex_cloudtech")} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Pays"           value={form.country}     onChange={set("country")}     placeholder="Ex: France" />
-                  <Input label="Ville"          value={form.city}        onChange={set("city")}        placeholder="Ex: Paris" />
+                  <Input label={t("pays")}           value={form.country}     onChange={set("country")}     placeholder={t("ex_france")} />
+                  <Input label={t("ville")}          value={form.city}        onChange={set("city")}        placeholder={t("ex_paris")} />
                 </div>
-                <Input label="Téléphone"        value={form.phone}       onChange={set("phone")}       type="tel" placeholder="+33 6 00 00 00 00" />
-                <Textarea label="Bio"           value={form.bio}         onChange={set("bio")}         placeholder="Parlez de vous, de vos compétences..." />
+                <Input label={t("telephone")}        value={form.phone}       onChange={set("phone")}       type="tel" placeholder="+33 6 00 00 00 00" />
+                <Textarea label={t("bio")}           value={form.bio}         onChange={set("bio")}         placeholder={t("parlez_de_vous_de_vos_competences")} />
 
                 <div className="pt-2 border-t border-gray-100">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Liens professionnels</p>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{t("liens_professionnels")}</p>
                   <div className="space-y-3">
                     <Input label="GitHub"   value={form.github_url}   onChange={set("github_url")}   type="url" placeholder="https://github.com/..." />
                     <Input label="LinkedIn" value={form.linkedin_url} onChange={set("linkedin_url")} type="url" placeholder="https://linkedin.com/in/..." />
-                    <Input label="Site web" value={form.website_url}  onChange={set("website_url")}  type="url" placeholder="https://..." />
+                    <Input label={t("site_web")} value={form.website_url}  onChange={set("website_url")}  type="url" placeholder="https://..." />
                   </div>
                 </div>
               </div>
 
               {saveMsg && (
-                <p className={`mt-4 text-sm font-semibold ${saveMsg.startsWith("✅") ? "text-emerald-600" : "text-red-600"}`}>
+                <p className={`mt-4 text-sm font-semibold ${saveOk ? "text-emerald-600" : "text-red-600"}`}>
                   {saveMsg}
                 </p>
               )}
@@ -309,39 +310,35 @@ export default function UserProfile() {
                 <button onClick={handleSave} disabled={saving}
                   className="flex-1 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition disabled:opacity-50">
                   <Save className="w-4 h-4" />
-                  {saving ? "Sauvegarde..." : "Enregistrer les modifications"}
+                  {saving ? t("sauvegarde") : t("enregistrer_les_modifications")}
                 </button>
                 <button onClick={() => setEditing(false)}
-                  className="px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition">
-                  Annuler
-                </button>
+                  className="px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition">{t("annuler")}</button>
               </div>
             </div>
           ) : (
             <div className="p-6">
               {saveMsg && <p className="text-emerald-600 text-sm font-semibold mb-4">{saveMsg}</p>}
               <div className="space-y-0">
-                <Field label="Email"        value={profile?.email}      icon={Mail} />
-                <Field label="Téléphone"    value={profile?.phone}      icon={Phone} />
-                <Field label="Entreprise"   value={profile?.company}    icon={Building} />
-                <Field label="Poste"        value={profile?.job_title}  icon={Briefcase} />
-                <Field label="Pays"         value={profile?.country}    icon={MapPin} />
-                <Field label="Ville"        value={profile?.city}       icon={MapPin} />
+                <Field label={t("email")}        value={profile?.email}      icon={Mail} />
+                <Field label={t("telephone")}    value={profile?.phone}      icon={Phone} />
+                <Field label={t("entreprise")}   value={profile?.company}    icon={Building} />
+                <Field label={t("poste")}        value={profile?.job_title}  icon={Briefcase} />
+                <Field label={t("pays")}         value={profile?.country}    icon={MapPin} />
+                <Field label={t("ville")}        value={profile?.city}       icon={MapPin} />
               </div>
               {profile?.bio && (
                 <div className="mt-4 pt-4 border-t border-gray-50">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Bio</p>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t("bio")}</p>
                   <p className="text-sm text-gray-700 leading-relaxed">{profile.bio}</p>
                 </div>
               )}
               {!profile?.bio && !profile?.company && !profile?.phone && (
                 <div className="text-center py-8">
                   <User className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Complétez votre profil pour le rendre plus attractif</p>
+                  <p className="text-gray-400 text-sm">{t("completez_votre_profil_pour_le_rendre")}</p>
                   <button onClick={handleEdit}
-                    className="mt-3 px-4 py-2 bg-indigo-700 text-white rounded-xl text-xs font-bold hover:bg-indigo-800 transition">
-                    Compléter mon profil
-                  </button>
+                    className="mt-3 px-4 py-2 bg-indigo-700 text-white rounded-xl text-xs font-bold hover:bg-indigo-800 transition">{t("completer_mon_profil")}</button>
                 </div>
               )}
             </div>
@@ -359,17 +356,17 @@ export default function UserProfile() {
           ) : enrollments.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
               <CreditCard className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-              <p className="font-bold text-gray-700">Aucun paiement enregistré</p>
-              <p className="text-gray-400 text-sm mt-1">Vos paiements de cours apparaîtront ici</p>
+              <p className="font-bold text-gray-700">{t("aucun_paiement_enregistre")}</p>
+              <p className="text-gray-400 text-sm mt-1">{t("vos_paiements_de_cours_apparaitront_ici")}</p>
             </div>
           ) : (
             <>
               {/* Résumé stats */}
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label:"Total inscriptions", value:enrollments.length,                                                    color:"text-indigo-600 bg-indigo-50 border-indigo-100" },
-                  { label:"Validés",             value:enrollments.filter(e => ["free","verified"].includes(e.payment_status)).length, color:"text-emerald-600 bg-emerald-50 border-emerald-100" },
-                  { label:"En attente",          value:enrollments.filter(e => e.payment_status === "pending").length,        color:"text-amber-600 bg-amber-50 border-amber-100" },
+                  { label:t("total_inscriptions"), value:enrollments.length,                                                    color:"text-indigo-600 bg-indigo-50 border-indigo-100" },
+                  { label:t("valides"),             value:enrollments.filter(e => ["free","verified"].includes(e.payment_status)).length, color:"text-emerald-600 bg-emerald-50 border-emerald-100" },
+                  { label:t("en_attente"),          value:enrollments.filter(e => e.payment_status === "pending").length,        color:"text-amber-600 bg-amber-50 border-amber-100" },
                 ].map(s => (
                   <div key={s.label} className={`border rounded-xl px-4 py-3 ${s.color}`}>
                     <div className="text-2xl font-black">{s.value}</div>
@@ -381,11 +378,11 @@ export default function UserProfile() {
               {/* Liste des paiements */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-5 py-3.5 border-b border-gray-50">
-                  <h3 className="font-black text-gray-800 text-sm">Détail de mes inscriptions</h3>
+                  <h3 className="font-black text-gray-800 text-sm">{t("detail_de_mes_inscriptions")}</h3>
                 </div>
                 <div className="divide-y divide-gray-50">
                   {enrollments.map(enr => {
-                    const st = STATUS[enr.payment_status] || STATUS.default;
+                    const st = STATUS()[enr.payment_status] || STATUS().default;
                     const StIcon = st.icon;
                     const pct = enr.total_lessons > 0
                       ? Math.round(((enr.completed_lessons || 0) / enr.total_lessons) * 100)
@@ -412,15 +409,15 @@ export default function UserProfile() {
                               {enr.enrollment_type && (
                                 <span className="text-xs text-gray-400 flex items-center gap-1">
                                   <CreditCard className="w-2.5 h-2.5" />
-                                  {enr.enrollment_type === "individual" ? "Individuel" :
-                                   enr.enrollment_type === "free"       ? "Gratuit" :
-                                   enr.enrollment_type === "subscription"? "Abonnement" : enr.enrollment_type}
+                                  {enr.enrollment_type === "individual" ? t("individuel") :
+                                   enr.enrollment_type === "free"       ? t("gratuit") :
+                                   enr.enrollment_type === "subscription"? t("abonnement") : enr.enrollment_type}
                                 </span>
                               )}
                               {enr.enrolled_at && (
                                 <span className="text-xs text-gray-400 flex items-center gap-1">
                                   <Calendar className="w-2.5 h-2.5" />
-                                  {new Date(enr.enrolled_at).toLocaleDateString("fr-FR")}
+                                  {new Date(enr.enrolled_at).toLocaleDateString(getLocale())}
                                 </span>
                               )}
                             </div>
@@ -432,7 +429,7 @@ export default function UserProfile() {
                                   <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
                                     style={{ width:`${pct}%` }} />
                                 </div>
-                                <p className="text-xs text-gray-400 mt-0.5">{pct}% · {enr.completed_lessons||0}/{enr.total_lessons||0} leçons</p>
+                                <p className="text-xs text-gray-400 mt-0.5">{pct}% · {enr.completed_lessons||0}/{enr.total_lessons||0}{" "}{t("lecons")}</p>
                               </div>
                             )}
 
@@ -441,14 +438,12 @@ export default function UserProfile() {
                               {enr.payment_proof_url && (
                                 <a href={enr.payment_proof_url} target="_blank" rel="noopener noreferrer"
                                   className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-semibold transition">
-                                  <FileText className="w-3 h-3" /> Voir ma preuve de paiement
-                                  <ExternalLink className="w-2.5 h-2.5" />
+                                  <FileText className="w-3 h-3" />{" "}{t("voir_ma_preuve_de_paiement")}<ExternalLink className="w-2.5 h-2.5" />
                                 </a>
                               )}
                               {enr.approved_at && (
                                 <span className="text-xs text-emerald-600 flex items-center gap-1">
-                                  <BadgeCheck className="w-3 h-3" />
-                                  Validé le {new Date(enr.approved_at).toLocaleDateString("fr-FR")}
+                                  <BadgeCheck className="w-3 h-3" />{t("valide_le")}{" "}{new Date(enr.approved_at).toLocaleDateString(getLocale())}
                                 </span>
                               )}
                             </div>
@@ -464,22 +459,20 @@ export default function UserProfile() {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-5 py-3.5 border-b border-gray-50">
                   <h3 className="font-black text-gray-800 text-sm flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-indigo-500" />
-                    Moyens de paiement acceptés
-                  </h3>
+                    <Shield className="w-4 h-4 text-indigo-500" />{t("moyens_de_paiement_acceptes")}</h3>
                 </div>
                 <div className="p-5">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {[
-                      { name:"Virement bancaire",     icon:"🏦", desc:"Virement SWIFT/SEPA" },
-                      { name:"Mobile Money",          icon:"📱", desc:"Orange Money, MTN, Wave" },
-                      { name:"Western Union",         icon:"🌍", desc:"Transfert international" },
-                      { name:"PayPal",                icon:"💙", desc:"Paiement en ligne sécurisé" },
-                      { name:"Carte bancaire",        icon:"💳", desc:"Visa, Mastercard" },
-                      { name:"Dépôt espèces",         icon:"💵", desc:"Agences partenaires" },
+                      { name:t("virement_bancaire"),     icon:Landmark, desc:t("virement_swift_sepa") },
+                      { name:"Mobile Money",          icon:Smartphone, desc:t("orange_money_mtn_wave") },
+                      { name:t("western_union"),         icon:Globe, desc:t("transfert_international") },
+                      { name:"PayPal",                icon:Wallet, desc:t("paiement_en_ligne_securise") },
+                      { name:t("carte_bancaire"),        icon:CreditCard, desc:t("visa_mastercard") },
+                      { name:t("depot_especes"),         icon:Banknote, desc:t("agences_partenaires") },
                     ].map(m => (
                       <div key={m.name} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                        <div className="text-xl mb-1">{m.icon}</div>
+                        <m.icon className="w-5 h-5 mb-1.5 text-indigo-600" />
                         <p className="font-bold text-gray-800 text-xs">{m.name}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{m.desc}</p>
                       </div>
@@ -487,9 +480,7 @@ export default function UserProfile() {
                   </div>
                   <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-blue-700">
-                      Après paiement, <strong>envoyez votre preuve</strong> (capture d'écran ou reçu) via le bouton "Upload preuve"
-                      sur la page de votre cours. L'équipe valide sous <strong>24-48h ouvrées</strong>.
+                    <p className="text-xs text-blue-700">{t("apres_paiement")}{" "}<strong>{t("envoyez_votre_preuve")}</strong>{" "}{t("capture_d_ecran_ou_recu_via")}{" "}<strong>{t("24_48h_ouvrees")}</strong>.
                     </p>
                   </div>
                 </div>
@@ -509,15 +500,15 @@ export default function UserProfile() {
           ) : certificates.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
               <Award className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-              <p className="font-bold text-gray-700">Aucun certificat pour l'instant</p>
-              <p className="text-gray-400 text-sm mt-1">Terminez un cours pour obtenir votre certificat</p>
+              <p className="font-bold text-gray-700">{t("aucun_certificat_pour_l_instant")}</p>
+              <p className="text-gray-400 text-sm mt-1">{t("terminez_un_cours_pour_obtenir_votre")}</p>
               <div className="mt-5 bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-left max-w-sm mx-auto">
-                <p className="text-xs font-bold text-indigo-800 mb-2">Comment obtenir un certificat ?</p>
+                <p className="text-xs font-bold text-indigo-800 mb-2">{t("comment_obtenir_un_certificat")}</p>
                 <ol className="text-xs text-indigo-700 space-y-1 list-decimal list-inside">
-                  <li>Accédez à votre cours</li>
-                  <li>Complétez toutes les leçons</li>
-                  <li>Atteignez 100% de progression</li>
-                  <li>Votre certificat est généré automatiquement</li>
+                  <li>{t("accedez_a_votre_cours")}</li>
+                  <li>{t("completez_toutes_les_lecons")}</li>
+                  <li>{t("atteignez_100_de_progression")}</li>
+                  <li>{t("votre_certificat_est_genere_automatiquement")}</li>
                 </ol>
               </div>
             </div>
@@ -528,8 +519,8 @@ export default function UserProfile() {
                   <Trophy className="w-5 h-5 text-indigo-900" />
                 </div>
                 <div>
-                  <p className="font-black text-amber-900">{certificates.length} certificat{certificates.length > 1 ? "s" : ""} obtenu{certificates.length > 1 ? "s" : ""}</p>
-                  <p className="text-amber-700 text-xs">Bravo pour votre engagement dans l'apprentissage DevOps !</p>
+                  <p className="font-black text-amber-900">{i18n.t("userProfile:certificat_obtenu", { length: certificates.length, s: certificates.length > 1 ? "s" : "", s2: certificates.length > 1 ? "s" : "" })}</p>
+                  <p className="text-amber-700 text-xs">{t("bravo_pour_votre_engagement_dans_l")}</p>
                 </div>
               </div>
 
@@ -543,20 +534,18 @@ export default function UserProfile() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="font-black text-gray-800 truncate">{cert.course_title || "Cours complété"}</p>
+                        <p className="font-black text-gray-800 truncate">{cert.course_title || t("cours_complete")}</p>
                         <div className="flex items-center gap-3 mt-1 flex-wrap">
                           <span className="text-xs text-gray-400 flex items-center gap-1">
-                            <Calendar className="w-2.5 h-2.5" />
-                            Obtenu le {new Date(cert.issued_at).toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" })}
+                            <Calendar className="w-2.5 h-2.5" />{t("obtenu_le")}{" "}{new Date(cert.issued_at).toLocaleDateString(getLocale(), { day:"numeric", month:"long", year:"numeric" })}
                           </span>
                           <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-semibold">
                             {cert.certificate_number}
                           </span>
                         </div>
-                        {cert.is_revoked && (
+                        {!!cert.is_revoked && (
                           <span className="mt-1 inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                            <XCircle className="w-2.5 h-2.5" /> Révoqué
-                          </span>
+                            <XCircle className="w-2.5 h-2.5" />{" "}{t("revoque")}</span>
                         )}
                       </div>
 
@@ -564,13 +553,11 @@ export default function UserProfile() {
                         {cert.pdf_url && !cert.is_revoked && (
                           <a href={cert.pdf_url} target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1.5 px-3 py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-xl text-xs font-bold transition">
-                            <Download className="w-3 h-3" /> Télécharger
-                          </a>
+                            <Download className="w-3 h-3" />{" "}{t("telecharger")}</a>
                         )}
                         <a href={`/certificates/verify/${cert.certificate_number}`} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-xs font-bold transition">
-                          <Eye className="w-3 h-3" /> Vérifier
-                        </a>
+                          <Eye className="w-3 h-3" />{" "}{t("verifier")}</a>
                       </div>
                     </div>
                   </div>

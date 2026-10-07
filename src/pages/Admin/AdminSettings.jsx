@@ -5,6 +5,8 @@ import {
   Globe, Mail, Bell, Shield, DollarSign, Zap,
   ToggleLeft, ToggleRight, Loader
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 const Section = ({ icon: Icon, title, desc, children }) => (
   <div className="bg-white border border-gray-100 rounded-2xl shadow-soft overflow-hidden">
@@ -73,6 +75,7 @@ const DEFAULTS = {
 };
 
 export default function AdminSettings() {
+  const { t } = useTranslation("adminSettings");
   const [settings, setSettings] = useState(DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -80,7 +83,7 @@ export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState("general");
 
   useEffect(() => {
-    document.title = "Paramètres — Admin";
+    document.title = t("parametres_admin");
     fetchSettings();
   }, []);
 
@@ -117,11 +120,11 @@ export default function AdminSettings() {
   };
 
   const TABS = [
-    { key: "general", label: "Général", icon: Globe },
-    { key: "payments", label: "Paiements", icon: DollarSign },
-    { key: "features", label: "Fonctionnalités", icon: Zap },
-    { key: "notifications", label: "Notifications", icon: Bell },
-    { key: "security", label: "Sécurité", icon: Shield },
+    { key: "general", label: t("general"), icon: Globe },
+    { key: "payments", label: t("paiements"), icon: DollarSign },
+    { key: "features", label: t("fonctionnalites"), icon: Zap },
+    { key: "notifications", label: t("notifications"), icon: Bell },
+    { key: "security", label: t("securite"), icon: Shield },
   ];
 
   if (loading) return <div className="flex justify-center py-32"><Loader className="w-8 h-8 text-blue-600 animate-spin" /></div>;
@@ -131,15 +134,15 @@ export default function AdminSettings() {
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Configuration globale de la plateforme</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("parametres")}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">{t("configuration_globale_de_la_plateforme")}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={fetchSettings} className="p-2 text-gray-400 hover:bg-gray-100 rounded-xl transition"><RefreshCw className="w-4 h-4" /></button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 bg-blue-600 text-white font-bold py-2.5 px-5 rounded-xl hover:-translate-y-0.5 transition shadow-md disabled:opacity-60 text-sm">
             {saving ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Enregistrement…" : "Sauvegarder"}
+            {saving ? t("enregistrement") : t("sauvegarder")}
           </button>
         </div>
       </div>
@@ -147,13 +150,11 @@ export default function AdminSettings() {
       {/* Message statut */}
       {status === "success" && (
         <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-3 text-sm">
-          <CheckCircle className="w-4 h-4 shrink-0" /> Paramètres enregistrés avec succès !
-        </div>
+          <CheckCircle className="w-4 h-4 shrink-0" />{" "}{t("parametres_enregistres_avec_succes")}</div>
       )}
       {status === "error" && (
         <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
-          <AlertCircle className="w-4 h-4 shrink-0" /> Erreur lors de l'enregistrement. Vérifiez l'API.
-        </div>
+          <AlertCircle className="w-4 h-4 shrink-0" />{" "}{t("erreur_lors_de_l_enregistrement_verifiez")}</div>
       )}
 
       {/* Tabs */}
@@ -170,70 +171,79 @@ export default function AdminSettings() {
 
       {/* Général */}
       {activeTab === "general" && (
-        <Section icon={Globe} title="Informations générales" desc="Identité et coordonnées de la plateforme">
+        <Section icon={Globe} title={t("informations_generales")} desc={t("identite_et_coordonnees_de_la_plateforme")}>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Nom de la plateforme" name="site_name" value={settings.site_name} onChange={handleChange} placeholder="DevOpsAkademy" />
-            <Field label="URL du site" name="site_url" type="url" value={settings.site_url} onChange={handleChange} placeholder="https://devopsakademy.com" />
-            <Field label="Email de support" name="support_email" type="email" value={settings.support_email} onChange={handleChange} placeholder="support@devopsakademy.com" />
-            <Field label="Email de contact" name="contact_email" type="email" value={settings.contact_email} onChange={handleChange} placeholder="contact@devopsakademy.com" />
+            <Field label={t("nom_de_la_plateforme")} name="site_name" value={settings.site_name} onChange={handleChange} placeholder="DevOpsAkademy" />
+            <Field label={t("url_du_site")} name="site_url" type="url" value={settings.site_url} onChange={handleChange} placeholder="https://devopsakademy.com" />
+            <Field label={t("email_de_support")} name="support_email" type="email" value={settings.support_email} onChange={handleChange} placeholder="support@devopsakademy.com" />
+            <Field label={t("email_de_contact")} name="contact_email" type="email" value={settings.contact_email} onChange={handleChange} placeholder="contact@devopsakademy.com" />
           </div>
         </Section>
       )}
 
       {/* Paiements */}
       {activeTab === "payments" && (
-        <Section icon={DollarSign} title="Paiements" desc="Configuration des moyens et devises de paiement">
+        <Section icon={DollarSign} title={t("paiements")} desc={t("configuration_des_moyens_et_devises_de")}>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Devise" name="currency" value={settings.currency} onChange={handleChange} placeholder="XAF" help="Code ISO de la devise (ex: XAF, EUR, USD)" />
-            <Field label="Symbole devise" name="currency_symbol" value={settings.currency_symbol} onChange={handleChange} placeholder="FCFA" />
-            <Field label="Numéro Mobile Money" name="mobile_money_number" value={settings.mobile_money_number} onChange={handleChange} placeholder="+237 6XX XXX XXX" help="Numéro MTN ou Orange Money affiché aux étudiants" />
-            <Field label="Coordonnées bancaires" name="bank_account" value={settings.bank_account} onChange={handleChange} placeholder="IBAN ou informations virement" />
+            <Field label={t("devise")} name="currency" value={settings.currency} onChange={handleChange} placeholder="XAF" help={i18n.t("adminSettings:code_iso_de_la_devise_ex")} />
+            <Field label={t("symbole_devise")} name="currency_symbol" value={settings.currency_symbol} onChange={handleChange} placeholder="FCFA" />
+            <Field label={t("numero_mobile_money")} name="mobile_money_number" value={settings.mobile_money_number} onChange={handleChange} placeholder={t("237_6xx_xxx_xxx")} help={i18n.t("adminSettings:numero_mtn_ou_orange_money_affiche")} />
+            <Field label={t("coordonnees_bancaires")} name="bank_account" value={settings.bank_account} onChange={handleChange} placeholder={t("iban_ou_informations_virement")} />
           </div>
         </Section>
       )}
 
       {/* Fonctionnalités */}
       {activeTab === "features" && (
-        <Section icon={Zap} title="Fonctionnalités" desc="Activez ou désactivez les modules de la plateforme">
-          <Toggle label="Inscription ouverte" desc="Les nouveaux utilisateurs peuvent créer un compte"
+        <Section icon={Zap} title={t("fonctionnalites")} desc={t("activez_ou_desactivez_les_modules_de")}>
+          <Toggle label={t("inscription_ouverte")} desc={t("les_nouveaux_utilisateurs_peuvent_creer_un")}
             checked={settings.allow_registration} onChange={() => toggle("allow_registration")} />
-          <Toggle label="Vérification email obligatoire" desc="Les comptes doivent confirmer leur email avant de se connecter"
+          <Toggle label={t("verification_email_obligatoire")} desc={t("les_comptes_doivent_confirmer_leur_email")}
             checked={settings.require_email_verification} onChange={() => toggle("require_email_verification")} />
-          <Toggle label="Cours gratuits" desc="Permettre aux instructeurs de publier des cours gratuits"
+          <Toggle label={t("cours_gratuits")} desc={t("permettre_aux_instructeurs_de_publier_des")}
             checked={settings.allow_free_courses} onChange={() => toggle("allow_free_courses")} />
-          <Toggle label="Forum communautaire" desc="Activer le forum de discussion entre apprenants et instructeurs"
+          <Toggle label={t("forum_communautaire")} desc={t("activer_le_forum_de_discussion_entre")}
             checked={settings.allow_forum} onChange={() => toggle("allow_forum")} />
-          <Toggle label="Mode maintenance" desc="Affiche une page de maintenance — seuls les admins peuvent se connecter"
+          <Toggle label={t("mode_maintenance")} desc={t("affiche_une_page_de_maintenance_seuls")}
             checked={settings.maintenance_mode} onChange={() => toggle("maintenance_mode")} />
+          <div className="pt-4 mt-2 border-t border-gray-100 space-y-4">
+            <Toggle label={t("chatTitle")} desc={t("chatDesc")}
+              checked={settings.tawk_enabled} onChange={() => toggle("tawk_enabled")} />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field label={t("tawkProperty")} name="tawk_property_id" value={settings.tawk_property_id} onChange={handleChange}
+                placeholder="64f1a2b3c4d5e6f7a8b9c0d1" help={t("tawkHelp")} />
+              <Field label={t("tawkWidget")} name="tawk_widget_id" value={settings.tawk_widget_id} onChange={handleChange} placeholder="default" />
+            </div>
+          </div>
         </Section>
       )}
 
       {/* Notifications */}
       {activeTab === "notifications" && (
-        <Section icon={Bell} title="Notifications email" desc="Gérez les emails automatiques envoyés par la plateforme">
-          <Toggle label="Notifications email activées" desc="Activer/désactiver toutes les notifications email"
+        <Section icon={Bell} title={t("notifications_email")} desc={t("gerez_les_emails_automatiques_envoyes_par")}>
+          <Toggle label={t("notifications_email_activees")} desc={t("activer_desactiver_toutes_les_notifications_emai")}
             checked={settings.email_notifications} onChange={() => toggle("email_notifications")} />
-          <Toggle label="Email lors d'une inscription" desc="Notifier l'admin et l'étudiant lors d'une nouvelle inscription"
+          <Toggle label={t("email_lors_d_une_inscription")} desc={t("notifier_l_admin_et_l_etudiant")}
             checked={settings.notify_on_enrollment} onChange={() => toggle("notify_on_enrollment")} />
-          <Toggle label="Email de complétion" desc="Envoyer un email de félicitations lorsqu'un cours est terminé"
+          <Toggle label={t("email_de_completion")} desc={t("envoyer_un_email_de_felicitations_lorsqu")}
             checked={settings.notify_on_completion} onChange={() => toggle("notify_on_completion")} />
         </Section>
       )}
 
       {/* Sécurité */}
       {activeTab === "security" && (
-        <Section icon={Shield} title="Sécurité" desc="Paramètres de sécurité et de session">
+        <Section icon={Shield} title={t("securite")} desc={t("parametres_de_securite_et_de_session")}>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Tentatives de connexion max" name="max_login_attempts" type="number"
+            <Field label={t("tentatives_de_connexion_max")} name="max_login_attempts" type="number"
               value={settings.max_login_attempts} onChange={handleChange}
-              help="Nombre d'essais avant blocage temporaire du compte" />
-            <Field label="Expiration de session (heures)" name="session_timeout_hours" type="number"
+              help={i18n.t("adminSettings:nombre_d_essais_avant_blocage_temporaire")} />
+            <Field label={t("expiration_de_session_heures")} name="session_timeout_hours" type="number"
               value={settings.session_timeout_hours} onChange={handleChange}
-              help="Durée avant déconnexion automatique pour inactivité" />
+              help={i18n.t("adminSettings:duree_avant_deconnexion_automatique_pour_inactiv")} />
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700 flex gap-3">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-            <p>Les changements de sécurité prennent effet immédiatement et peuvent déconnecter des sessions actives.</p>
+            <p>{t("les_changements_de_securite_prennent_effet")}</p>
           </div>
         </Section>
       )}
@@ -243,7 +253,7 @@ export default function AdminSettings() {
         <button onClick={handleSave} disabled={saving}
           className="flex items-center gap-2 bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl hover:-translate-y-0.5 transition shadow-md disabled:opacity-60 text-sm">
           {saving ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? "Enregistrement…" : "Sauvegarder les paramètres"}
+          {saving ? t("enregistrement") : t("sauvegarder_les_parametres")}
         </button>
       </div>
     </div>

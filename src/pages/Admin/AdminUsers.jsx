@@ -7,15 +7,18 @@ import {
   ShieldOff, UserCheck, UserX, ChevronDown, X, Plus,
   Mail, Calendar, BookOpen, Crown, GraduationCap, User,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 // ── Helpers ───────────────────────────────────────────
-const ROLES = {
-  admin:      { label: "Admin",       icon: Crown,         color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
-  instructor: { label: "Instructeur", icon: UserCheck,     color: "#0369a1", bg: "#eff6ff", border: "#bfdbfe" },
-  student:    { label: "Étudiant",    icon: GraduationCap, color: "#0f766e", bg: "#f0fdf4", border: "#a7f3d0" },
-};
+const ROLES = () => ({
+  admin:      { label: i18n.t("adminUsers:admin"),       icon: Crown,         color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" },
+  instructor: { label: i18n.t("adminUsers:instructeur"), icon: UserCheck,     color: "#0369a1", bg: "#eff6ff", border: "#bfdbfe" },
+  student:    { label: i18n.t("adminUsers:etudiant"),    icon: GraduationCap, color: "#0f766e", bg: "#f0fdf4", border: "#a7f3d0" },
+});
 
-const roleCfg = (role) => ROLES[role] || { label: role, icon: User, color: "#6b7280", bg: "#f9fafb", border: "#e5e7eb" };
+const roleCfg = (role) => ROLES()[role] || { label: role, icon: User, color: "#6b7280", bg: "#f9fafb", border: "#e5e7eb" };
 
 const Avatar = ({ u, size = 36 }) => {
   const initials = `${u.first_name?.[0] || ""}${u.last_name?.[0] || ""}`.toUpperCase() || "?";
@@ -44,6 +47,7 @@ const Badge = ({ role }) => {
 
 // ── Modal Créer/Éditer Utilisateur ───────────────────
 function UserModal({ user, onClose, onSaved }) {
+  const { t } = useTranslation("adminUsers");
   const isEdit = !!user;
   const [form, setForm] = useState({
     first_name:  user?.first_name  || "",
@@ -58,10 +62,10 @@ function UserModal({ user, onClose, onSaved }) {
 
   const handle = async () => {
     if (!form.first_name || !form.last_name || !form.email) {
-      setError("Prénom, nom et email sont obligatoires."); return;
+      setError(t("prenom_nom_et_email_sont_obligatoires")); return;
     }
     if (!isEdit && !form.password) {
-      setError("Mot de passe requis pour un nouvel utilisateur."); return;
+      setError(t("mot_de_passe_requis_pour_un")); return;
     }
     setSaving(true); setError("");
     try {
@@ -78,7 +82,7 @@ function UserModal({ user, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (e) {
-      setError(e.response?.data?.message || "Erreur lors de la sauvegarde.");
+      setError(e.response?.data?.message || t("erreur_lors_de_la_sauvegarde"));
     } finally {
       setSaving(false);
     }
@@ -94,7 +98,7 @@ function UserModal({ user, onClose, onSaved }) {
         <div className="px-6 pt-6 pb-4" style={{ background:"linear-gradient(135deg,#1e1b4b,#2d287f)" }}>
           <div className="flex items-center justify-between">
             <h2 className="text-white font-black text-lg">
-              {isEdit ? "✏️ Modifier l'utilisateur" : "➕ Nouvel utilisateur"}
+              {isEdit ? t("modifier_l_utilisateur") : t("nouvel_utilisateur")}
             </h2>
             <button onClick={onClose} className="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition">
               <X className="w-4 h-4 text-white" />
@@ -104,7 +108,7 @@ function UserModal({ user, onClose, onSaved }) {
 
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            {[["first_name","Prénom"],["last_name","Nom"]].map(([k,l]) => (
+            {[["first_name",i18n.t("adminUsers:prenom")],["last_name",i18n.t("adminUsers:nom")]].map(([k,l]) => (
               <div key={k}>
                 <label className="block text-xs font-bold text-gray-600 mb-1">{l} *</label>
                 <input value={form[k]} onChange={e => setForm(p => ({...p,[k]:e.target.value}))}
@@ -115,7 +119,7 @@ function UserModal({ user, onClose, onSaved }) {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Email *</label>
+            <label className="block text-xs font-bold text-gray-600 mb-1">{t("email")}</label>
             <input type="email" value={form.email}
               onChange={e => setForm(p => ({...p, email:e.target.value}))}
               disabled={isEdit}
@@ -125,7 +129,7 @@ function UserModal({ user, onClose, onSaved }) {
 
           {!isEdit && (
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">Mot de passe *</label>
+              <label className="block text-xs font-bold text-gray-600 mb-1">{t("mot_de_passe")}</label>
               <input type="password" value={form.password}
                 onChange={e => setForm(p => ({...p, password:e.target.value}))}
                 className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 transition"
@@ -135,20 +139,20 @@ function UserModal({ user, onClose, onSaved }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">Rôle</label>
+              <label className="block text-xs font-bold text-gray-600 mb-1">{t("role")}</label>
               <select value={form.role} onChange={e => setForm(p => ({...p, role:e.target.value}))}
                 className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 transition">
-                <option value="student">Étudiant</option>
-                <option value="instructor">Instructeur</option>
-                <option value="admin">Admin</option>
+                <option value="student">{t("etudiant")}</option>
+                <option value="instructor">{t("instructeur")}</option>
+                <option value="admin">{t("admin")}</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">Statut</label>
+              <label className="block text-xs font-bold text-gray-600 mb-1">{t("statut")}</label>
               <select value={form.is_active} onChange={e => setForm(p => ({...p, is_active: Number(e.target.value)}))}
                 className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 transition">
-                <option value={1}>✅ Actif</option>
-                <option value={0}>❌ Inactif</option>
+                <option value={1}>{t("actif")}</option>
+                <option value={0}>{t("inactif")}</option>
               </select>
             </div>
           </div>
@@ -162,13 +166,11 @@ function UserModal({ user, onClose, onSaved }) {
 
           <div className="flex gap-3 pt-1">
             <button onClick={onClose}
-              className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-2xl font-semibold text-sm hover:bg-gray-50 transition">
-              Annuler
-            </button>
+              className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-2xl font-semibold text-sm hover:bg-gray-50 transition">{t("annuler")}</button>
             <button onClick={handle} disabled={saving}
               className="flex-[2] py-3 text-white rounded-2xl font-black text-sm transition hover:opacity-90 disabled:opacity-50"
               style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)" }}>
-              {saving ? "Sauvegarde..." : isEdit ? "Enregistrer" : "Créer l'utilisateur"}
+              {saving ? t("sauvegarde") : isEdit ? t("enregistrer") : t("creer_l_utilisateur")}
             </button>
           </div>
         </div>
@@ -182,6 +184,7 @@ function UserModal({ user, onClose, onSaved }) {
 // COMPOSANT PRINCIPAL
 // ══════════════════════════════════════════════════════
 export default function AdminUsers() {
+  const { t } = useTranslation("adminUsers");
   const navigate  = useNavigate();
   const [users,   setUsers]   = useState([]);
   const [search,  setSearch]  = useState("");
@@ -197,11 +200,11 @@ export default function AdminUsers() {
     try {
       const res = await api.get("/admin/users");
       const data = res.data?.data || [];
-      console.log("✅ Users loaded:", data.length);
+      console.log("Users loaded:", data.length);
       setUsers(data);
     } catch (err) {
-      console.error("❌ AdminUsers load error:", err?.response?.data || err?.message || err);
-      setLoadError(err?.response?.data?.message || "Impossible de charger les utilisateurs. Vérifiez la connexion API.");
+      console.error("AdminUsers load error:", err?.response?.data || err?.message || err);
+      setLoadError(err?.response?.data?.message || i18n.t("adminUsers:impossible_de_charger_les_utilisateurs_verifiez"));
     } finally {
       setLoading(false);
     }
@@ -216,7 +219,7 @@ export default function AdminUsers() {
       setUsers(prev => prev.filter(x => x.id !== u.id));
       setDelConf(null);
     } catch {
-      alert("Erreur lors de la suppression.");
+      alert(t("erreur_lors_de_la_suppression"));
     } finally {
       setDeleting(false);
     }
@@ -232,7 +235,7 @@ export default function AdminUsers() {
       });
       setUsers(prev => prev.map(x => x.id === u.id ? {...x, is_active: x.is_active ? 0 : 1} : x));
     } catch {
-      alert("Erreur lors de la mise à jour.");
+      alert(t("erreur_lors_de_la_mise_a"));
     }
   };
 
@@ -257,33 +260,30 @@ export default function AdminUsers() {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <Users className="w-7 h-7 text-indigo-600" /> Utilisateurs
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">{counts.all} utilisateurs au total</p>
+            <Users className="w-7 h-7 text-indigo-600" />{" "}{t("utilisateurs")}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t("utilisateurs_au_total", { all: counts.all })}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={load}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition">
-            <RefreshCw className="w-4 h-4" /> Actualiser
-          </button>
+            <RefreshCw className="w-4 h-4" />{" "}{t("actualiser")}</button>
           <button onClick={() => setModal("create")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
             style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)" }}>
-            <Plus className="w-4 h-4" /> Nouvel utilisateur
-          </button>
+            <Plus className="w-4 h-4" />{" "}{t("nouvel_utilisateur")}</button>
         </div>
       </div>
 
       {/* Stats rapides */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label:"Admins",        val: counts.admin,       icon: Crown,         color:"#7c3aed", bg:"#f5f3ff" },
-          { label:"Instructeurs",  val: counts.instructor,  icon: UserCheck,     color:"#0369a1", bg:"#eff6ff" },
-          { label:"Étudiants",     val: counts.student,     icon: GraduationCap, color:"#0f766e", bg:"#f0fdf4" },
-          { label:"Inactifs",      val: counts.inactive,    icon: UserX,         color:"#dc2626", bg:"#fef2f2" },
+          { label:t("admins"),        val: counts.admin,       icon: Crown,         color:"#7c3aed", bg:"#f5f3ff" },
+          { label:t("instructeurs"),  val: counts.instructor,  icon: UserCheck,     color:"#0369a1", bg:"#eff6ff" },
+          { label:t("etudiants"),     val: counts.student,     icon: GraduationCap, color:"#0f766e", bg:"#f0fdf4" },
+          { label:t("inactifs"),      val: counts.inactive,    icon: UserX,         color:"#dc2626", bg:"#fef2f2" },
         ].map(({ label, val, icon: Icon, color, bg }) => (
           <div key={label} className="rounded-2xl p-4 border border-gray-100 flex items-center gap-3"
             style={{ background: bg }}>
@@ -303,12 +303,12 @@ export default function AdminUsers() {
         <div className="flex-1 min-w-[200px] relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher par nom ou email..."
+            placeholder={t("rechercher_par_nom_ou_email")}
             className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 transition" />
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {[["all","Tous"],["admin","Admins"],["instructor","Instructeurs"],["student","Étudiants"]].map(([v,l]) => (
+          {[["all",i18n.t("adminUsers:tous")],["admin",i18n.t("adminUsers:admins_filtre")],["instructor",i18n.t("adminUsers:instructeurs")],["student",i18n.t("adminUsers:etudiants")]].map(([v,l]) => (
             <button key={v} onClick={() => setRole(v)}
               className="px-4 py-2 rounded-xl text-sm font-bold transition border-2"
               style={{
@@ -326,13 +326,13 @@ export default function AdminUsers() {
       {loadError && (
         <div className="rounded-2xl p-4 flex items-center gap-3"
           style={{ background:"#fef2f2", border:"1px solid #fecaca" }}>
-          <span className="text-red-500 text-lg">⚠️</span>
+          
           <div className="flex-1">
-            <p className="font-bold text-red-800 text-sm">Erreur de chargement</p>
+            <p className="font-bold text-red-800 text-sm">{t("erreur_de_chargement")}</p>
             <p className="text-red-600 text-xs mt-0.5">{loadError}</p>
           </div>
           <button onClick={() => { setLoadError(""); load(); }}
-            className="text-xs font-bold text-red-600 underline">Réessayer</button>
+            className="text-xs font-bold text-red-600 underline">{t("reessayer")}</button>
         </div>
       )}
 
@@ -341,32 +341,32 @@ export default function AdminUsers() {
         {loading ? (
           <div className="p-12 text-center">
             <div className="w-10 h-10 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">Chargement des utilisateurs...</p>
+            <p className="text-gray-500 text-sm">{t("chargement_des_utilisateurs")}</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-400 font-semibold">Aucun utilisateur trouvé</p>
-            {search && <p className="text-gray-400 text-sm mt-1">Essayez un autre terme de recherche</p>}
+            <p className="text-gray-400 font-semibold">{t("aucun_utilisateur_trouve")}</p>
+            {search && <p className="text-gray-400 text-sm mt-1">{t("essayez_un_autre_terme_de_recherche")}</p>}
           </div>
         ) : (
           <>
             {/* Header table */}
-            <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-gray-100 bg-gray-50">
-              <div className="col-span-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Utilisateur</div>
-              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Rôle</div>
-              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Statut</div>
-              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Cours</div>
-              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Actions</div>
+            <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 border-b border-gray-100 bg-gray-50">
+              <div className="col-span-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("utilisateur")}</div>
+              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("role")}</div>
+              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">{t("statut")}</div>
+              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">{t("cours")}</div>
+              <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">{t("actions")}</div>
             </div>
 
             {/* Rows */}
             {filtered.map(u => (
               <div key={u.id}
-                className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-gray-50 hover:bg-gray-50 transition items-center">
+                className="grid grid-cols-2 md:grid-cols-12 gap-3 px-4 md:px-5 py-4 border-b border-gray-50 hover:bg-gray-50 transition items-center">
 
                 {/* Utilisateur */}
-                <div className="col-span-4 flex items-center gap-3 min-w-0">
+                <div className="col-span-2 md:col-span-4 flex items-center gap-3 min-w-0">
                   <Avatar u={u} size={38} />
                   <div className="min-w-0">
                     <p className="font-bold text-gray-900 text-sm truncate">
@@ -377,20 +377,20 @@ export default function AdminUsers() {
                     </p>
                     <p className="text-[10px] text-gray-300 flex items-center gap-1 mt-0.5">
                       <Calendar size={9} />
-                      {u.created_at ? new Date(u.created_at).toLocaleDateString("fr-FR", { day:"numeric", month:"short", year:"numeric" }) : "—"}
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString(getLocale(), { day:"numeric", month:"short", year:"numeric" }) : "—"}
                     </p>
                   </div>
                 </div>
 
                 {/* Rôle */}
-                <div className="col-span-2">
+                <div className="col-span-1 md:col-span-2">
                   <Badge role={u.role} />
                 </div>
 
                 {/* Statut */}
-                <div className="col-span-2 flex justify-center">
+                <div className="col-span-1 md:col-span-2 flex justify-end md:justify-center">
                   <button onClick={() => handleToggleActive(u)}
-                    title={u.is_active ? "Cliquer pour désactiver" : "Cliquer pour activer"}
+                    title={u.is_active ? t("cliquer_pour_desactiver") : t("cliquer_pour_activer")}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition hover:scale-105"
                     style={{
                       background:  u.is_active ? "#ecfdf5" : "#fef2f2",
@@ -398,14 +398,14 @@ export default function AdminUsers() {
                       borderColor: u.is_active ? "#a7f3d0" : "#fecaca",
                     }}>
                     {u.is_active
-                      ? <><ShieldCheck size={12} /> Actif</>
-                      : <><ShieldOff size={12}  /> Inactif</>
+                      ? <><ShieldCheck size={12} />{" "}{t("actif")}</>
+                      : <><ShieldOff size={12}  />{" "}{t("inactif")}</>
                     }
                   </button>
                 </div>
 
                 {/* Cours inscrits */}
-                <div className="col-span-2 flex justify-center">
+                <div className="col-span-1 md:col-span-2 flex md:justify-center">
                   <span className="flex items-center gap-1.5 text-sm font-bold text-gray-700">
                     <BookOpen size={14} className="text-indigo-400" />
                     {u.enrollment_count ?? "—"}
@@ -413,22 +413,22 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Actions */}
-                <div className="col-span-2 flex justify-center gap-1.5">
+                <div className="col-span-1 md:col-span-2 flex justify-end md:justify-center gap-1.5">
                   <button onClick={() => navigate(`/admin/students/${u.id}`)}
-                    title="Voir le profil"
+                    title={t("voir_le_profil")}
                     className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:scale-110"
                     style={{ background:"#eff6ff", color:"#0369a1" }}>
                     <Eye size={15} />
                   </button>
                   <button onClick={() => setModal(u)}
-                    title="Modifier"
+                    title={t("modifier")}
                     className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:scale-110"
                     style={{ background:"#f5f3ff", color:"#7c3aed" }}>
                     <UserCheck size={15} />
                   </button>
                   {u.role !== "admin" && (
                     <button onClick={() => setDelConf(u)}
-                      title="Supprimer"
+                      title={t("supprimer")}
                       className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:scale-110"
                       style={{ background:"#fef2f2", color:"#dc2626" }}>
                       <Trash2 size={15} />
@@ -440,9 +440,8 @@ export default function AdminUsers() {
 
             {/* Footer */}
             <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
-              <p className="text-xs text-gray-400 font-medium">
-                {filtered.length} utilisateur{filtered.length > 1 ? "s" : ""} affiché{filtered.length > 1 ? "s" : ""}
-                {search || role !== "all" ? ` (filtre actif)` : ""}
+              <p className="text-xs text-gray-400 font-medium">{i18n.t("adminUsers:utilisateur_2", { length: filtered.length, s: filtered.length > 1 ? "s" : "" })}{" "}{t("affiche_p", { s: filtered.length > 1 ? "s" : "" })}
+                {search || role !== "all" ? t("filtre_actif") : ""}
               </p>
             </div>
           </>
@@ -467,21 +466,17 @@ export default function AdminUsers() {
               <Trash2 className="w-8 h-8 text-red-500" />
             </div>
             <div>
-              <h3 className="font-black text-gray-900 text-lg">Supprimer l'utilisateur ?</h3>
+              <h3 className="font-black text-gray-900 text-lg">{t("supprimer_l_utilisateur")}</h3>
               <p className="text-gray-500 text-sm mt-1">
-                <strong>{delConf.first_name} {delConf.last_name}</strong> sera définitivement supprimé.
-                Cette action est irréversible.
-              </p>
+                <strong>{delConf.first_name} {delConf.last_name}</strong>{" "}{t("sera_definitivement_supprime_cette_action_est")}</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDelConf(null)}
-                className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-2xl font-semibold text-sm hover:bg-gray-50 transition">
-                Annuler
-              </button>
+                className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-2xl font-semibold text-sm hover:bg-gray-50 transition">{t("annuler")}</button>
               <button onClick={() => handleDelete(delConf)} disabled={deleting}
                 className="flex-1 py-3 text-white rounded-2xl font-black text-sm transition hover:opacity-90 disabled:opacity-50"
                 style={{ background:"linear-gradient(135deg,#dc2626,#ef4444)" }}>
-                {deleting ? "Suppression..." : "Supprimer"}
+                {deleting ? t("suppression") : t("supprimer")}
               </button>
             </div>
           </div>

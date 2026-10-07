@@ -7,13 +7,16 @@ import {
   Upload, Eye, BarChart2, Award, Calendar, Lock,
   Search, Filter, ChevronDown, ArrowRight, Star
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
-const STATUS_CONFIG = {
-  approved: { label: "Actif", color: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-  pending:  { label: "En attente", color: "bg-yellow-100 text-yellow-700 border-yellow-200", dot: "bg-yellow-400" },
-  rejected: { label: "Rejeté", color: "bg-red-100 text-red-700 border-red-200", dot: "bg-red-500" },
-  no_proof: { label: "À payer", color: "bg-gray-100 text-gray-600 border-gray-200", dot: "bg-gray-400" },
-};
+const STATUS_CONFIG = () => ({
+  approved: { label: i18n.t("myCourses:actif"), color: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+  pending:  { label: i18n.t("myCourses:en_attente"), color: "bg-yellow-100 text-yellow-700 border-yellow-200", dot: "bg-yellow-400" },
+  rejected: { label: i18n.t("myCourses:rejete"), color: "bg-red-100 text-red-700 border-red-200", dot: "bg-red-500" },
+  no_proof: { label: i18n.t("myCourses:a_payer"), color: "bg-gray-100 text-gray-600 border-gray-200", dot: "bg-gray-400" },
+});
 
 const getStatus = (course) => {
   if (course.is_approved) return "approved";
@@ -22,14 +25,15 @@ const getStatus = (course) => {
   return "no_proof";
 };
 
-const FILTERS = [
-  { key: "all", label: "Tous" },
-  { key: "approved", label: "Actifs" },
-  { key: "pending", label: "En attente" },
-  { key: "rejected", label: "Rejetés" },
-];
+const FILTERS = () => ([
+  { key: "all", label: i18n.t("myCourses:tous") },
+  { key: "approved", label: i18n.t("myCourses:actifs") },
+  { key: "pending", label: i18n.t("myCourses:en_attente") },
+  { key: "rejected", label: i18n.t("myCourses:rejetes") },
+]);
 
 export default function MyCourses() {
+  const { t } = useTranslation("myCourses");
   const { token } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
@@ -40,7 +44,7 @@ export default function MyCourses() {
   const [sortBy, setSortBy] = useState("date");
 
   useEffect(() => {
-    document.title = "Mes cours — DevOpsAkademy";
+    document.title = t("mes_cours_devopsakademy");
     fetchCourses();
   }, []);
 
@@ -58,7 +62,7 @@ export default function MyCourses() {
   const handleUpload = async (courseId, e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert("Fichier trop volumineux (max 5MB)"); return; }
+    if (file.size > 5 * 1024 * 1024) { alert(t("fichier_trop_volumineux_max_5mb")); return; }
     const fd = new FormData();
     fd.append("payment_proof", file);
     try {
@@ -67,9 +71,9 @@ export default function MyCourses() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       await fetchCourses();
-      alert("✅ Preuve envoyée ! Validation sous 24h.");
+      alert(t("preuve_envoyee_validation_sous_24h"));
     } catch (err) {
-      alert("❌ Erreur lors de l'envoi.");
+      alert(t("erreur_lors_de_l_envoi"));
     } finally {
       setUploadingId(null);
     }
@@ -117,24 +121,23 @@ export default function MyCourses() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mes cours</h1>
-            <p className="text-gray-500 mt-1">Suivez votre progression et accédez à vos formations</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t("mes_cours")}</h1>
+            <p className="text-gray-500 mt-1">{t("suivez_votre_progression_et_accedez_a")}</p>
           </div>
           <Link
             to="/courses"
             className="inline-flex items-center gap-2 bg-primary text-white font-semibold py-2.5 px-5 rounded-full hover:-translate-y-0.5 transition shadow-md text-sm"
           >
-            <BookOpen className="w-4 h-4" /> Explorer les cours
-          </Link>
+            <BookOpen className="w-4 h-4" />{" "}{t("explorer_les_cours")}</Link>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Total inscrits", value: stats.total, icon: BookOpen, color: "text-primary", bg: "bg-primary/10" },
-            { label: "Cours actifs", value: stats.active, icon: PlayCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
-            { label: "Terminés", value: stats.done, icon: Award, color: "text-violet-600", bg: "bg-violet-50" },
-            { label: "En attente", value: stats.pending, icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
+            { label: t("total_inscrits"), value: stats.total, icon: BookOpen, color: "text-primary", bg: "bg-primary/10" },
+            { label: t("cours_actifs"), value: stats.active, icon: PlayCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+            { label: t("termines"), value: stats.done, icon: Award, color: "text-violet-600", bg: "bg-violet-50" },
+            { label: t("en_attente"), value: stats.pending, icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-soft">
               <div className="flex items-center justify-between">
@@ -159,14 +162,14 @@ export default function MyCourses() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un cours…"
+              placeholder={t("rechercher_un_cours")}
               className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white"
             />
           </div>
 
           {/* Filtres statut */}
           <div className="flex gap-2 flex-wrap">
-            {FILTERS.map(({ key, label }) => (
+            {FILTERS().map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setFilter(key)}
@@ -192,9 +195,9 @@ export default function MyCourses() {
             onChange={(e) => setSortBy(e.target.value)}
             className="px-3 py-2.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white text-gray-600"
           >
-            <option value="date">Trier : Date</option>
-            <option value="progress">Trier : Progression</option>
-            <option value="name">Trier : Nom</option>
+            <option value="date">{t("trier_date")}</option>
+            <option value="progress">{t("trier_progression")}</option>
+            <option value="name">{t("trier_nom")}</option>
           </select>
         </div>
 
@@ -202,19 +205,18 @@ export default function MyCourses() {
         {filtered.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-16 text-center">
             <BookOpen className="w-14 h-14 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Aucun cours trouvé</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">{t("aucun_cours_trouve")}</h3>
             <p className="text-gray-500 mb-6 text-sm">
-              {search ? `Aucun résultat pour "${search}"` : "Commencez par vous inscrire à une formation."}
+              {search ? t("aucun_resultat_pour", { search }) : t("commencez_par_vous_inscrire_a_une")}
             </p>
-            <Link to="/courses" className="inline-flex items-center gap-2 bg-primary text-white font-semibold py-2.5 px-6 rounded-full hover:-translate-y-0.5 transition">
-              Découvrir les formations <ArrowRight className="w-4 h-4" />
+            <Link to="/courses" className="inline-flex items-center gap-2 bg-primary text-white font-semibold py-2.5 px-6 rounded-full hover:-translate-y-0.5 transition">{t("decouvrir_les_formations")}{" "}<ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((course) => {
               const status = getStatus(course);
-              const cfg = STATUS_CONFIG[status];
+              const cfg = STATUS_CONFIG()[status];
               const progress = course.completion_percentage || 0;
 
               return (
@@ -257,7 +259,7 @@ export default function MyCourses() {
                       <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6"
                         style={{ background:"linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}>
                         <div className="flex items-center justify-between text-white text-xs mb-1.5">
-                          <span className="font-medium">Progression</span>
+                          <span className="font-medium">{t("progression")}</span>
                           <span className="font-bold text-sm px-1.5 py-0.5 rounded"
                             style={{ background: progress>=100?"#5653e1":progress>=50?"#059669":"rgba(255,255,255,0.2)" }}>
                             {Math.round(progress)}%
@@ -289,7 +291,7 @@ export default function MyCourses() {
                     <div className="flex items-center gap-3 text-xs text-gray-400 mb-4">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(course.enrolled_at).toLocaleDateString("fr-FR")}
+                        {new Date(course.enrolled_at).toLocaleDateString(getLocale())}
                       </span>
                       {course.duration_hours && (
                         <span className="flex items-center gap-1">
@@ -303,7 +305,7 @@ export default function MyCourses() {
                     {status === "approved" && (
                       <div className="flex items-center gap-1 text-xs text-gray-500 mb-4">
                         <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>{course.completed_lessons || 0} / {course.total_lessons || 0} leçons complétées</span>
+                        <span>{course.completed_lessons || 0} / {course.total_lessons || 0}{" "}{t("lecons_completees")}</span>
                       </div>
                     )}
 
@@ -317,31 +319,30 @@ export default function MyCourses() {
                             style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)", color:"#fff" }}
                           >
                             <PlayCircle className="w-4 h-4" />
-                            {progress >= 100 ? "🎓 Revoir le cours" : progress > 0 ? "▶ Continuer" : "🚀 Commencer"}
+                            {progress >= 100 ? t("revoir_le_cours") : progress > 0 ? t("continuer") : t("commencer")}
                           </button>
                           {progress >= 100 && (
                             <Link
                               to="/my-certificates"
                               className="w-full flex items-center justify-center gap-2 py-2 border border-accent text-accent rounded-xl hover:bg-accent/5 transition text-sm font-medium"
                             >
-                              <Award className="w-4 h-4" /> Voir mon certificat
-                            </Link>
+                              <Award className="w-4 h-4" />{" "}{t("voir_mon_certificat")}</Link>
                           )}
                         </>
                       ) : status === "pending" ? (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-center">
                           <Clock className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
-                          <p className="text-xs text-yellow-700 font-medium">Validation en cours</p>
-                          <p className="text-xs text-yellow-600 mt-0.5">Réponse sous 24h</p>
+                          <p className="text-xs text-yellow-700 font-medium">{t("validation_en_cours")}</p>
+                          <p className="text-xs text-yellow-600 mt-0.5">{t("reponse_sous_24h")}</p>
                         </div>
                       ) : status === "rejected" ? (
                         <>
                           <div className="bg-red-50 border border-red-200 rounded-xl p-2.5 text-center mb-2">
-                            <p className="text-xs text-red-600 font-medium">Paiement rejeté — veuillez renvoyer une preuve</p>
+                            <p className="text-xs text-red-600 font-medium">{t("paiement_rejete_veuillez_renvoyer_une_preuve")}</p>
                           </div>
                           <label className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl cursor-pointer transition text-sm">
                             <Upload className="w-4 h-4" />
-                            {uploadingId === course.id ? "Envoi…" : "Renvoyer la preuve"}
+                            {uploadingId === course.id ? t("envoi") : t("renvoyer_la_preuve")}
                             <input type="file" accept="image/*,.pdf" className="hidden"
                               onChange={(e) => handleUpload(course.id, e)}
                               disabled={uploadingId === course.id} />
@@ -353,11 +354,10 @@ export default function MyCourses() {
                             onClick={() => navigate(`/courses/${course.course_id || course.id}`)}
                             className="w-full flex items-center justify-center gap-2 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition text-sm"
                           >
-                            <Eye className="w-4 h-4" /> Voir le cours
-                          </button>
+                            <Eye className="w-4 h-4" />{" "}{t("voir_le_cours")}</button>
                           <label className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-xl cursor-pointer hover:shadow-md transition text-sm">
                             <Upload className="w-4 h-4" />
-                            {uploadingId === course.id ? "Envoi…" : "Envoyer preuve de paiement"}
+                            {uploadingId === course.id ? t("envoi") : t("envoyer_preuve_de_paiement")}
                             <input type="file" accept="image/*,.pdf" className="hidden"
                               onChange={(e) => handleUpload(course.id, e)}
                               disabled={uploadingId === course.id} />

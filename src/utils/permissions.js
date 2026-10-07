@@ -72,11 +72,11 @@ export const getRedirectForStatus = (status, courseId) => {
  */
 export const getAccessMessage = (status) => {
   const messages = {
-    'not_authenticated': '🔒 Connectez-vous pour accéder',
-    'not_enrolled': '📝 Inscrivez-vous au cours',
-    'pending': '⏳ Inscription en attente',
-    'approved': '✅ Accès autorisé',
-    'denied': '🚫 Accès refusé'
+    'not_authenticated': 'Connectez-vous pour accéder',
+    'not_enrolled': 'Inscrivez-vous au cours',
+    'pending': 'Inscription en attente',
+    'approved': 'Accès autorisé',
+    'denied': 'Accès refusé'
   };
   
   return messages[status] || 'Accès inconnu';

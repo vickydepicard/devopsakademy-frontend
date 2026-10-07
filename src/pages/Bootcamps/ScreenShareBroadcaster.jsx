@@ -6,6 +6,8 @@ import {
   Monitor, Camera, Mic, MicOff, Users, Radio,
   StopCircle, AlertCircle, CheckCircle, Loader, Globe, Lock,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 const PEER_SERVER = { host: "0.peerjs.com", port: 443, secure: true, path: "/" };
 
@@ -20,6 +22,7 @@ function loadPeerJS() {
 }
 
 function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
+  const { t } = useTranslation("screenShareBroadcaster");
   const [status,      setStatus]      = useState("idle");
   const [viewers,     setViewers]     = useState(0);
   const [error,       setError]       = useState("");
@@ -60,7 +63,7 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
         tracks.push(...m.getAudioTracks());
       } catch (_) { /* Micro non disponible — continuer sans */ }
     }
-    if (!tracks.length) throw new Error("Aucun flux sélectionné");
+    if (!tracks.length) throw new Error(t("aucun_flux_selectionne"));
     return new MediaStream(tracks);
   };
 
@@ -147,7 +150,7 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
       });
 
       peer.on("error", (err) => {
-        setError("Erreur PeerJS: " + err.message);
+        setError(i18n.t("screenShareBroadcaster:erreur_peerjs") + err.message);
         setStatus("error");
       });
 
@@ -156,11 +159,11 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
       const msg = err.message || "";
       if (msg.includes("Permission denied") || msg.includes("NotAllowedError") || 
           err.name === "NotAllowedError" || msg.includes("cancelled") || msg.includes("abort")) {
-        setError("Partage d'écran annulé. Cliquez à nouveau sur 'Démarrer le live' et autorisez le partage.");
+        setError(t("partage_d_ecran_annule_cliquez_a"));
       } else if (msg.includes("NotReadableError") || msg.includes("hardware")) {
-        setError("Impossible d'accéder à l'écran. Vérifiez qu'aucune autre app ne l'utilise.");
+        setError(t("impossible_d_acceder_a_l_ecran"));
       } else {
-        setError(msg || "Impossible de démarrer le partage");
+        setError(msg || t("impossible_de_demarrer_le_partage"));
       }
       setStatus("idle"); // Retour à idle (pas error) pour permettre de réessayer directement
       // Nettoyer le stream si partiellement initialisé
@@ -183,13 +186,11 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           {isSharing && <span style={{ width:10, height:10, borderRadius:"50%", background:"white", animation:"pulse 1.5s infinite", display:"block" }} />}
           <span style={{ color:"white", fontWeight:800, fontSize:14 }}>
-            {isSharing ? "🔴 Stream en direct" : "🎙️ Partage d'écran"}
+            {isSharing ? t("stream_en_direct") : t("partage_d_ecran")}
           </span>
         </div>
         {isSharing && (
-          <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:20, padding:"3px 12px", color:"white", fontSize:12, fontWeight:700 }}>
-            {viewers} spectateur{viewers !== 1 ? "s" : ""}
-          </span>
+          <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:20, padding:"3px 12px", color:"white", fontSize:12, fontWeight:700 }}>{i18n.t("screenShareBroadcaster:spectateur", { viewers, s: viewers !== 1 ? "s" : "" })}</span>
         )}
       </div>
 
@@ -200,19 +201,17 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
           {!isSharing && !isLoading && (
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:8 }}>
               <Monitor size={36} color="rgba(255,255,255,0.25)" />
-              <p style={{ color:"rgba(255,255,255,0.4)", fontSize:13, fontWeight:600 }}>Votre écran apparaîtra ici</p>
+              <p style={{ color:"rgba(255,255,255,0.4)", fontSize:13, fontWeight:600 }}>{t("votre_ecran_apparaitra_ici")}</p>
             </div>
           )}
           {isLoading && (
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:10 }}>
               <div style={{ width:36, height:36, border:"3px solid #5653e1", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }} />
-              <p style={{ color:"rgba(255,255,255,0.6)", fontSize:13, fontWeight:600 }}>Démarrage...</p>
+              <p style={{ color:"rgba(255,255,255,0.6)", fontSize:13, fontWeight:600 }}>{t("demarrage")}</p>
             </div>
           )}
           {isSharing && (
-            <div style={{ position:"absolute", bottom:10, left:10, background:"rgba(0,0,0,0.7)", borderRadius:8, padding:"4px 10px", color:"white", fontSize:11, fontWeight:700 }}>
-              PREVIEW
-            </div>
+            <div style={{ position:"absolute", bottom:10, left:10, background:"rgba(0,0,0,0.7)", borderRadius:8, padding:"4px 10px", color:"white", fontSize:11, fontWeight:700 }}>{t("preview")}</div>
           )}
         </div>
 
@@ -220,13 +219,11 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
         {status === "idle" && (
           <>
             <div style={{ background:"#f8f7ff", borderRadius:14, padding:14 }}>
-              <p style={{ fontSize:11, fontWeight:800, color:"#5653e1", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>
-                📡 Que partager ?
-              </p>
+              <p style={{ fontSize:11, fontWeight:800, color:"#5653e1", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("que_partager")}</p>
               {[
-                [shareScreen, setShareScreen, Monitor, "Partager l'écran",  "Présentation, terminal, navigateur"],
-                [shareWebcam, setShareWebcam, Camera,  "Ajouter la webcam", "Votre visage en incrustation"],
-                [shareMic,    setShareMic,    Mic,     "Activer le micro",  "Votre voix en direct"],
+                [shareScreen, setShareScreen, Monitor, i18n.t("screenShareBroadcaster:partager_l_ecran"),  i18n.t("screenShareBroadcaster:presentation_terminal_navigateur")],
+                [shareWebcam, setShareWebcam, Camera,  i18n.t("screenShareBroadcaster:ajouter_la_webcam"), i18n.t("screenShareBroadcaster:votre_visage_en_incrustation")],
+                [shareMic,    setShareMic,    Mic,     i18n.t("screenShareBroadcaster:activer_le_micro"),  i18n.t("screenShareBroadcaster:votre_voix_en_direct")],
               ].map(([val, setter, Icon, label, sub]) => (
                 <button key={label} onClick={() => setter(!val)}
                   style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:10, border:"2px solid " + (val ? "#5653e1" : "#e5e7eb"), background: val ? "#f0efff" : "white", cursor:"pointer", width:"100%", marginBottom:8, textAlign:"left" }}>
@@ -243,9 +240,9 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
             </div>
 
             <div style={{ background:"#eff6ff", borderRadius:14, padding:14, border:"1px solid #bfdbfe" }}>
-              <p style={{ fontSize:11, fontWeight:800, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 10px" }}>🔒 Accès</p>
+              <p style={{ fontSize:11, fontWeight:800, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 10px" }}>{t("acces")}</p>
               <div style={{ display:"flex", gap:8 }}>
-                {[["public","🌍 Tout le monde"],["registered","🔒 Inscrits"]].map(([val, label]) => (
+                {[["public",i18n.t("screenShareBroadcaster:tout_le_monde")],["registered",i18n.t("screenShareBroadcaster:inscrits")]].map(([val, label]) => (
                   <button key={val} onClick={() => setAccessMode(val)}
                     style={{ flex:1, padding:"9px", borderRadius:10, border:"2px solid " + (accessMode === val ? "#0369a1" : "#e5e7eb"), background: accessMode === val ? "#eff6ff" : "white", cursor:"pointer", fontWeight:700, fontSize:12, color: accessMode === val ? "#0369a1" : "#374151" }}>
                     {label}
@@ -270,8 +267,8 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
             disabled={isLoading || (!shareScreen && !shareWebcam)}
             style={{ padding:"14px", borderRadius:14, border:"none", cursor:"pointer", fontWeight:900, fontSize:15, color:"white", background: isLoading ? "#9ca3af" : "linear-gradient(135deg,#dc2626,#ef4444)", display:"flex", alignItems:"center", justifyContent:"center", gap:10, opacity:(!shareScreen && !shareWebcam) ? 0.5 : 1 }}>
             {isLoading
-              ? <><div style={{ width:18, height:18, border:"2px solid white", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }} /> Démarrage...</>
-              : <><Radio size={18} /> Démarrer le live</>}
+              ? <><div style={{ width:18, height:18, border:"2px solid white", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }} />{" "}{t("demarrage")}</>
+              : <><Radio size={18} />{" "}{t("demarrer_le_live")}</>}
           </button>
         ) : (
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -279,18 +276,17 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
               <div style={{ background:"#fef2f2", borderRadius:10, padding:"10px", textAlign:"center" }}>
                 <Users size={16} color="#ef4444" style={{ margin:"0 auto 3px", display:"block" }} />
                 <p style={{ fontWeight:900, fontSize:18, color:"#ef4444", margin:0 }}>{viewers}</p>
-                <p style={{ fontSize:10, color:"#9ca3af", margin:0 }}>Spectateurs</p>
+                <p style={{ fontSize:10, color:"#9ca3af", margin:0 }}>{t("spectateurs")}</p>
               </div>
               <div style={{ background:"#f0fdf4", borderRadius:10, padding:"10px", textAlign:"center" }}>
                 <Radio size={16} color="#10b981" style={{ margin:"0 auto 3px", display:"block" }} />
                 <p style={{ fontWeight:900, fontSize:14, color:"#10b981", margin:0 }}>LIVE</p>
-                <p style={{ fontSize:10, color:"#9ca3af", margin:0 }}>En cours</p>
+                <p style={{ fontSize:10, color:"#9ca3af", margin:0 }}>{t("en_cours")}</p>
               </div>
             </div>
             <button onClick={stopBroadcast}
               style={{ padding:"13px", borderRadius:14, border:"2px solid #fecaca", background:"#fef2f2", cursor:"pointer", fontWeight:900, fontSize:14, color:"#dc2626", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-              <StopCircle size={18} /> Arrêter le live
-            </button>
+              <StopCircle size={18} />{" "}{t("arreter_le_live")}</button>
           </div>
         )}
       </div>

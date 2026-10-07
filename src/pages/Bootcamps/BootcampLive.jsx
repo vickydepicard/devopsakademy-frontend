@@ -11,17 +11,21 @@ import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import ScreenShareViewer   from "./ScreenShareViewer";
 import ScreenShareBroadcaster from "./ScreenShareBroadcaster";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
-const fmt = (n) => Number(n || 0).toLocaleString("fr-FR");
-const STATUS_LABEL = {
-  live:      { label:"🔴 En direct",  color:"#ef4444", bg:"rgba(239,68,68,0.15)" },
-  scheduled: { label:"📅 Planifié",   color:"#f59e0b", bg:"rgba(245,158,11,0.15)" },
-  ended:     { label:"✅ Terminé",    color:"#10b981", bg:"rgba(16,185,129,0.15)" },
-  draft:     { label:"Brouillon",     color:"#9ca3af", bg:"rgba(156,163,175,0.15)" },
-};
+const fmt = (n) => Number(n || 0).toLocaleString(getLocale());
+const STATUS_LABEL = () => ({
+  live:      { label:i18n.t("bootcampLive:en_direct"),  color:"#ef4444", bg:"rgba(239,68,68,0.15)" },
+  scheduled: { label:i18n.t("bootcampLive:planifie"),   color:"#f59e0b", bg:"rgba(245,158,11,0.15)" },
+  ended:     { label:i18n.t("bootcampLive:termine"),    color:"#10b981", bg:"rgba(16,185,129,0.15)" },
+  draft:     { label:i18n.t("bootcampLive:brouillon"),     color:"#9ca3af", bg:"rgba(156,163,175,0.15)" },
+});
 
 // Embed player pour YouTube/Zoom/MP4
 function EmbedPlayer({ url, title, status, thumbnail }) {
+  const { t } = useTranslation("bootcampLive");
   if (!url) {
     return (
       <div style={{ background:"#1a1a2e", aspectRatio:"16/9", borderRadius:16,
@@ -32,7 +36,7 @@ function EmbedPlayer({ url, title, status, thumbnail }) {
             objectFit:"cover", borderRadius:16, opacity:0.2 }} />}
         <Clock size={40} color="rgba(255,255,255,0.3)" />
         <p style={{ color:"rgba(255,255,255,0.5)", fontWeight:600, fontSize:14 }}>
-          {status === "scheduled" ? "Live non encore démarré" : "Aucun stream configuré"}
+          {status === "scheduled" ? t("live_non_encore_demarre") : t("aucun_stream_configure")}
         </p>
       </div>
     );
@@ -73,7 +77,8 @@ function EmbedPlayer({ url, title, status, thumbnail }) {
 
 // Message chat
 function ChatMsg({ msg, isMe, isAdmin, onDelete }) {
-  const time = new Date(msg.created_at).toLocaleTimeString("fr-FR",
+  const { t } = useTranslation("bootcampLive");
+  const time = new Date(msg.created_at).toLocaleTimeString(getLocale(),
     { hour:"2-digit", minute:"2-digit" });
   const isInstructor = msg.role === "instructor" || msg.role === "admin";
   return (
@@ -92,9 +97,7 @@ function ChatMsg({ msg, isMe, isAdmin, onDelete }) {
             color: isInstructor ? "#2d287f" : "#6b7280" }}>
             {msg.user_name}
             {isInstructor && <span style={{ marginLeft:4, fontSize:9,
-              background:"#2d287f", color:"white", padding:"1px 5px", borderRadius:4 }}>
-              INSTRUCTOR
-            </span>}
+              background:"#2d287f", color:"white", padding:"1px 5px", borderRadius:4 }}>{t("instructor")}</span>}
           </span>
           <span style={{ fontSize:9, color:"#d1d5db" }}>{time}</span>
         </div>
@@ -110,6 +113,7 @@ function ChatMsg({ msg, isMe, isAdmin, onDelete }) {
 
 // ══════════════════════════════════════════════════════════════
 export default function BootcampLive() {
+  const { t } = useTranslation("bootcampLive");
   const { id }      = useParams();
   const { user }    = useAuth();
   const navigate    = useNavigate();
@@ -126,8 +130,9 @@ export default function BootcampLive() {
   const chatRef     = useRef(null);
   const pollRef     = useRef(null);
 
-  const isAdmin      = user?.role === "admin" || user?.role === "instructor";
-  const isOwner      = isAdmin && boot?.instructor_id === user?.id || user?.role === "admin";
+  const isAdmin      = ["admin","superadmin","instructor"].includes(user?.role);
+  const [canHost, setCanHost] = useState(false);
+  const isOwner      = canHost || user?.role === "admin" || user?.role === "superadmin";
   const isLiveOrEnded= boot?.status === "live" || boot?.status === "ended";
 
   // Charger le bootcamp
@@ -138,16 +143,17 @@ export default function BootcampLive() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Vérifier inscription via le champ is_registered retourné par l'API bootcamp
+  // Droit d'animer le live (hôte désigné ou équipe du cours rattaché)
+  useEffect(() => {
+    if (!user || !boot?.id || user.role === "student") return;
+    api.get(`/bootcamps/${boot.id}/can-host`).then(r => setCanHost(!!r.data?.can_host)).catch(() => {});
+  }, [user?.id, boot?.id]);
+
+  // Inscription : fournie par GET /bootcamps/:id ; l'équipe (admin, animateur) accède sans inscription
   useEffect(() => {
     if (!user || !boot) return;
-    // is_registered est retourné directement par GET /bootcamps/:id
-    if (boot.is_registered) { setIsReg(true); return; }
-    // Fallback : vérifier via register (409 = déjà inscrit)
-    api.post(`/bootcamps/${id}/register`, {})
-      .then(() => setIsReg(true))
-      .catch(e => { if (e.response?.status === 409) setIsReg(true); });
-  }, [user, boot]);
+    setIsReg(!!boot.is_registered || user.role === "admin" || canHost);
+  }, [user, boot, canHost]);
 
   // Poll messages
   const lastMsgTime = useRef(null);
@@ -169,14 +175,14 @@ export default function BootcampLive() {
   }, [id]);
 
   useEffect(() => {
-    if (isLiveOrEnded) {
+    if (isLiveOrEnded && user) {
       loadMessages();
       if (boot?.status === "live") {
         pollRef.current = setInterval(loadMessages, 3000);
       }
     }
     return () => clearInterval(pollRef.current);
-  }, [isLiveOrEnded, boot?.status]);
+  }, [isLiveOrEnded, boot?.status, user?.id]);
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -212,7 +218,7 @@ export default function BootcampLive() {
   );
   if (!boot) return null;
 
-  const stCfg = STATUS_LABEL[boot.status] || STATUS_LABEL.scheduled;
+  const stCfg = STATUS_LABEL()[boot.status] || STATUS_LABEL().scheduled;
   const date  = boot.scheduled_at ? new Date(boot.scheduled_at) : null;
   const isValidDate = date && !isNaN(date.getTime());
   const canWatch = boot.access_mode === "public" || isReg || isAdmin;
@@ -228,8 +234,7 @@ export default function BootcampLive() {
         <Link to="/bootcamps" style={{ color:"rgba(255,255,255,0.5)",
           display:"flex", alignItems:"center", gap:5, textDecoration:"none",
           fontSize:13, fontWeight:600 }} className="hover:text-white">
-          <ArrowLeft size={14} /> Bootcamps
-        </Link>
+          <ArrowLeft size={14} />{" "}{t("bootcamps")}</Link>
         <span style={{ color:"rgba(255,255,255,0.2)" }}>›</span>
         <span style={{ color:"white", fontWeight:700, fontSize:13, flex:1,
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
@@ -245,8 +250,8 @@ export default function BootcampLive() {
             background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.6)",
             fontSize:11, fontWeight:600, display:"flex", alignItems:"center", gap:4 }}>
             {boot.access_mode === "public"
-              ? <><Globe size={10} />Public</>
-              : <><Lock size={10} />Inscrits</>}
+              ? <><Globe size={10} />{t("public")}</>
+              : <><Lock size={10} />{t("inscrits")}</>}
           </span>
         </div>
       </div>
@@ -292,11 +297,9 @@ export default function BootcampLive() {
                   borderRadius:16, padding:20, textAlign:"center" }}>
                   <Lock size={24} color="rgba(255,255,255,0.6)"
                     style={{ margin:"0 auto 10px", display:"block" }} />
-                  <p style={{ color:"white", fontWeight:800, fontSize:15, margin:"0 0 6px" }}>
-                    Contenu réservé aux inscrits
-                  </p>
+                  <p style={{ color:"white", fontWeight:800, fontSize:15, margin:"0 0 6px" }}>{t("contenu_reserve_aux_inscrits")}</p>
                   <p style={{ color:"rgba(255,255,255,0.55)", fontSize:13, margin:"0 0 14px" }}>
-                    {boot.is_free ? "Inscription gratuite" : `${fmt(boot.price)} FCFA`}
+                    {boot.is_free ? t("inscription_gratuite") : `${fmt(boot.price)} FCFA`}
                   </p>
                   <button onClick={handleRegister} disabled={regLoading}
                     style={{ padding:"12px 28px", borderRadius:14, border:"none",
@@ -305,7 +308,7 @@ export default function BootcampLive() {
                       display:"inline-flex", alignItems:"center", gap:8 }}>
                     {regLoading
                       ? <Loader size={16} style={{ animation:"spin 1s linear infinite" }} />
-                      : boot.is_free ? "🎉 S'inscrire gratuitement" : "S'inscrire maintenant"}
+                      : boot.is_free ? t("s_inscrire_gratuitement") : t("s_inscrire_maintenant")}
                   </button>
                 </div>
               )}
@@ -323,21 +326,19 @@ export default function BootcampLive() {
                 <span style={{ display:"flex", alignItems:"center", gap:5,
                   fontSize:12, color:"rgba(255,255,255,0.5)" }}>
                   <Calendar size={12} />
-                  {date.toLocaleDateString("fr-FR", {weekday:"long",day:"numeric",month:"long"})}
-                  {" à "}{date.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}
+                  {date.toLocaleDateString(getLocale(), {weekday:"long",day:"numeric",month:"long"})}
+                  {" à "}{date.toLocaleTimeString(getLocale(),{hour:"2-digit",minute:"2-digit"})}
                 </span>
               )}
               <span style={{ display:"flex", alignItems:"center", gap:5,
                 fontSize:12, color:"rgba(255,255,255,0.5)" }}>
-                <Clock size={12} />{boot.duration_minutes} min
-              </span>
+                <Clock size={12} />{i18n.t("bootcampLive:min", { vduration_minutes: boot.duration_minutes })}</span>
               <span style={{ display:"flex", alignItems:"center", gap:5,
                 fontSize:12, color:"rgba(255,255,255,0.5)" }}>
-                <Users size={12} />{fmt(boot.registered_count)} inscrits
-              </span>
+                <Users size={12} />{fmt(boot.registered_count)}{" "}{i18n.t("bootcampLive:inscrits_2")}</span>
               <span style={{ fontSize:12, fontWeight:700,
                 color: boot.is_free ? "#10b981" : "#facc15" }}>
-                {boot.is_free ? "🎉 Gratuit" : `${fmt(boot.price)} FCFA`}
+                {boot.is_free ? t("gratuit") : `${fmt(boot.price)} FCFA`}
               </span>
             </div>
             {boot.description && (
@@ -360,8 +361,8 @@ export default function BootcampLive() {
           <div style={{ display:"flex", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
             {[
               ["stream", <Radio size={13} />, "Live"],
-              ["chat",   <MessageSquare size={13} />, "Chat"],
-              ["info",   <Info size={13} />, "Infos"],
+              ["chat",   <MessageSquare size={13} />, i18n.t("bootcampLive:chat")],
+              ["info",   <Info size={13} />, i18n.t("bootcampLive:infos")],
             ].map(([tab, icon, label]) => (
               <button key={tab} onClick={() => setActiveTab(tab)}
                 style={{ flex:1, padding:"11px 8px", border:"none", cursor:"pointer",
@@ -390,24 +391,22 @@ export default function BootcampLive() {
                   {stCfg.label}
                 </p>
                 <p style={{ color:"rgba(255,255,255,0.45)", fontSize:12, margin:0 }}>
-                  {boot.status === "live" ? "Stream en cours" :
-                   boot.status === "scheduled" ? `Prévu le ${isValidDate ? date.toLocaleDateString("fr-FR") : "—"}` :
-                   "Bootcamp terminé"}
+                  {boot.status === "live" ? t("stream_en_cours") :
+                   boot.status === "scheduled" ? i18n.t("bootcampLive:prevu_le_2", { s: isValidDate ? date.toLocaleDateString(getLocale()) : "—" }) :
+                   t("bootcamp_termine")}
                 </p>
               </div>
 
               {/* Accès */}
               <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:12, padding:12 }}>
                 <p style={{ color:"rgba(255,255,255,0.4)", fontSize:10,
-                  fontWeight:700, textTransform:"uppercase", margin:"0 0 8px" }}>
-                  Accès
-                </p>
+                  fontWeight:700, textTransform:"uppercase", margin:"0 0 8px" }}>{t("acces")}</p>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                   {boot.access_mode === "public"
                     ? <Globe size={14} color="#10b981" />
                     : <Lock size={14} color="#f59e0b" />}
                   <span style={{ color:"white", fontSize:13, fontWeight:700 }}>
-                    {boot.access_mode === "public" ? "Public — Tout le monde" : "Privé — Inscrits seulement"}
+                    {boot.access_mode === "public" ? t("public_tout_le_monde") : t("prive_inscrits_seulement")}
                   </span>
                 </div>
                 {!isReg && boot.access_mode === "registered" && (
@@ -416,22 +415,18 @@ export default function BootcampLive() {
                       borderRadius:10, border:"none",
                       background:"linear-gradient(135deg,#2d287f,#5653e1)",
                       color:"white", fontWeight:800, fontSize:12, cursor:"pointer" }}>
-                    {boot.is_free ? "🎉 S'inscrire" : `S'inscrire — ${fmt(boot.price)} FCFA`}
+                    {boot.is_free ? t("s_inscrire") : t("s_inscrire_fcfa", { fmt: fmt(boot.price) })}
                   </button>
                 )}
                 {isReg && (
-                  <p style={{ color:"#10b981", fontSize:11, fontWeight:700, margin:"8px 0 0" }}>
-                    ✓ Vous êtes inscrit
-                  </p>
+                  <p style={{ color:"#10b981", fontSize:11, fontWeight:700, margin:"8px 0 0" }}>{t("vous_etes_inscrit")}</p>
                 )}
               </div>
 
               {/* Instructeur */}
               <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:12, padding:12 }}>
                 <p style={{ color:"rgba(255,255,255,0.4)", fontSize:10,
-                  fontWeight:700, textTransform:"uppercase", margin:"0 0 8px" }}>
-                  Instructeur
-                </p>
+                  fontWeight:700, textTransform:"uppercase", margin:"0 0 8px" }}>{t("instructeur")}</p>
                 <p style={{ color:"white", fontWeight:700, fontSize:13, margin:0 }}>
                   {boot.instructor_name}
                 </p>
@@ -454,22 +449,22 @@ export default function BootcampLive() {
                 {!isLiveOrEnded ? (
                   <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.3)" }}>
                     <MessageSquare size={28} style={{ margin:"0 auto 8px", display:"block" }} />
-                    <p style={{ fontSize:13 }}>Chat disponible pendant le live</p>
+                    <p style={{ fontSize:13 }}>{t("chat_disponible_pendant_le_live")}</p>
                   </div>
                 ) : !isReg && !isAdmin && boot?.access_mode !== 'public' ? (
                   <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.3)" }}>
                     <Lock size={28} style={{ margin:"0 auto 8px", display:"block" }} />
-                    <p style={{ fontSize:13 }}>Inscrivez-vous pour accéder au chat</p>
+                    <p style={{ fontSize:13 }}>{t("inscrivez_vous_pour_acceder_au_chat")}</p>
                     <button onClick={handleRegister}
                       style={{ marginTop:12, padding:"8px 20px", borderRadius:10,
                         border:"none", background:"linear-gradient(135deg,#2d287f,#5653e1)",
                         color:"white", fontWeight:700, fontSize:12, cursor:"pointer" }}>
-                      {boot?.is_free ? "S'inscrire gratuitement" : `S'inscrire`}
+                      {boot?.is_free ? t("s_inscrire_gratuitement") : t("s_inscrire")}
                     </button>
                   </div>
                 ) : messages.length === 0 ? (
                   <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.3)" }}>
-                    <p style={{ fontSize:13 }}>Aucun message. Soyez le premier !</p>
+                    <p style={{ fontSize:13 }}>{t("aucun_message_soyez_le_premier")}</p>
                   </div>
                 ) : messages.map(msg => (
                   <ChatMsg key={msg.id} msg={msg}
@@ -486,7 +481,7 @@ export default function BootcampLive() {
                     borderTop:"1px solid rgba(255,255,255,0.06)",
                     display:"flex", gap:8 }}>
                   <input value={newMsg} onChange={e => setNewMsg(e.target.value)}
-                    placeholder="Votre message..." maxLength={500}
+                    placeholder={t("votre_message")} maxLength={500}
                     style={{ flex:1, border:"1.5px solid rgba(255,255,255,0.1)",
                       borderRadius:10, padding:"8px 12px", fontSize:13,
                       background:"rgba(255,255,255,0.05)", color:"white",
@@ -508,15 +503,15 @@ export default function BootcampLive() {
           {activeTab === "info" && (
             <div style={{ padding:16, display:"flex", flexDirection:"column", gap:10 }}>
               {[
-                ["Titre",     boot.title],
-                ["Statut",    stCfg.label],
-                ["Date",      isValidDate ? date.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}) : "—"],
-                ["Heure",     isValidDate ? date.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "—"],
-                ["Durée",     `${boot.duration_minutes} minutes`],
-                ["Inscrits",  fmt(boot.registered_count) + (boot.max_participants ? ` / ${fmt(boot.max_participants)}` : "")],
-                ["Accès",     boot.access_mode === "public" ? "🌍 Public" : "🔒 Inscrits seulement"],
-                ["Prix",      boot.is_free ? "🎉 Gratuit" : `${fmt(boot.price)} FCFA`],
-                ["Stream",    boot.stream_type === "webrtc" ? "🖥️ Partage d\'écran (WebRTC)" : boot.stream_url ? "📺 Lien embed" : "—"],
+                [i18n.t("bootcampLive:titre"),     boot.title],
+                [i18n.t("bootcampLive:statut"),    stCfg.label],
+                [i18n.t("bootcampLive:date"),      isValidDate ? date.toLocaleDateString(getLocale(),{day:"numeric",month:"long",year:"numeric"}) : "—"],
+                [i18n.t("bootcampLive:heure"),     isValidDate ? date.toLocaleTimeString(getLocale(),{hour:"2-digit",minute:"2-digit"}) : "—"],
+                [i18n.t("bootcampLive:duree"),     `${boot.duration_minutes} minutes`],
+                [i18n.t("bootcampLive:inscrits"),  fmt(boot.registered_count) + (boot.max_participants ? ` / ${fmt(boot.max_participants)}` : "")],
+                [i18n.t("bootcampLive:acces"),     boot.access_mode === "public" ? i18n.t("bootcampLive:public") : i18n.t("bootcampLive:inscrits_seulement")],
+                [i18n.t("bootcampLive:prix"),      boot.is_free ? i18n.t("bootcampLive:gratuit") : `${fmt(boot.price)} FCFA`],
+                [i18n.t("bootcampLive:stream"),    boot.stream_type === "webrtc" ? i18n.t("bootcampLive:partage_d_ecran_webrtc") : boot.stream_url ? i18n.t("bootcampLive:lien_embed") : "—"],
               ].map(([label, val]) => (
                 <div key={label} style={{ display:"flex", justifyContent:"space-between",
                   alignItems:"flex-start", fontSize:12, paddingBottom:8,

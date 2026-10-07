@@ -13,7 +13,7 @@ export default function HeroSection() {
             Bienvenue sur <span className="text-accent">DevOps Akademy</span>
           </h1>
           <p className="text-base md:text-lg text-gray-200 mb-8 leading-relaxed max-w-lg">
-            Formations Cloud, DevOps et CI/CD pour maîtriser les technologies modernes et propulser ta carrière.
+            Formations professionnelles Cloud, DevOps et CI/CD, conçues avec des praticiens et validées par des certificats vérifiables.
           </p>
           <div className="flex justify-center md:justify-start gap-4 flex-wrap">
             <Link

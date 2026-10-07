@@ -6,6 +6,9 @@ import {
   Volume2, VolumeX, Maximize2, Minimize2,
   Loader, WifiOff, Radio, Lock, RefreshCw, MonitorPlay,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
+import i18n from "../../i18n";
 
 const PEER_SERVER = { host: "0.peerjs.com", port: 443, secure: true, path: "/" };
 
@@ -20,6 +23,7 @@ function loadPeerJS() {
 }
 
 function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
+  const { t } = useTranslation("screenShareViewer");
   const [status,  setStatus]  = useState("waiting");
   const [muted,   setMuted]   = useState(false);
   const [fullscr, setFullscr] = useState(false);
@@ -33,7 +37,7 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
   const myPeerId   = useRef(null);
   const initialized= useRef(false);
 
-  const fmtPrice = (n) => Number(n || 0).toLocaleString("fr-FR");
+  const fmtPrice = (n) => Number(n || 0).toLocaleString(getLocale());
 
   // ── Nettoyage ──────────────────────────────────────────
   const cleanup = useCallback(async () => {
@@ -88,7 +92,7 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
         const timeout = setTimeout(() => {
           if (videoRef.current?.srcObject == null) {
             setStatus("error");
-            setError("L'instructeur ne répond pas. Réessayez dans quelques secondes.");
+            setError(t("l_instructeur_ne_repond_pas_reessayez"));
           }
         }, 20000);
 
@@ -114,7 +118,7 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
 
           call.on("error", () => {
             setStatus("error");
-            setError("Connexion interrompue avec l'instructeur");
+            setError(t("connexion_interrompue_avec_l_instructeur"));
           });
         });
       });
@@ -123,17 +127,17 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
         console.error("Peer error:", err.type);
         if (err.type === "network" || err.type === "disconnected") {
           setStatus("error");
-          setError("Problème réseau WebRTC");
+          setError(t("probleme_reseau_webrtc"));
         } else {
           setStatus("error");
-          setError("Erreur: " + err.message);
+          setError(i18n.t("screenShareViewer:erreur") + err.message);
         }
         initialized.current = false;
       });
 
     } catch (err) {
       setStatus("error");
-      setError("Erreur initialisation: " + err.message);
+      setError(i18n.t("screenShareViewer:erreur_initialisation") + err.message);
       initialized.current = false;
     }
   }, [bootcamp.id]);
@@ -206,14 +210,14 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
       {/* Overlays */}
       {status === "waiting" && (
         <Overlay icon={Radio} color="#facc15"
-          title="En attente du live..."
-          sub="L'instructeur n'a pas encore démarré. La page se met à jour automatiquement."
+          title={t("en_attente_du_live")}
+          sub={t("l_instructeur_n_a_pas_encore")}
           action={
             <div style={{ display:"flex", alignItems:"center", gap:8,
               background:"rgba(255,255,255,0.07)", borderRadius:20, padding:"6px 16px" }}>
               <span style={{ width:8, height:8, borderRadius:"50%", background:"#facc15",
                 animation:"blink 1.5s infinite", display:"block" }} />
-              <span style={{ color:"rgba(255,255,255,0.6)", fontSize:12 }}>Connexion surveillée</span>
+              <span style={{ color:"rgba(255,255,255,0.6)", fontSize:12 }}>{t("connexion_surveillee")}</span>
             </div>
           }
         />
@@ -221,8 +225,8 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
 
       {status === "connecting" && (
         <Overlay icon={Loader} color="#5653e1"
-          title="En attente de l'instructeur..."
-          sub="Votre connexion est prête. L'instructeur va vous envoyer le stream sous peu."
+          title={t("en_attente_de_l_instructeur")}
+          sub={t("votre_connexion_est_prete_l_instructeur")}
           action={
             <div style={{ width:32, height:32, border:"3px solid #5653e1",
               borderTopColor:"transparent", borderRadius:"50%",
@@ -233,16 +237,16 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
 
       {status === "blocked" && (
         <Overlay icon={Lock} color="#f59e0b"
-          title="Accès réservé aux inscrits"
+          title={t("acces_reserve_aux_inscrits")}
           sub={bootcamp.is_free
-            ? "Inscrivez-vous gratuitement pour accéder au live."
-            : `Inscrivez-vous pour ${fmtPrice(bootcamp.price)} FCFA.`}
+            ? t("inscrivez_vous_gratuitement_pour_acceder_au")
+            : t("inscrivez_vous_pour_fcfa", { fmtPrice: fmtPrice(bootcamp.price) })}
           action={
             <button onClick={onRequestRegister}
               style={{ padding:"12px 28px", borderRadius:14, border:"none",
                 background:"linear-gradient(135deg,#2d287f,#5653e1)",
                 color:"white", fontWeight:900, fontSize:14, cursor:"pointer" }}>
-              {bootcamp.is_free ? "🎉 S'inscrire gratuitement" : `S'inscrire — ${fmtPrice(bootcamp.price)} FCFA`}
+              {bootcamp.is_free ? t("s_inscrire_gratuitement") : t("s_inscrire_fcfa", { fmtPrice: fmtPrice(bootcamp.price) })}
             </button>
           }
         />
@@ -250,14 +254,14 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
 
       {status === "ended" && (
         <Overlay icon={MonitorPlay} color="#10b981"
-          title="Live terminé"
-          sub="Merci pour votre participation ! Le replay sera disponible prochainement."
+          title={t("live_termine")}
+          sub={t("merci_pour_votre_participation_le_replay")}
         />
       )}
 
       {status === "error" && (
         <Overlay icon={WifiOff} color="#ef4444"
-          title="Problème de connexion"
+          title={t("probleme_de_connexion")}
           sub={error}
           action={
             <button onClick={() => {
@@ -270,8 +274,7 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
                 background:"rgba(255,255,255,0.1)", color:"white",
                 fontWeight:700, fontSize:13, cursor:"pointer",
                 display:"flex", alignItems:"center", gap:7 }}>
-              <RefreshCw size={14} /> Réessayer
-            </button>
+              <RefreshCw size={14} />{" "}{t("reessayer")}</button>
           }
         />
       )}
@@ -284,7 +287,7 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
             borderRadius:20, padding:"4px 12px" }}>
             <span style={{ width:7, height:7, borderRadius:"50%", background:"white",
               animation:"pulse 1.5s infinite", display:"block" }} />
-            <span style={{ color:"white", fontWeight:800, fontSize:12 }}>EN DIRECT</span>
+            <span style={{ color:"white", fontWeight:800, fontSize:12 }}>{t("en_direct")}</span>
           </div>
           <div style={{ position:"absolute", bottom:12, right:12, display:"flex", gap:8 }}>
             <button onClick={() => setMuted(!muted)}

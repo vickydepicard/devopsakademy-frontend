@@ -3,14 +3,25 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import {
   Plus, Search, BookOpen, Users, Eye, Edit3,
-  Trash2, ToggleLeft, ToggleRight, BarChart2,
+  Trash2, BarChart2,
   Star, Clock, CheckCircle, XCircle, Settings,
   ChevronRight, Filter
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import useFeedback, { apiError } from "../../components/Common/useFeedback";
 
-const LEVEL_LABELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced: "Avancé" };
+const STATUS_BADGE = {
+  draft: "bg-gray-100 text-gray-600",
+  submitted: "bg-amber-100 text-amber-700",
+  approved: "bg-emerald-100 text-emerald-700",
+  rejected: "bg-red-100 text-red-600",
+};
+
+const LEVEL_LABELS = () => ({ beginner: i18n.t("instructorCourses:debutant"), intermediate: i18n.t("instructorCourses:intermediaire"), advanced: i18n.t("instructorCourses:avance") });
 
 export default function InstructorCourses() {
+  const { t } = useTranslation("instructorCourses");
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,9 +29,12 @@ export default function InstructorCourses() {
   const [filter, setFilter] = useState("all");
   const [togglingId, setTogglingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const { ui: feedbackUi, notify, confirm } = useFeedback();
+  const [rateModal, setRateModal] = useState(null);
+  const [rateValue, setRateValue] = useState("");
 
   useEffect(() => {
-    document.title = "Mes cours — DevOpsAkademy";
+    document.title = t("mes_cours_devopsakademy");
     fetchCourses();
   }, []);
 
@@ -35,32 +49,28 @@ export default function InstructorCourses() {
     }
   };
 
-  const togglePublish = async (course) => {
+  const reviewAction = async (course, action, rate) => {
     setTogglingId(course.id);
     try {
-      await api.patch(`/instructor/courses/${course.id}`, {
-        is_published: !course.is_published,
-      });
-      setCourses((prev) =>
-        prev.map((c) =>
-          c.id === course.id ? { ...c, is_published: !c.is_published } : c
-        )
-      );
-    } catch {
-      alert("Erreur lors de la mise à jour.");
+      const res = await api.post(`/instructor/courses/${course.id}/${action}`, action === "submit" && rate !== "" && rate != null ? { proposed_rate: rate } : {});
+      const next = action === "submit" ? "submitted" : "draft";
+      setCourses((prev) => prev.map((c) => (c.id === course.id ? { ...c, review_status: next, review_note: null } : c)));
+      notify(res.data?.message || t(action === "submit" ? "soumis_ok" : "retire_ok"), "success");
+    } catch (e) {
+      notify(apiError(e, t("erreur_soumission")));
     } finally {
       setTogglingId(null);
     }
   };
 
   const deleteCourse = async (id) => {
-    if (!window.confirm("Supprimer ce cours définitivement ? Cette action est irréversible.")) return;
+    if (!(await confirm(t("supprimer_ce_cours_definitivement_cette_action"), { confirmLabel: t("supprimer", { defaultValue: "Supprimer" }) }))) return;
     setDeletingId(id);
     try {
       await api.delete(`/instructor/courses/${id}`);
       setCourses((prev) => prev.filter((c) => c.id !== id));
-    } catch {
-      alert("Erreur lors de la suppression.");
+    } catch (e) {
+      notify(apiError(e, t("erreur_lors_de_la_suppression")));
     } finally {
       setDeletingId(null);
     }
@@ -96,28 +106,28 @@ export default function InstructorCourses() {
 
   return (
     <div className="space-y-6 max-w-7xl">
+      {feedbackUi}
 
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mes cours</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Gérez et publiez vos formations</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("mes_cours")}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">{t("gerez_et_publiez_vos_formations")}</p>
         </div>
         <Link
           to="/instructor/courses/new"
           className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-light text-white font-semibold py-2.5 px-5 rounded-xl hover:-translate-y-0.5 transition shadow-md text-sm"
         >
-          <Plus className="w-4 h-4" /> Nouveau cours
-        </Link>
+          <Plus className="w-4 h-4" />{" "}{t("nouveau_cours")}</Link>
       </div>
 
       {/* Stats rapides */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total", value: stats.total, color: "text-gray-800", bg: "bg-gray-100" },
-          { label: "Publiés", value: stats.published, color: "text-emerald-700", bg: "bg-emerald-50" },
-          { label: "Brouillons", value: stats.draft, color: "text-yellow-700", bg: "bg-yellow-50" },
-          { label: "Étudiants", value: stats.students, color: "text-blue-700", bg: "bg-blue-50" },
+          { label: t("total"), value: stats.total, color: "text-gray-800", bg: "bg-gray-100" },
+          { label: t("publies"), value: stats.published, color: "text-emerald-700", bg: "bg-emerald-50" },
+          { label: t("brouillons"), value: stats.draft, color: "text-yellow-700", bg: "bg-yellow-50" },
+          { label: t("etudiants"), value: stats.students, color: "text-blue-700", bg: "bg-blue-50" },
         ].map(({ label, value, color, bg }) => (
           <div key={label} className={`${bg} rounded-xl px-5 py-4`}>
             <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -133,7 +143,7 @@ export default function InstructorCourses() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un cours…"
+            placeholder={t("rechercher_un_cours")}
             className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
           />
         </div>
@@ -147,7 +157,7 @@ export default function InstructorCourses() {
                 : "bg-white text-gray-600 border-gray-200 hover:border-primary hover:text-primary"
             }`}
           >
-            {f === "all" ? "Tous" : f === "published" ? "Publiés" : "Brouillons"}
+            {f === "all" ? t("tous") : f === "published" ? t("publies") : t("brouillons")}
           </button>
         ))}
       </div>
@@ -157,18 +167,17 @@ export default function InstructorCourses() {
         <div className="bg-white border border-gray-200 rounded-2xl p-16 text-center">
           <BookOpen className="w-14 h-14 text-gray-300 mx-auto mb-4" />
           <h3 className="font-bold text-gray-700 mb-2">
-            {search ? `Aucun résultat pour "${search}"` : "Aucun cours trouvé"}
+            {search ? t("aucun_resultat_pour", { search }) : t("aucun_cours_trouve")}
           </h3>
-          <p className="text-gray-400 text-sm mb-6">Créez votre première formation dès maintenant.</p>
+          <p className="text-gray-400 text-sm mb-6">{t("creez_votre_premiere_formation_des_maintenant")}</p>
           <Link to="/instructor/courses/new" className="inline-flex items-center gap-2 bg-primary text-white font-semibold py-2.5 px-6 rounded-xl text-sm">
-            <Plus className="w-4 h-4" /> Créer un cours
-          </Link>
+            <Plus className="w-4 h-4" />{" "}{t("creer_un_cours")}</Link>
         </div>
       ) : (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-soft overflow-hidden">
           <div className="divide-y divide-gray-50">
             {filtered.map((course) => (
-              <div key={course.id} className="flex items-center gap-4 px-6 py-5 hover:bg-gray-50/60 transition group">
+              <div key={course.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 px-4 sm:px-6 py-5 hover:bg-gray-50/60 transition group">
                 {/* Thumbnail */}
                 <div className="w-20 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-primary-dark to-primary shrink-0">
                   {course.thumbnail_url
@@ -179,56 +188,76 @@ export default function InstructorCourses() {
 
                 {/* Infos */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-gray-900 truncate">{course.title}</p>
-                    <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${
-                      course.is_published ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {course.is_published ? "Publié" : "Brouillon"}
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <p className="font-semibold text-gray-900 truncate max-w-full">{course.title}</p>
+                    <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[course.is_published ? "approved" : (course.review_status || "draft")]}`}>
+                      {t(`statut_${course.is_published ? "approved" : (course.review_status || "draft")}`)}
                     </span>
+                    {course.is_author === false && (
+                      <span className="shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-blue-50 text-blue-700">{t("intervenant")}</span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-400">
-                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {course.enrolled_count || 0} étudiants</span>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {course.enrolled_count || 0}{" "}{t("etudiants_2")}</span>
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {course.duration_hours || 0}h</span>
-                    <span>{LEVEL_LABELS[course.level] || course.level || "—"}</span>
+                    <span>{LEVEL_LABELS()[course.level] || course.level || "—"}</span>
                     {course.avg_rating && (
                       <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400" /> {Number(course.avg_rating).toFixed(1)}</span>
                     )}
                   </div>
+                  {!course.is_published && course.review_status === "rejected" && course.review_note && (
+                    <p className="mt-1.5 text-xs text-red-700 bg-red-50 rounded-lg px-2.5 py-1.5 line-clamp-2"><span className="font-medium">{t("motif_renvoi")}</span> {course.review_note}</p>
+                  )}
                 </div>
 
+                {/* Soumission */}
+                {course.is_author !== false && !course.is_published && (course.review_status === "submitted" ? (
+                  <button type="button" onClick={() => reviewAction(course, "withdraw")} disabled={togglingId === course.id}
+                    className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60">{t("retirer_soumission")}</button>
+                ) : (
+                  <button type="button" onClick={() => { setRateModal(course); setRateValue(course.proposed_commission_rate != null ? String(Number(course.proposed_commission_rate)) : ""); }} disabled={togglingId === course.id}
+                    className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium bg-primary text-white hover:opacity-90 disabled:opacity-60">{t("soumettre")}</button>
+                ))}
+
                 {/* Actions */}
-                <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {/* Toggle publication */}
-                  <button
-                    onClick={() => togglePublish(course)}
-                    disabled={togglingId === course.id}
-                    title={course.is_published ? "Dépublier" : "Publier"}
-                    className={`p-2 rounded-lg transition ${course.is_published ? "text-emerald-500 hover:bg-emerald-50" : "text-gray-400 hover:bg-gray-100"}`}
-                  >
-                    {togglingId === course.id
-                      ? <span className="w-4 h-4 border-2 border-gray-300 border-t-primary rounded-full animate-spin block" />
-                      : course.is_published ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />
-                    }
-                  </button>
-                  <Link to={`/instructor/courses/${course.id}/edit`} className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition" title="Modifier"><Edit3 className="w-4 h-4" /></Link>
-                  <Link to={`/instructor/courses/${course.id}/modules`} className="p-2 text-gray-400 hover:text-violet-500 hover:bg-violet-50 rounded-lg transition" title="Modules"><Settings className="w-4 h-4" /></Link>
-                  <Link to={`/instructor/courses/${course.id}/students`} className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition" title="Étudiants"><Users className="w-4 h-4" /></Link>
-                  <Link to={`/instructor/courses/${course.id}/analytics`} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition" title="Analytics"><BarChart2 className="w-4 h-4" /></Link>
-                  <button
+                <div className="flex items-center gap-1 shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  <Link to={`/courses/${course.id}/learn`} className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition" title={t("ouvrir_le_cours")}><Eye className="w-4 h-4" /></Link>
+                  <Link to={`/instructor/courses/${course.id}/edit`} className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition" title={t("modifier")}><Edit3 className="w-4 h-4" /></Link>
+                  <Link to={`/instructor/courses/${course.id}/modules`} className="p-2 text-gray-400 hover:text-violet-500 hover:bg-violet-50 rounded-lg transition" title={t("modules")}><Settings className="w-4 h-4" /></Link>
+                  <Link to={`/instructor/courses/${course.id}/students`} className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition" title={t("etudiants")}><Users className="w-4 h-4" /></Link>
+                  <Link to={`/instructor/courses/${course.id}/analytics`} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition" title={t("analytics")}><BarChart2 className="w-4 h-4" /></Link>
+                  {course.is_author !== false && <button
                     onClick={() => deleteCourse(course.id)}
                     disabled={deletingId === course.id}
-                    title="Supprimer"
+                    title={t("supprimer")}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
                   >
                     {deletingId === course.id
                       ? <span className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin block" />
                       : <Trash2 className="w-4 h-4" />
                     }
-                  </button>
+                  </button>}
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+      {rateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setRateModal(null)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-gray-900">{t("soumettre_au_catalogue")}</h3>
+            <p className="text-sm text-gray-600 mt-2">{t("soumettre_explication")}</p>
+            <label className="block mt-4">
+              <span className="block text-xs font-medium text-gray-600 mb-1">{t("part_souhaitee")}</span>
+              <input inputMode="decimal" value={rateValue} onChange={(e) => setRateValue(e.target.value)} placeholder={t("part_placeholder")}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+            </label>
+            <div className="flex justify-end gap-2 mt-5">
+              <button type="button" onClick={() => setRateModal(null)} className="px-4 py-2 rounded-lg text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">{t("annuler")}</button>
+              <button type="button" onClick={() => { const c = rateModal; const v = rateValue.trim(); setRateModal(null); reviewAction(c, "submit", v); }}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90">{t("soumettre")}</button>
+            </div>
           </div>
         </div>
       )}

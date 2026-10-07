@@ -1,0 +1,80 @@
+{
+  "meta": { "title": "DevOpsAkademy — Formations DevOps & Cloud" },
+  "hero": {
+    "badge": "Plateforme de formation Cloud & DevOps",
+    "titleStart": "Maîtrisez",
+    "titleEnd": "de A à Z",
+    "subtitle": "Formations pratiques — Cloud, Kubernetes, CI/CD, Terraform. Construites par des praticiens, pour aller directement en production.",
+    "myCourses": "Mes cours",
+    "explore": "Explorer les cours",
+    "signUp": "Créer un compte gratuit"
+  },
+  "stats": {
+    "learners": "Apprenants formés",
+    "courses": "Cours disponibles",
+    "rating": "Note moyenne",
+    "countries": "Pays représentés"
+  },
+  "popular": {
+    "eyebrow": "Formations",
+    "title": "Les plus populaires",
+    "subtitle": "Plébiscitées par notre communauté d'apprenants",
+    "seeAll": "Voir tout",
+    "seeAllCourses": "Voir toutes les formations",
+    "empty": "Aucune formation disponible pour l'instant",
+    "emptyHint": "Revenez bientôt.",
+    "free": "GRATUIT",
+    "by": "Par {{name}}",
+    "defaultDescription": "Formation complète avec labs pratiques et certificat inclus.",
+    "details": "Détails",
+    "enroll": "S'inscrire",
+    "continue": "Continuer",
+    "pending": "En attente",
+    "price": "{{amount}} FCFA"
+  },
+  "levels": {
+    "beginner": "Débutant",
+    "intermediate": "Intermédiaire",
+    "advanced": "Avancé",
+    "all": "Tous niveaux"
+  },
+  "features": {
+    "eyebrow": "Pourquoi nous",
+    "title": "Tout pour progresser vite",
+    "learnMore": "En savoir plus",
+    "labs": { "title": "Labs interactifs", "desc": "Environnements Docker & Kubernetes préconfigurés, directement dans votre navigateur. Zéro configuration." },
+    "certs": { "title": "Certificats vérifiables", "desc": "Chaque parcours aboutit à un certificat numérique authentifié, que les recruteurs peuvent vérifier en ligne." },
+    "community": { "title": "Communauté active", "desc": "Forum, entraide et sessions live. Vous n'apprenez jamais seul chez DevOpsAkademy." },
+    "progress": { "title": "Suivi de progression", "desc": "Tableau de bord personnel, classement et points. Chaque leçon complétée compte." }
+  },
+  "steps": {
+    "eyebrow": "Comment ça marche",
+    "title": "De zéro à expert en 4 étapes",
+    "choose": { "title": "Choisissez votre parcours", "desc": "Du niveau débutant à expert — trouvez le cours adapté à votre profil." },
+    "practice": { "title": "Pratiquez en conditions réelles", "desc": "Labs interactifs sur de vraies infrastructures Cloud et Kubernetes." },
+    "certify": { "title": "Obtenez votre certificat", "desc": "Certificat numérique vérifiable, partageable sur LinkedIn." },
+    "rank": { "title": "Progressez dans le classement", "desc": "Gagnez des points et devenez un référent de la communauté." }
+  },
+  "tech": {
+    "title": "Technologies que vous maîtriserez",
+    "subtitle": "La stack utilisée en production par les équipes DevOps"
+  },
+  "testimonials": {
+    "eyebrow": "Témoignages",
+    "title": "Ce que disent nos apprenants",
+    "learner": "Apprenant",
+    "about": "En savoir plus sur nous"
+  },
+  "cta": {
+    "titleStart": "Prêt à faire progresser votre carrière",
+    "titleEnd": "?",
+    "subtitle": "Rejoignez la communauté DevOpsAkademy et progressez à votre rythme, avec des formations pensées pour la pratique.",
+    "explore": "Explorer les cours",
+    "forum": "Rejoindre le forum",
+    "createAccount": "Créer un compte gratuit",
+    "pricing": "Voir les tarifs",
+    "trust1": "Inscription gratuite",
+    "trust2": "Accès immédiat aux cours gratuits",
+    "trust3": "Communauté active"
+  }
+}

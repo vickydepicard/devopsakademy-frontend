@@ -1,0 +1,17 @@
+{
+  "titre": "My lives",
+  "sous_titre": "Live sessions assigned to you by the administration.",
+  "aucun": "No live session is assigned to you yet.",
+  "cours_lie": "Course",
+  "ouvrir_la_salle": "Open room",
+  "lancer_le_live": "Start live",
+  "rejoindre": "Review",
+  "erreur": "Could not load live sessions.",
+  "statut_live": "Live now",
+  "statut_scheduled": "Scheduled",
+  "statut_ended": "Ended",
+  "statut_draft": "Draft",
+  "participants": "{{count}} registered",
+  "a_venir": "Upcoming",
+  "passes": "Past"
+}

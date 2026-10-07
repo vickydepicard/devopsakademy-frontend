@@ -8,6 +8,9 @@ import {
   Award, Download, ExternalLink, BookOpen,
   Clock, RefreshCw, Trophy, Copy, CheckCircle, Zap
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
+import i18n from "../../i18n";
 
 const C = {
   primary: "#2d287f",
@@ -18,11 +21,11 @@ const C = {
   text:    "#1e1b4b",
 };
 
-const LEVELS = {
-  beginner:     "Débutant",
-  intermediate: "Intermédiaire",
-  advanced:     "Avancé",
-};
+const LEVELS = () => ({
+  beginner:     i18n.t("studentCertificates:debutant"),
+  intermediate: i18n.t("studentCertificates:intermediaire"),
+  advanced:     i18n.t("studentCertificates:avance"),
+});
 
 /* ── Génère et télécharge le certificat en PDF via canvas ── */
 const downloadCertificate = (cert, user) => {
@@ -73,7 +76,7 @@ const downloadCertificate = (cert, user) => {
   // Sous-titre
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.font = "16px Georgia, serif";
-  ctx.fillText("Certificat de réussite", 561, 130);
+  ctx.fillText(i18n.t("studentCertificates:certificat_de_reussite"), 561, 130);
 
   // Ligne séparatrice
   ctx.strokeStyle = "rgba(250,204,21,0.4)";
@@ -85,7 +88,7 @@ const downloadCertificate = (cert, user) => {
   // "Décerné à"
   ctx.fillStyle = "rgba(255,255,255,0.5)";
   ctx.font = "italic 18px Georgia, serif";
-  ctx.fillText("Ce certificat est décerné à", 561, 210);
+  ctx.fillText(i18n.t("studentCertificates:ce_certificat_est_decerne_a"), 561, 210);
 
   // Nom étudiant
   ctx.fillStyle = "#ffffff";
@@ -104,13 +107,13 @@ const downloadCertificate = (cert, user) => {
   // "pour avoir complété"
   ctx.fillStyle = "rgba(255,255,255,0.5)";
   ctx.font = "italic 18px Georgia, serif";
-  ctx.fillText("pour avoir complété avec succès la formation", 561, 345);
+  ctx.fillText(i18n.t("studentCertificates:pour_avoir_complete_avec_succes_la"), 561, 345);
 
   // Titre du cours
   ctx.fillStyle = "#facc15";
   ctx.font = `bold 28px Georgia, serif`;
   // Tronquer si trop long
-  let courseTitle = cert.course_title || "Formation DevOps";
+  let courseTitle = cert.course_title || i18n.t("studentCertificates:formation_devops");
   if (ctx.measureText(courseTitle).width > 900) {
     courseTitle = courseTitle.substring(0, 55) + "…";
   }
@@ -121,13 +124,13 @@ const downloadCertificate = (cert, user) => {
   ctx.font = "16px Georgia, serif";
   const infoY = 460;
   const issuedDate = cert.issued_at
-    ? new Date(cert.issued_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-    : new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    ? new Date(cert.issued_at).toLocaleDateString(getLocale(), { day: "numeric", month: "long", year: "numeric" })
+    : new Date().toLocaleDateString(getLocale(), { day: "numeric", month: "long", year: "numeric" });
 
   if (cert.duration_hours) {
-    ctx.fillText(`Durée : ${cert.duration_hours}h  ·  Délivré le ${issuedDate}`, 561, infoY);
+    ctx.fillText(i18n.t("studentCertificates:duree_h_delivre_le", { vduration_hours: cert.duration_hours, issuedDate }), 561, infoY);
   } else {
-    ctx.fillText(`Délivré le ${issuedDate}`, 561, infoY);
+    ctx.fillText(i18n.t("studentCertificates:delivre_le_2", { issuedDate }), 561, infoY);
   }
 
   // Séparateur
@@ -145,7 +148,7 @@ const downloadCertificate = (cert, user) => {
   // URL de vérification
   ctx.fillStyle = "rgba(250,204,21,0.6)";
   ctx.font = "12px monospace";
-  ctx.fillText(`Vérifiable sur : devopsakademy.cloud/certificates/verify/${cert.certificate_number}`, 561, 570);
+  ctx.fillText(i18n.t("studentCertificates:verifiable_sur_devopsakademy_cloud_certificates_", { certificate_number: cert.certificate_number }), 561, 570);
 
   // Sceau / badge
   ctx.save();
@@ -165,7 +168,7 @@ const downloadCertificate = (cert, user) => {
   ctx.fillStyle = "#facc15";
   ctx.font = "bold 11px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("CERTIFIÉ", 0, -10);
+  ctx.fillText(i18n.t("studentCertificates:certifie_2"), 0, -10);
   ctx.fillText("DEVOPS", 0, 5);
   ctx.fillText("AKADEMY", 0, 20);
   ctx.restore();
@@ -174,7 +177,7 @@ const downloadCertificate = (cert, user) => {
   ctx.fillStyle = "rgba(255,255,255,0.4)";
   ctx.font = "14px Georgia, serif";
   ctx.textAlign = "left";
-  ctx.fillText("L'équipe pédagogique", 150, 700);
+  ctx.fillText(i18n.t("studentCertificates:l_equipe_pedagogique"), 150, 700);
   ctx.strokeStyle = "rgba(255,255,255,0.3)";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -183,7 +186,7 @@ const downloadCertificate = (cert, user) => {
 
   // Signature à droite
   ctx.textAlign = "right";
-  ctx.fillText("Directeur de la plateforme", 972, 700);
+  ctx.fillText(i18n.t("studentCertificates:directeur_de_la_plateforme"), 972, 700);
   ctx.beginPath();
   ctx.moveTo(772, 680); ctx.lineTo(972, 680);
   ctx.stroke();
@@ -194,7 +197,7 @@ const downloadCertificate = (cert, user) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Certificat_${cert.course_title?.replace(/\s+/g,"_")}_${cert.first_name}_${cert.last_name}.png`;
+    a.download = i18n.t("studentCertificates:certificat_png", { course_title: cert.course_title?.replace(/\s+/g,"_"), first_name: cert.first_name, last_name: cert.last_name });
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -204,8 +207,9 @@ const downloadCertificate = (cert, user) => {
 
 /* ── Card certificat ── */
 function CertCard({ cert, user, onCopy, copied }) {
+  const { t } = useTranslation("studentCertificates");
   const issuedDate = cert.issued_at
-    ? new Date(cert.issued_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    ? new Date(cert.issued_at).toLocaleDateString(getLocale(), { day: "numeric", month: "long", year: "numeric" })
     : "—";
 
   return (
@@ -231,7 +235,7 @@ function CertCard({ cert, user, onCopy, copied }) {
                 <Trophy className="w-4 h-4" style={{ color:C.primary }} />
               </div>
               <span className="text-xs font-bold uppercase tracking-widest"
-                style={{ color:"rgba(255,255,255,0.6)" }}>Certifié</span>
+                style={{ color:"rgba(255,255,255,0.6)" }}>{t("certifie")}</span>
             </div>
             <h3 className="text-white font-bold text-sm leading-snug line-clamp-2">
               {cert.course_title}
@@ -239,7 +243,7 @@ function CertCard({ cert, user, onCopy, copied }) {
             {cert.level && (
               <span className="inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full font-semibold"
                 style={{ background:"rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.8)" }}>
-                {LEVELS[cert.level] || cert.level}
+                {LEVELS()[cert.level] || cert.level}
               </span>
             )}
           </div>
@@ -252,12 +256,12 @@ function CertCard({ cert, user, onCopy, copied }) {
         {/* Infos */}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
-            <p className="text-slate-400 mb-0.5">Délivré le</p>
+            <p className="text-slate-400 mb-0.5">{t("delivre_le")}</p>
             <p className="font-semibold" style={{ color:C.text }}>{issuedDate}</p>
           </div>
           {cert.duration_hours && (
             <div>
-              <p className="text-slate-400 mb-0.5">Durée</p>
+              <p className="text-slate-400 mb-0.5">{t("duree")}</p>
               <p className="font-semibold flex items-center gap-1" style={{ color:C.text }}>
                 <Clock className="w-3 h-3"/> {cert.duration_hours}h
               </p>
@@ -269,7 +273,7 @@ function CertCard({ cert, user, onCopy, copied }) {
         <div className="rounded-xl px-3 py-2.5 flex items-center justify-between gap-2"
           style={{ background:C.bg, border:`1px solid ${C.border}` }}>
           <div className="min-w-0">
-            <p className="text-xs text-slate-400 mb-0.5">Numéro de certificat</p>
+            <p className="text-xs text-slate-400 mb-0.5">{t("numero_de_certificat")}</p>
             <p className="font-mono text-xs font-bold truncate" style={{ color:C.primary }}>
               {cert.certificate_number}
             </p>
@@ -277,7 +281,7 @@ function CertCard({ cert, user, onCopy, copied }) {
           <button
             onClick={() => onCopy(cert.certificate_number)}
             className="flex-shrink-0 p-1.5 rounded-lg hover:bg-white transition"
-            title="Copier le numéro">
+            title={t("copier_le_numero")}>
             {copied === cert.certificate_number
               ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500"/>
               : <Copy className="w-3.5 h-3.5 text-slate-400"/>
@@ -291,13 +295,12 @@ function CertCard({ cert, user, onCopy, copied }) {
             onClick={() => downloadCertificate(cert, user)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white transition hover:opacity-90"
             style={{ background:`linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
-            <Download className="w-3.5 h-3.5"/> Télécharger
-          </button>
+            <Download className="w-3.5 h-3.5"/>{" "}{t("telecharger")}</button>
           <Link
             to={`/certificates/verify/${cert.certificate_number}`}
             className="flex items-center justify-center px-3 py-2 rounded-xl border text-xs font-semibold transition hover:bg-slate-50"
             style={{ border:`1px solid ${C.border}`, color:C.primary }}
-            title="Vérifier le certificat">
+            title={t("verifier_le_certificat")}>
             <ExternalLink className="w-3.5 h-3.5"/>
           </Link>
         </div>
@@ -308,6 +311,7 @@ function CertCard({ cert, user, onCopy, copied }) {
 
 /* ═══════════════════════════ MAIN ═══════════════════════════ */
 export default function StudentCertificates() {
+  const { t } = useTranslation("studentCertificates");
   const { user } = useAuth();
   const [certs,   setCerts]   = useState([]);
   const [loading, setLoading] = useState(true);
@@ -332,7 +336,7 @@ export default function StudentCertificates() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Étudiant";
+  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || i18n.t("studentCertificates:etudiant");
 
   return (
     <div className="h-full flex flex-col overflow-hidden" style={{ background:C.bg }}>
@@ -346,16 +350,14 @@ export default function StudentCertificates() {
               <Award className="w-5 h-5" style={{ color:"#854d0e" }}/>
             </div>
             <div>
-              <h1 className="text-lg font-black" style={{ color:C.primary }}>Mes certificats</h1>
+              <h1 className="text-lg font-black" style={{ color:C.primary }}>{t("mes_certificats")}</h1>
               <p className="text-xs text-slate-400">
-                {loading ? "Chargement…" : `${certs.length} certificat${certs.length !== 1 ? "s" : ""} obtenu${certs.length !== 1 ? "s" : ""}`}
+                {loading ? t("chargement") : t("certificat_obtenu", { length: certs.length, v: certs.length !== 1 ? "s" : "", v2: certs.length !== 1 ? "s" : "" })}
               </p>
             </div>
           </div>
           {certs.length > 0 && (
-            <div className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-              Cliquez sur <strong>Télécharger</strong> pour obtenir votre certificat en image HD
-            </div>
+            <div className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">{t("cliquez_sur")}{" "}<strong>{t("telecharger")}</strong>{" "}{t("pour_obtenir_votre_certificat_en_image")}</div>
           )}
         </div>
       </div>
@@ -367,7 +369,7 @@ export default function StudentCertificates() {
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
               <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color:C.light }}/>
-              <p className="text-sm text-slate-400">Chargement des certificats…</p>
+              <p className="text-sm text-slate-400">{t("chargement_des_certificats")}</p>
             </div>
           </div>
         ) : certs.length === 0 ? (
@@ -378,18 +380,12 @@ export default function StudentCertificates() {
                 style={{ background:"#eeeeff" }}>
                 <Award className="w-10 h-10" style={{ color:C.light }}/>
               </div>
-              <h3 className="text-lg font-black mb-2" style={{ color:C.primary }}>
-                Aucun certificat pour l'instant
-              </h3>
-              <p className="text-sm text-slate-400 mb-6">
-                Les certificats sont générés automatiquement lorsque vous terminez un cours à 100%.
-                Complétez toutes les leçons d'un cours pour obtenir votre certificat.
-              </p>
+              <h3 className="text-lg font-black mb-2" style={{ color:C.primary }}>{t("aucun_certificat_pour_l_instant")}</h3>
+              <p className="text-sm text-slate-400 mb-6">{t("les_certificats_sont_generes_automatiquement_lor")}</p>
               <Link to="/student/active"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
                 style={{ background:`linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
-                <Zap className="w-4 h-4"/> Continuer mes formations
-              </Link>
+                <Zap className="w-4 h-4"/>{" "}{t("continuer_mes_formations")}</Link>
             </div>
           </div>
         ) : (
@@ -398,12 +394,9 @@ export default function StudentCertificates() {
             <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-6">
               <Trophy className="w-5 h-5 text-amber-600 flex-shrink-0"/>
               <div>
-                <p className="text-sm font-bold text-amber-800">
-                  🎉 Félicitations {user?.first_name} ! Vous avez obtenu {certs.length} certificat{certs.length > 1 ? "s" : ""}.
+                <p className="text-sm font-bold text-amber-800">{t("felicitations_vous_avez_obtenu_certificat_p", { first_name: user?.first_name, length: certs.length, s: certs.length > 1 ? "s" : "" })}.
                 </p>
-                <p className="text-xs text-amber-600 mt-0.5">
-                  Partagez votre numéro de certificat pour permettre aux recruteurs de le vérifier en ligne.
-                </p>
+                <p className="text-xs text-amber-600 mt-0.5">{t("partagez_votre_numero_de_certificat_pour")}</p>
               </div>
             </div>
 
@@ -424,15 +417,9 @@ export default function StudentCertificates() {
             <div className="mt-6 bg-white border rounded-2xl px-5 py-4 flex items-start gap-3"
               style={{ border:`1px solid ${C.border}` }}>
               <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color:C.light }}/>
-              <p className="text-xs text-slate-500">
-                Chaque certificat est vérifiable publiquement via son numéro unique sur{" "}
-                <Link to="/certificates/verify"
+              <p className="text-xs text-slate-500">{t("chaque_certificat_est_verifiable_publiquement_vi")}{" "}<Link to="/certificates/verify"
                   className="font-semibold hover:underline"
-                  style={{ color:C.light }}>
-                  devopsakademy.cloud/certificates/verify
-                </Link>.
-                Partagez ce lien avec vos recruteurs ou sur LinkedIn.
-              </p>
+                  style={{ color:C.light }}>{i18n.t("studentCertificates:devopsakademy_cloud_certificates_verify")}</Link>{t("partagez_ce_lien_avec_vos_recruteurs")}</p>
             </div>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { initialsAvatar, coverPlaceholder, onAvatarError } from "../../utils/avatar";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
@@ -61,12 +62,12 @@ export default function CourseDetail() {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
-      {/* 🧱 Section principale */}
+      {/* Section principale */}
       <div className="flex flex-col md:flex-row gap-8">
         {/* Image */}
         <div className="md:w-1/3">
           <img
-            src={course.thumbnail_url || "/default-course.jpg"}
+            src={course.thumbnail_url || coverPlaceholder(course.title)}
             alt={course.title}
             className="w-full h-56 object-contain rounded-lg shadow-md"
           />
@@ -78,11 +79,11 @@ export default function CourseDetail() {
           <p className="text-gray-600 mb-4">{course.short_description || course.description}</p>
 
           <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
-            <span>📚 Niveau : {course.level}</span>
-            <span>💰 Prix : {course.is_free ? "Gratuit" : `${course.price} XAF`}</span>
+            <span>Niveau : {course.level}</span>
+            <span>Prix : {course.is_free ? "Gratuit" : `${course.price} XAF`}</span>
           </div>
 
-          {/* 🎯 Boutons d’action selon le statut */}
+          {/* Boutons d’action selon le statut */}
           {access === "public" && (
             <div>
               <button
@@ -93,7 +94,7 @@ export default function CourseDetail() {
                 }
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
-                💳 Acheter ce cours
+                Acheter ce cours
               </button>
               <p className="mt-3 text-gray-500 text-sm">
                 Connectez-vous pour acheter et accéder à tout le contenu.
@@ -104,12 +105,12 @@ export default function CourseDetail() {
           {access === "pending" && (
             <div className="mt-4">
               <div className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-md font-medium inline-block">
-                ⏳ Paiement en attente de validation par l’administrateur
+                Paiement en attente de validation par l’administrateur
               </div>
 
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  📤 Uploader la preuve de paiement :
+                  Uploader la preuve de paiement :
                 </label>
                 <input
                   type="file"
@@ -125,7 +126,7 @@ export default function CourseDetail() {
                 />
                 {uploading && (
                   <p className="text-xs text-gray-500 mt-2 animate-pulse">
-                    ⏳ Envoi en cours...
+                    Envoi en cours...
                   </p>
                 )}
               </div>
@@ -138,16 +139,16 @@ export default function CourseDetail() {
                 onClick={() => navigate(`/student/course/${course.id}`)}
                 className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
               >
-                🚀 Accéder au cours complet
+                Accéder au cours complet
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* 🧩 Contenu aperçu / complet */}
+      {/* Contenu aperçu / complet */}
       <div className="mt-10">
-        <h2 className="text-2xl font-semibold mb-4">📘 Contenu du cours</h2>
+        <h2 className="text-2xl font-semibold mb-4">Contenu du cours</h2>
 
         {access === "public" && (
           <p className="text-gray-500 mb-4">
@@ -162,13 +163,13 @@ export default function CourseDetail() {
                 key={mod.id}
                 className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
               >
-                <h3 className="font-bold text-gray-800 mb-2">📦 {mod.title}</h3>
+                <h3 className="font-bold text-gray-800 mb-2">{mod.title}</h3>
 
                 {mod.lessons?.length > 0 ? (
                   <ul className="space-y-1 text-sm text-gray-600">
                     {mod.lessons.map((lesson) => (
                       <li key={lesson.id} className="flex justify-between">
-                        <span>▶ {lesson.title}</span>
+                        <span>{lesson.title}</span>
                         <span className="text-gray-400">
                           {lesson.duration_minutes} min
                         </span>

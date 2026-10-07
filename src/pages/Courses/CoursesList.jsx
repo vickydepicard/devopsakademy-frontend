@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import PaymentModal from "../payment/PaymentModal";
@@ -7,7 +8,7 @@ import {
   Play, Eye, X, ChevronDown, Loader, AlertCircle
 } from "lucide-react";
 
-const LEVEL_LABELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced: "Avancé" };
+const LEVEL_KEYS = ["beginner", "intermediate", "advanced"];
 const LEVEL_COLORS = {
   beginner:     "bg-emerald-100 text-emerald-700",
   intermediate: "bg-blue-100 text-blue-700",
@@ -47,6 +48,9 @@ function SkeletonCard() {
 }
 
 export default function CoursesList() {
+  const { t, i18n } = useTranslation("catalog");
+  const nf = new Intl.NumberFormat(i18n.language);
+  const levelLabel = (lvl) => (LEVEL_KEYS.includes(lvl) ? t(`levels.${lvl}`) : lvl);
   const { token, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -68,6 +72,8 @@ export default function CoursesList() {
   const [isFree,   setIsFree]   = useState(searchParams.get("is_free")  || "");
 
   const debouncedSearch = useDebounce(search);
+
+  useEffect(() => { document.title = t("meta"); }, [t, i18n.language]);
 
   // ── Filtres disponibles ───────────────────────────────────
   useEffect(() => {
@@ -124,7 +130,7 @@ export default function CoursesList() {
         setCourses(list);
         setTotal(data?.total || list.length);
       } catch (_) {
-        setError("Impossible de charger les formations.");
+        setError(t("loadError"));
         setCourses([]);
       } finally {
         setLoading(false);
@@ -158,7 +164,7 @@ export default function CoursesList() {
 
     if (isLoading) return (
       <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 text-gray-400 rounded-xl text-sm">
-        <Loader className="w-4 h-4 animate-spin" /> En cours…
+        <Loader className="w-4 h-4 animate-spin" /> {t("inProgress")}
       </button>
     );
 
@@ -166,7 +172,7 @@ export default function CoursesList() {
       <button onClick={() => handleEnroll(course)}
         className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 font-bold rounded-xl text-sm text-white transition hover:-translate-y-0.5 hover:shadow-md ${isFreeC ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#2d287f] hover:bg-[#3b3aab]"}`}>
         <BookOpen className="w-4 h-4" />
-        {isFreeC ? "S'inscrire" : "S'inscrire"}
+        {t("enroll")}
       </button>
     );
 
@@ -174,20 +180,20 @@ export default function CoursesList() {
     if (payment_status === "free" || payment_status === "verified" || is_approved) return (
       <button onClick={() => navigate(`/courses/${course.id}/learn`)}
         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 font-bold rounded-xl text-sm text-white bg-emerald-600 hover:bg-emerald-700 transition hover:-translate-y-0.5">
-        <Play className="w-4 h-4" /> Continuer
+        <Play className="w-4 h-4" /> {t("continue")}
       </button>
     );
 
     if (payment_status === "pending") return (
       <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold bg-amber-50 text-amber-700 border border-amber-200 cursor-not-allowed">
-        <Clock className="w-4 h-4" /> En attente
+        <Clock className="w-4 h-4" /> {t("pending")}
       </button>
     );
 
     if (payment_status === "rejected") return (
       <button onClick={() => setPaymentModal(course)}
         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition">
-        <AlertCircle className="w-4 h-4" /> Réessayer
+        <AlertCircle className="w-4 h-4" /> {t("retry")}
       </button>
     );
     return null;
@@ -202,9 +208,9 @@ export default function CoursesList() {
       {/* ── Header ── */}
       <div className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white py-14 px-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl lg:text-4xl font-black mb-2">Catalogue des formations</h1>
+          <h1 className="text-3xl lg:text-4xl font-black mb-2">{t("title")}</h1>
           <p className="text-white/60 mb-8">
-            {loading ? "Chargement…" : `${total} formation${total > 1 ? "s" : ""} disponible${total > 1 ? "s" : ""}`}
+            {loading ? t("loading") : t("count", { count: total })}
           </p>
 
           {/* Barre de recherche */}
@@ -212,7 +218,7 @@ export default function CoursesList() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
             <input
               type="text"
-              placeholder="Rechercher une formation DevOps, Cloud, Kubernetes…"
+              placeholder={t("searchPlaceholder")}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:border-white/50 text-sm"
@@ -234,7 +240,7 @@ export default function CoursesList() {
             onClick={() => setShowFilters(p => !p)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${showFilters || activeFiltersCount > 0 ? "bg-[#2d287f] text-white border-[#2d287f]" : "bg-white text-gray-700 border-gray-200 hover:border-[#2d287f]"}`}>
             <SlidersHorizontal className="w-4 h-4" />
-            Filtres
+            {t("filters")}
             {activeFiltersCount > 0 && (
               <span className="bg-white text-[#2d287f] text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                 {activeFiltersCount}
@@ -247,19 +253,19 @@ export default function CoursesList() {
             <button key={lvl}
               onClick={() => setLevel(level === lvl ? "" : lvl)}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition ${level === lvl ? LEVEL_COLORS[lvl] + " border-current" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"}`}>
-              {LEVEL_LABELS[lvl] || lvl}
+              {levelLabel(lvl)}
             </button>
           ))}
 
           <button
             onClick={() => setIsFree(isFree === "1" ? "" : "1")}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition ${isFree === "1" ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"}`}>
-            Gratuit uniquement
+            {t("freeOnly")}
           </button>
 
           {activeFiltersCount > 0 && (
             <button onClick={clearFilters} className="flex items-center gap-1.5 px-3.5 py-2 text-xs text-red-600 hover:bg-red-50 rounded-xl border border-red-200 transition font-semibold">
-              <X className="w-3.5 h-3.5" /> Réinitialiser
+              <X className="w-3.5 h-3.5" /> {t("reset")}
             </button>
           )}
         </div>
@@ -268,27 +274,27 @@ export default function CoursesList() {
         {showFilters && (
           <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 grid sm:grid-cols-2 md:grid-cols-3 gap-4 shadow-sm">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Catégorie</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">{t("category")}</label>
               <select value={category} onChange={e => setCategory(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d287f]/30">
-                <option value="">Toutes les catégories</option>
+                <option value="">{t("allCategories")}</option>
                 {filters.categories.map(cat => <option key={cat.id} value={cat.slug}>{cat.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Niveau</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">{t("level")}</label>
               <select value={level} onChange={e => setLevel(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d287f]/30">
-                <option value="">Tous niveaux</option>
-                {filters.levels.map((lvl, i) => <option key={i} value={lvl}>{LEVEL_LABELS[lvl] || lvl}</option>)}
+                <option value="">{t("allLevels")}</option>
+                {filters.levels.map((lvl, i) => <option key={i} value={lvl}>{levelLabel(lvl)}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Accès</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">{t("access")}</label>
               <select value={isFree} onChange={e => setIsFree(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d287f]/30">
-                <option value="">Tous</option>
-                {filters.freePaid.map(fp => <option key={fp.value} value={fp.value}>{fp.label}</option>)}
+                <option value="">{t("all")}</option>
+                {filters.freePaid.map(fp => <option key={fp.value} value={fp.value}>{String(fp.value) === "1" ? t("accessFree") : String(fp.value) === "0" ? t("accessPaid") : fp.label}</option>)}
               </select>
             </div>
           </div>
@@ -309,18 +315,18 @@ export default function CoursesList() {
               ? (
                 <div className="col-span-3 text-center py-20 text-gray-400">
                   <BookOpen className="w-14 h-14 mx-auto mb-4 opacity-25" />
-                  <p className="font-semibold text-gray-600 text-lg">Aucune formation trouvée</p>
-                  <p className="text-sm mt-1">Essayez d'ajuster vos filtres ou votre recherche</p>
+                  <p className="font-semibold text-gray-600 text-lg">{t("empty")}</p>
+                  <p className="text-sm mt-1">{t("emptyHint")}</p>
                   {activeFiltersCount > 0 && (
                     <button onClick={clearFilters} className="mt-4 px-5 py-2.5 bg-[#2d287f] text-white font-semibold rounded-xl text-sm hover:bg-[#3b3aab] transition">
-                      Réinitialiser les filtres
+                      {t("resetFilters")}
                     </button>
                   )}
                 </div>
               )
               : courses.map(course => {
                   const isFreeC = course.is_free === 1 || Number(course.price || 0) === 0;
-                  const lv = LEVEL_LABELS[course.level] ? course.level : null;
+                  const lv = LEVEL_KEYS.includes(course.level) ? course.level : null;
                   return (
                     <div key={course.id} className="group bg-white rounded-2xl border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
 
@@ -336,15 +342,15 @@ export default function CoursesList() {
                           </div>
                         )}
                         {isFreeC && (
-                          <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">GRATUIT</span>
+                          <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">{t("free")}</span>
                         )}
                         {!isFreeC && (
                           <span className="absolute bottom-3 right-3 bg-[#1f1b5a]/85 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-xl">
-                            {parseFloat(course.price || 0).toLocaleString("fr-FR")} FCFA
+                            {t("price", { amount: nf.format(parseFloat(course.price || 0)) })}
                           </span>
                         )}
                         {course.is_featured === 1 && (
-                          <span className="absolute top-3 right-3 bg-[#facc15] text-[#1f1b5a] text-xs font-bold px-2.5 py-1 rounded-full">⭐ Mis en avant</span>
+                          <span className="absolute top-3 right-3 bg-[#facc15] text-[#1f1b5a] text-xs font-bold px-2.5 py-1 rounded-full">{t("featured")}</span>
                         )}
                       </div>
 
@@ -353,7 +359,7 @@ export default function CoursesList() {
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                           {lv && (
                             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${LEVEL_COLORS[course.level] || "bg-gray-100 text-gray-600"}`}>
-                              {LEVEL_LABELS[course.level]}
+                              {levelLabel(course.level)}
                             </span>
                           )}
                           {course.duration_hours && (
@@ -367,10 +373,10 @@ export default function CoursesList() {
                           {course.title}
                         </h3>
                         <p className="text-xs text-gray-400 mb-2">
-                          Par {course.first_name} {course.last_name}
+                          {t("by", { name: `${course.first_name} ${course.last_name}` })}
                         </p>
                         <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1 leading-relaxed">
-                          {course.short_description || "Formation complète avec labs pratiques et certification."}
+                          {course.short_description || t("defaultDescription")}
                         </p>
 
                         <div className="flex items-center justify-between text-xs text-gray-400 mb-4 pb-4 border-b border-gray-50">
@@ -380,14 +386,14 @@ export default function CoursesList() {
                             <span>({course.review_count || 0})</span>
                           </span>
                           <span className="flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" /> {course.student_count || 0} étudiant{(course.student_count || 0) > 1 ? "s" : ""}
+                            <Users className="w-3.5 h-3.5" /> {t("students", { count: course.student_count || 0 })}
                           </span>
                         </div>
 
                         <div className="flex gap-2 mt-auto">
                           <Link to={`/courses/${course.id}`}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-2 border-[#2d287f]/25 text-[#2d287f] font-semibold rounded-xl text-sm hover:border-[#2d287f] hover:bg-[#2d287f]/5 transition">
-                            <Eye className="w-4 h-4" /> Détails
+                            <Eye className="w-4 h-4" /> {t("details")}
                           </Link>
                           {renderAction(course)}
                         </div>

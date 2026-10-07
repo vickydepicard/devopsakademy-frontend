@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import api from "../../api/api";
 import { Users, BookOpen, TrendingUp, BarChart2, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" };
 
 export default function AdminStats() {
+  const { t } = useTranslation("adminStats");
   const [stats,       setStats]       = useState(null);
   const [courseStats, setCourseStats] = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -20,7 +23,7 @@ export default function AdminStats() {
       if (r1.data?.success) setStats(r1.data.data);
       if (r2.data?.success) setCourseStats(r2.data.data || []);
     } catch (err) {
-      setError("Erreur lors du chargement des statistiques.");
+      setError(t("erreur_lors_du_chargement_des_statistiques"));
       console.error("AdminStats:", err);
     } finally { setLoading(false); }
   };
@@ -37,25 +40,24 @@ export default function AdminStats() {
     <div className="p-6 bg-red-50 border border-red-200 rounded-2xl text-center">
       <p className="text-red-600 font-semibold mb-3">{error}</p>
       <button onClick={fetchStats} className="px-4 py-2 text-white rounded-xl text-sm font-bold"
-        style={{ background: C.primary }}>Réessayer</button>
+        style={{ background: C.primary }}>{t("reessayer")}</button>
     </div>
   );
 
   const CARDS = [
-    { icon: Users,     label: "Utilisateurs",       val: stats?.users || 0,        bg: "bg-blue-50",    tx: "text-blue-600" },
-    { icon: BookOpen,  label: "Cours",              val: stats?.courses || 0,      bg: "bg-indigo-50",  tx: "text-indigo-600" },
-    { icon: TrendingUp,label: "Inscriptions",       val: stats?.enrollments || 0,  bg: "bg-emerald-50", tx: "text-emerald-600" },
-    { icon: BarChart2, label: "Progression moy.",   val: `${stats?.avgCompletion || 0}%`, bg: "bg-amber-50", tx: "text-amber-600" },
+    { icon: Users,     label: t("utilisateurs"),       val: stats?.users || 0,        bg: "bg-blue-50",    tx: "text-blue-600" },
+    { icon: BookOpen,  label: t("cours"),              val: stats?.courses || 0,      bg: "bg-indigo-50",  tx: "text-indigo-600" },
+    { icon: TrendingUp,label: t("inscriptions"),       val: stats?.enrollments || 0,  bg: "bg-emerald-50", tx: "text-emerald-600" },
+    { icon: BarChart2, label: t("progression_moy"),   val: `${stats?.avgCompletion || 0}%`, bg: "bg-amber-50", tx: "text-amber-600" },
   ];
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black" style={{ color: C.primary }}>📈 Statistiques</h1>
+        <h1 className="text-2xl font-black" style={{ color: C.primary }}>{t("statistiques")}</h1>
         <button onClick={fetchStats}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border border-gray-200 hover:bg-gray-50 transition">
-          <RefreshCw className="w-4 h-4" /> Actualiser
-        </button>
+          <RefreshCw className="w-4 h-4" />{" "}{t("actualiser")}</button>
       </div>
 
       {/* Cards stats globales */}
@@ -76,20 +78,20 @@ export default function AdminStats() {
       {/* Table cours */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-black text-gray-900">Cours par popularité</h2>
-          <span className="text-sm text-gray-400">{courseStats.length} cours</span>
+          <h2 className="font-black text-gray-900">{t("cours_par_popularite")}</h2>
+          <span className="text-sm text-gray-400">{i18n.t("adminStats:cours_2", { length: courseStats.length })}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
-                <th className="text-left px-6 py-3 font-semibold">Cours</th>
-                <th className="text-center px-6 py-3 font-semibold">Étudiants</th>
+                <th className="text-left px-6 py-3 font-semibold">{t("cours")}</th>
+                <th className="text-center px-6 py-3 font-semibold">{t("etudiants")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {courseStats.length === 0 ? (
-                <tr><td colSpan={2} className="px-6 py-8 text-center text-gray-400 text-sm">Aucun cours</td></tr>
+                <tr><td colSpan={2} className="px-6 py-8 text-center text-gray-400 text-sm">{t("aucun_cours")}</td></tr>
               ) : courseStats.map((cs, i) => (
                 <tr key={i} className="hover:bg-gray-50 transition">
                   <td className="px-6 py-3 font-medium text-gray-800 text-sm">{cs.title}</td>

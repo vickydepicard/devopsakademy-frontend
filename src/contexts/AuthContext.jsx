@@ -7,10 +7,13 @@ import {
   createContext, useContext, useState, useEffect, useCallback, useRef,
 } from "react"
 import { useNavigate } from "react-router-dom"
+import i18n from "../i18n"
+import { useTranslation } from "react-i18next";
 
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
+  const { t } = useTranslation("authContext");
   const [user,    setUser]    = useState(null)
   const [token,   setToken]   = useState(null)
   const [loading, setLoading] = useState(true)   // true uniquement le temps de lire localStorage
@@ -91,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res  = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept-Language": (i18n.resolvedLanguage || "fr").slice(0, 2) },
         credentials: "include",
         body: JSON.stringify(credentials),
       })
@@ -100,7 +103,7 @@ export const AuthProvider = ({ children }) => {
       if (!res.ok) {
         return {
           success: false,
-          message:            data?.message || "Email ou mot de passe incorrect",
+          message:            data?.message || t("email_ou_mot_de_passe_incorrect"),
           email_not_verified: data?.email_not_verified || false,
           can_resend:         data?.can_resend         || false,
           email:              data?.email              || credentials.email,
@@ -115,7 +118,7 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken)
       localStorage.setItem("user",  JSON.stringify(loggedUser))
       localStorage.setItem("token", newToken)
-      // ✅ Pas de refreshToken en localStorage — cookie httpOnly uniquement
+      // Pas de refreshToken en localStorage — cookie httpOnly uniquement
 
       return { success: true, user: loggedUser }
     } catch (err) {
@@ -130,13 +133,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const res  = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept-Language": (userData.language || i18n.resolvedLanguage || "fr").slice(0, 2) },
         credentials: "include",
         body: JSON.stringify(userData),
       })
       const data = await res.json()
 
-      if (!res.ok) throw new Error(data?.message || "Erreur lors de l'inscription")
+      if (!res.ok) throw new Error(data?.message || t("erreur_lors_de_l_inscription"))
 
       // Compte inactif → PAS de token stocké en localStorage
       // Exception : instructeur → token temporaire pour soumettre la candidature
@@ -197,7 +200,7 @@ export const AuthProvider = ({ children }) => {
     if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`
     if (user.name)  return user.name
     if (user.email) return user.email.split("@")[0]
-    return "Utilisateur"
+    return t("utilisateur")
   }
 
   return (
@@ -207,7 +210,7 @@ export const AuthProvider = ({ children }) => {
       isGuest, isAdmin, isInstructor, isStudent, hasRole,
       login, register, logout, updateUser, getFullName,
     }}>
-      {/* ✅ CORRECTION : on rend TOUJOURS les children
+      {/* CORRECTION : on rend TOUJOURS les children
           Avant : {!loading && children} → page blanche pendant la vérif de session
           Après : children toujours rendus, chaque composant gère son propre loading */}
       {children}
@@ -217,6 +220,6 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (!context) throw new Error("useAuth must be used within an AuthProvider")
+  if (!context) throw new Error(i18n.t("authContext:useauth_must_be_used_within_an"))
   return context
 }

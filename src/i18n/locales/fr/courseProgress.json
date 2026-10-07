@@ -1,0 +1,17 @@
+{
+  "impossible_de_charger_la_progression": "Impossible de charger la progression.",
+  "retour": "← Retour",
+  "mon_dashboard": "← Mon dashboard",
+  "progression_detaillee": "Progression détaillée",
+  "modules": "Modules",
+  "completees": "Complétées",
+  "total": "Total",
+  "aucune_donnee_de_progression": "Aucune donnée de progression",
+  "commencez_le_cours_pour_voir_votre": "Commencez le cours pour voir votre avancement",
+  "commencer_le_cours": "Commencer le cours",
+  "lecons": "leçons",
+  "min": " · {{Math}} min",
+  "continuer_le_cours": "Continuer le cours",
+  "min_2": "{{vduration_minutes}}min",
+  "lecons_terminees": "{{completedLessons}} / {{totalLessons}} leçons terminées"
+}

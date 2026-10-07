@@ -50,12 +50,12 @@ export default function StudentCourseView() {
       {!course.is_approved ? (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md mb-6">
           <p className="text-yellow-800 text-sm">
-            ⚠️ Votre accès complet est en attente de validation du paiement.
+            Votre accès complet est en attente de validation du paiement.
           </p>
 
           <div className="mt-3">
             <label className="block text-sm text-gray-600 mb-2">
-              📤 Téléverser la preuve de paiement :
+              Téléverser la preuve de paiement :
             </label>
             <input
               type="file"
@@ -74,7 +74,7 @@ export default function StudentCourseView() {
         </div>
       ) : (
         <p className="text-green-600 font-semibold mb-4">
-          ✅ Paiement validé — vous avez accès à toutes les leçons.
+          Paiement validé — vous avez accès à toutes les leçons.
         </p>
       )}
 
@@ -91,7 +91,7 @@ export default function StudentCourseView() {
                   </a>
                 ) : (
                   <span className="text-gray-400">
-                    🔒 {lesson.title} (verrouillé)
+                    {lesson.title} (verrouillé)
                   </span>
                 )}
               </li>

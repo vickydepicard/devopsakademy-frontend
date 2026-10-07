@@ -1,0 +1,17 @@
+{
+  "fetch_failed": "fetch failed",
+  "erreur_reseau": "Network error",
+  "preuve_de_paiement": "Proof of payment",
+  "dezoomer": "Zoom out",
+  "zoomer": "Zoom in",
+  "rotation": "Rotate",
+  "ouvrir_dans_un_nouvel_onglet": "Open in a new tab",
+  "telecharger": "Download",
+  "preuve_pdf": "PDF proof",
+  "impossible_d_afficher_l_image": "Unable to display the image",
+  "ouvrir": "Open",
+  "document_pdf": "PDF document",
+  "image_zoom_rotation": "Image · Zoom: {{Math}}% · Rotation: {{rotate}}°",
+  "fermer": "Close",
+  "voir_la_preuve": "View proof"
+}

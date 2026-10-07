@@ -5,8 +5,11 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { usePermissions } from "../../contexts/PermissionContext";
 import api from "../../api/api";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 export default function CourseProgress() {
+  const { t } = useTranslation("courseProgress");
   const { id } = useParams();
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -31,7 +34,7 @@ export default function CourseProgress() {
       setProgress(progressRes.data?.data || progressRes.data || []);
     } catch (err) {
       console.error("CourseProgress:", err);
-      setError("Impossible de charger la progression.");
+      setError(t("impossible_de_charger_la_progression"));
     } finally {
       setLoading(false);
     }
@@ -56,11 +59,9 @@ export default function CourseProgress() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100 max-w-sm w-full">
-          <div className="text-4xl mb-3">⚠️</div>
+          
           <p className="text-gray-700 font-medium mb-4">{error}</p>
-          <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition">
-            ← Retour
-          </button>
+          <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition">{t("retour")}</button>
         </div>
       </div>
     );
@@ -72,33 +73,29 @@ export default function CourseProgress() {
       {/* ── Header ──────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <button onClick={() => navigate("/student")} className="text-white/60 hover:text-white text-sm mb-4 flex items-center gap-1 transition">
-            ← Mon dashboard
-          </button>
+          <button onClick={() => navigate("/student")} className="text-white/60 hover:text-white text-sm mb-4 flex items-center gap-1 transition">{t("mon_dashboard")}</button>
           <h1 className="text-2xl font-bold">{course?.title}</h1>
-          <p className="text-white/60 text-sm mt-1">Progression détaillée</p>
+          <p className="text-white/60 text-sm mt-1">{t("progression_detaillee")}</p>
 
           {/* Barre de progression principale */}
           <div className="mt-6 bg-white/10 rounded-2xl p-5">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <p className="text-3xl font-bold">{globalPct}%</p>
-                <p className="text-white/50 text-sm mt-0.5">
-                  {completedLessons} / {totalLessons} leçons terminées
-                </p>
+                <p className="text-white/50 text-sm mt-0.5">{i18n.t("courseProgress:lecons_terminees", { completedLessons, totalLessons })}</p>
               </div>
               <div className="flex gap-4 text-center">
                 <div className="bg-white/10 rounded-xl px-4 py-2">
                   <p className="text-xl font-bold">{progress.length}</p>
-                  <p className="text-white/60 text-xs">Modules</p>
+                  <p className="text-white/60 text-xs">{t("modules")}</p>
                 </div>
                 <div className="bg-white/10 rounded-xl px-4 py-2">
                   <p className="text-xl font-bold">{Math.round(completedMinutes / 60 * 10) / 10}h</p>
-                  <p className="text-white/60 text-xs">Complétées</p>
+                  <p className="text-white/60 text-xs">{t("completees")}</p>
                 </div>
                 <div className="bg-white/10 rounded-xl px-4 py-2">
                   <p className="text-xl font-bold">{Math.round(totalMinutes / 60 * 10) / 10}h</p>
-                  <p className="text-white/60 text-xs">Total</p>
+                  <p className="text-white/60 text-xs">{t("total")}</p>
                 </div>
               </div>
             </div>
@@ -117,15 +114,13 @@ export default function CourseProgress() {
         {/* ── Liste des modules ────────────────────────── */}
         {progress.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-            <div className="text-5xl mb-3">📭</div>
-            <p className="text-gray-600 font-medium">Aucune donnée de progression</p>
-            <p className="text-gray-400 text-sm mt-1">Commencez le cours pour voir votre avancement</p>
+            
+            <p className="text-gray-600 font-medium">{t("aucune_donnee_de_progression")}</p>
+            <p className="text-gray-400 text-sm mt-1">{t("commencez_le_cours_pour_voir_votre")}</p>
             <button
               onClick={() => navigate(`/courses/${course?.id || id}/learn`)}
               className="mt-4 px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition"
-            >
-              ▶ Commencer le cours
-            </button>
+            >{t("commencer_le_cours")}</button>
           </div>
         ) : progress.map((mod, idx) => {
           const modPct = Number(mod.total_lessons) > 0
@@ -146,8 +141,7 @@ export default function CourseProgress() {
                   <div>
                     <h3 className="font-bold text-gray-800">{mod.module_title}</h3>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {mod.completed_lessons || 0} / {mod.total_lessons || 0} leçons
-                      {mod.total_minutes > 0 && ` · ${Math.round(mod.total_minutes)}min`}
+                      {mod.completed_lessons || 0} / {mod.total_lessons || 0}{" "}{t("lecons")}{mod.total_minutes > 0 && t("min", { Math: Math.round(mod.total_minutes) })}
                     </p>
                   </div>
                 </div>
@@ -185,7 +179,7 @@ export default function CourseProgress() {
                           {lesson.title}
                         </span>
                         {lesson.duration_minutes && (
-                          <span className="ml-auto text-gray-400 text-xs">{lesson.duration_minutes}min</span>
+                          <span className="ml-auto text-gray-400 text-xs">{i18n.t("courseProgress:min_2", { vduration_minutes: lesson.duration_minutes })}</span>
                         )}
                       </div>
                     ))}
@@ -201,15 +195,11 @@ export default function CourseProgress() {
           <button
             onClick={() => navigate(`/courses/${course?.id || id}/learn`)}
             className="flex-1 py-3 bg-[#2d287f] hover:bg-[#3b3aab] text-white rounded-xl font-semibold text-sm transition text-center"
-          >
-            ▶ Continuer le cours
-          </button>
+          >{t("continuer_le_cours")}</button>
           <button
             onClick={() => navigate("/student")}
             className="flex-1 py-3 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl font-semibold text-sm transition text-center"
-          >
-            ← Mon dashboard
-          </button>
+          >{t("mon_dashboard")}</button>
         </div>
 
         {/* ── Section Avis ─────────────────────────────── */}

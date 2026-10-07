@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import CourseReviews from "../../components/Reviews/CourseReviews";
 import RealPaymentModal from "../../pages/payment/PaymentModal";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 
 /* ── Dé-encoder les champs JSON multi-encodés ── */
@@ -44,8 +47,8 @@ function parseJsonField(raw) {
 ══════════════════════════════════════════════════════ */
 // Prix UNIQUEMENT en FCFA
 const formatPrice = (price, isFree) => {
-  if (isFree || price === 0 || !price) return "Gratuit";
-  return new Intl.NumberFormat("fr-FR").format(Number(price)) + " FCFA";
+  if (isFree || price === 0 || !price) return i18n.t("courseDetails:gratuit");
+  return new Intl.NumberFormat(getLocale()).format(Number(price)) + " FCFA";
 };
 
 const formatDuration = (hours) => {
@@ -56,23 +59,23 @@ const formatDuration = (hours) => {
 
 const formatRating = (r) => (!r ? "0.0" : parseFloat(r).toFixed(1));
 
-const LEVELS = {
-  beginner:     { label: "Débutant",      cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: "🟢" },
-  intermediate: { label: "Intermédiaire", cls: "bg-blue-50 text-blue-700 border-blue-200",          icon: "🔵" },
-  advanced:     { label: "Avancé",        cls: "bg-purple-50 text-purple-700 border-purple-200",    icon: "🟣" },
-};
-const LANGS = {
-  fr: { name: "Français", flag: "🇫🇷" },
-  en: { name: "English",  flag: "🇬🇧" },
-  ar: { name: "Arabe",    flag: "🇸🇦" },
-};
-const LESSON_TYPES = {
-  video:    { icon: Video,    bg: "bg-blue-50 text-blue-600",   label: "Vidéo" },
-  article:  { icon: FileText, bg: "bg-emerald-50 text-emerald-600", label: "Article" },
-  quiz:     { icon: FileCode, bg: "bg-purple-50 text-purple-600",  label: "Quiz" },
-  exercise: { icon: Zap,      bg: "bg-orange-50 text-orange-600",  label: "Exercice" },
-  download: { icon: Download, bg: "bg-gray-50 text-gray-600",      label: "Téléchargement" },
-};
+const LEVELS = () => ({
+  beginner:     { label: i18n.t("courseDetails:debutant"),      cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  intermediate: { label: i18n.t("courseDetails:intermediaire"), cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  advanced:     { label: i18n.t("courseDetails:avance"),        cls: "bg-purple-50 text-purple-700 border-purple-200" },
+});
+const LANGS = () => ({
+  fr: { name: i18n.t("courseDetails:francais"), flag: "" },
+  en: { name: i18n.t("courseDetails:english"),  flag: "" },
+  ar: { name: i18n.t("courseDetails:arabe"),    flag: "" },
+});
+const LESSON_TYPES = () => ({
+  video:    { icon: Video,    bg: "bg-blue-50 text-blue-600",   label: i18n.t("courseDetails:video") },
+  article:  { icon: FileText, bg: "bg-emerald-50 text-emerald-600", label: i18n.t("courseDetails:article") },
+  quiz:     { icon: FileCode, bg: "bg-purple-50 text-purple-600",  label: i18n.t("courseDetails:quiz") },
+  exercise: { icon: Zap,      bg: "bg-orange-50 text-orange-600",  label: i18n.t("courseDetails:exercice") },
+  download: { icon: Download, bg: "bg-gray-50 text-gray-600",      label: i18n.t("courseDetails:telechargement") },
+});
 
 /* ══════════════════════════════════════════════════════
    COMPOSANTS
@@ -113,6 +116,7 @@ function PriceBadge({ price, originalPrice, isFree }) {
 
 // Orange Money — logo officiel via URL externe avec fallback SVG
 const OrangeLogo = () => {
+  const { t } = useTranslation("courseDetails");
   const [failed, setFailed] = React.useState(false);
   if (failed) {
     // Fallback si l'URL ne charge pas
@@ -140,7 +144,7 @@ const OrangeLogo = () => {
     }}>
       <img
         src="https://www.logo.wine/a/logo/Orange_Money/Orange_Money-Logo.wine.svg"
-        alt="Orange Money"
+        alt={t("orange_money")}
         onError={() => setFailed(true)}
         style={{ width: "100%", height: "100%", objectFit: "contain" }}
       />
@@ -162,7 +166,7 @@ const MtnLogo = () => (
       fill="#111111" fontFamily="Arial Black,Arial,sans-serif">MTN</text>
     {/* Texte MoMo en bas */}
     <text x="26" y="47" textAnchor="middle" fontSize="8.5" fontWeight="800"
-      fill="#111111" fontFamily="Arial,sans-serif">MoMo</text>
+      fill="#111111" fontFamily="Arial,sans-serif">{i18n.t("courseDetails:momo")}</text>
   </svg>
 );
 
@@ -194,7 +198,8 @@ const WaveLogo = () => (
 
 
 function PaymentModal({ onClose, price, isFree }) {
-  const fmt = (p) => Number(p || 0).toLocaleString("fr-FR");
+  const { t } = useTranslation("courseDetails");
+  const fmt = (p) => Number(p || 0).toLocaleString(getLocale());
   const [copied, setCopied] = useState(null);
 
   const copyNum = (num, id) => {
@@ -218,7 +223,7 @@ function PaymentModal({ onClose, price, isFree }) {
     {
       id:        "orange",
       Logo:      OrangeLogo,
-      name:      "Orange Money",
+      name:      t("orange_money"),
       accountName: import.meta.env.VITE_PAYMENT_ORANGE_NAME    || "DevOpsAkademy",
       number:    formatPhone(import.meta.env.VITE_PAYMENT_ORANGE_NUMBER),
       rawNumber: import.meta.env.VITE_PAYMENT_ORANGE_NUMBER    || "",
@@ -232,7 +237,7 @@ function PaymentModal({ onClose, price, isFree }) {
     {
       id:        "mtn",
       Logo:      MtnLogo,
-      name:      "MTN MoMo",
+      name:      t("mtn_momo"),
       accountName: import.meta.env.VITE_PAYMENT_MTN_NAME       || "DevOpsAkademy",
       number:    formatPhone(import.meta.env.VITE_PAYMENT_MTN_NUMBER),
       rawNumber: import.meta.env.VITE_PAYMENT_MTN_NUMBER       || "",
@@ -309,24 +314,20 @@ function PaymentModal({ onClose, price, isFree }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 9, fontWeight: 900, color: "#1e1b4b",
             }}>DA</span>
-            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              Paiement
-            </span>
+            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>{t("paiement")}</span>
           </div>
           {/* Prix */}
-          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, marginBottom: 4 }}>Montant à payer</p>
+          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, marginBottom: 4 }}>{t("montant_a_payer")}</p>
           <p style={{
             fontSize: isFree ? 32 : 42, fontWeight: 900, letterSpacing: "-0.02em",
             color: "#facc15",
             textShadow: "0 0 40px rgba(250,204,21,0.4)",
             lineHeight: 1,
           }}>
-            {isFree ? "🎉 Gratuit" : `${fmt(price)} FCFA`}
+            {isFree ? t("gratuit") : `${fmt(price)} FCFA`}
           </p>
           {!isFree && (
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 6 }}>
-              Paiement unique · Accès à vie
-            </p>
+            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 6 }}>{t("paiement_unique_acces_a_vie")}</p>
           )}
         </div>
 
@@ -335,9 +336,7 @@ function PaymentModal({ onClose, price, isFree }) {
 
           {!isFree && (
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 10, fontWeight: 800, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12, textAlign: "center" }}>
-                Moyens de paiement
-              </p>
+              <p style={{ fontSize: 10, fontWeight: 800, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12, textAlign: "center" }}>{t("moyens_de_paiement")}</p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {METHODS.map(({ id, Logo, name, accountName, number, rawNumber, code, grad, glow, badge, badgeText }) => (
@@ -385,7 +384,7 @@ function PaymentModal({ onClose, price, isFree }) {
                         minWidth: 64, textAlign: "center",
                       }}
                     >
-                      {copied === id ? "✓ Copié" : "Copier"}
+                      {copied === id ? t("copie") : t("copier")}
                     </button>
                   </div>
                 ))}
@@ -398,15 +397,13 @@ function PaymentModal({ onClose, price, isFree }) {
             background: "linear-gradient(135deg,#f8f7ff,#f0f0ff)",
             border: "1px solid #e0e7ff", borderRadius: 18, padding: "14px 16px", marginBottom: 12,
           }}>
-            <p style={{ fontSize: 10, fontWeight: 800, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>
-              📋 Comment payer
-            </p>
+            <p style={{ fontSize: 10, fontWeight: 800, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>{t("comment_payer")}</p>
             {[
-              "Notez le numéro et composez le code USSD",
-              "Entrez le montant exact et validez",
-              "Photographiez le SMS de confirmation",
-              "Cliquez « S'inscrire » et uploadez la preuve",
-              "Accès activé sous 24h ✓",
+              i18n.t("courseDetails:notez_le_numero_et_composez_le"),
+              i18n.t("courseDetails:entrez_le_montant_exact_et_validez"),
+              i18n.t("courseDetails:photographiez_le_sms_de_confirmation"),
+              i18n.t("courseDetails:cliquez_s_inscrire_et_uploadez_la"),
+              i18n.t("courseDetails:acces_active_sous_24h"),
             ].map((t, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: i < 4 ? 8 : 0 }}>
                 <div style={{
@@ -426,9 +423,9 @@ function PaymentModal({ onClose, price, isFree }) {
             borderRadius: 14, padding: "10px 14px", marginBottom: 12,
             display: "flex", alignItems: "center", gap: 10,
           }}>
-            <span style={{ fontSize: 20 }}>🛡️</span>
+            
             <div>
-              <p style={{ fontSize: 12, fontWeight: 800, color: "#065f46" }}>Garantie satisfait ou remboursé 30 jours</p>
+              <p style={{ fontSize: 12, fontWeight: 800, color: "#065f46" }}>{t("garantie_satisfait_ou_rembourse_30_jours")}</p>
               <p style={{ fontSize: 11, color: "#059669" }}>{import.meta.env.VITE_PAYMENT_EMAIL || "support@devopsakademy.com"}</p>
             </div>
           </div>
@@ -443,9 +440,7 @@ function PaymentModal({ onClose, price, isFree }) {
             fontSize: 15, fontWeight: 900, letterSpacing: "0.01em",
             boxShadow: "0 8px 24px rgba(45,40,127,0.35)",
             transition: "opacity 0.2s",
-          }}>
-            Fermer
-          </button>
+          }}>{t("fermer")}</button>
         </div>
       </div>
 
@@ -465,6 +460,7 @@ function PaymentModal({ onClose, price, isFree }) {
    COMPOSANT PRINCIPAL
 ══════════════════════════════════════════════════════ */
 export default function CourseDetails() {
+  const { t } = useTranslation("courseDetails");
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -480,6 +476,7 @@ export default function CourseDetails() {
   const [showPayment,     setShowPayment]    = useState(false);
   const [showRealPayment, setShowRealPayment] = useState(false);
   const [notif,           setNotif]          = useState(location.state?.message || null);
+  const [notifOk, setNotifOk] = useState(false);
 
   /* ── Chargement ── */
   useEffect(() => {
@@ -499,17 +496,17 @@ export default function CourseDetails() {
         try {
           const r = await api.get(`/courses/${id}`);
           if (r.data?.success) { setCourse(r.data.data); return; }
-          setError("Ce cours est introuvable ou n'est plus disponible.");
+          setError(t("ce_cours_est_introuvable_ou_n"));
         } catch (pubErr) {
           const status = pubErr?.response?.status;
           if (status === 404) {
-            setError("Ce cours est introuvable (ID: " + id + "). Vérifiez le lien ou retournez au catalogue.");
+            setError(i18n.t("courseDetails:ce_cours_est_introuvable_id") + id + i18n.t("courseDetails:verifiez_le_lien_ou_retournez_au"));
           } else {
-            setError("Erreur de connexion au serveur. Vérifiez que l'API est démarrée.");
+            setError(t("erreur_de_connexion_au_serveur_verifiez"));
           }
         }
       } catch (err) {
-        setError(err.response?.data?.message || "Erreur de connexion au serveur");
+        setError(err.response?.data?.message || t("erreur_de_connexion_au_serveur"));
       } finally { setLoading(false); }
     };
     load();
@@ -535,7 +532,7 @@ export default function CourseDetails() {
         setShowRealPayment(true); // Le modal détectera le 409 et ira à l'étape upload
         return;
       }
-      setNotif("⏳ Votre inscription est en attente de validation par l'admin.");
+      setNotif(t("votre_inscription_est_en_attente_de")); setNotifOk(false);
       return;
     }
     // Cours gratuit → inscription directe
@@ -544,9 +541,9 @@ export default function CourseDetails() {
       setEnrolling(true);
       try {
         await enrollInCourse(cid);
-        setNotif("✅ Inscription confirmée ! Vous pouvez commencer le cours.");
+        setNotif(t("inscription_confirmee_vous_pouvez_commencer_le")); setNotifOk(true);
       } catch (err) {
-        setError(err.response?.data?.message || "Erreur lors de l'inscription.");
+        setError(err.response?.data?.message || t("erreur_lors_de_l_inscription"));
       } finally { setEnrolling(false); }
       return;
     }
@@ -562,8 +559,8 @@ export default function CourseDetails() {
   }, [isAuthenticated, course, id, getEnrollmentStatus]);
 
   /* ── Helpers ── */
-  const level    = LEVELS[course?.level] || LEVELS.beginner;
-  const lang     = LANGS[course?.language] || LANGS.fr;
+  const level    = LEVELS()[course?.level] || LEVELS().beginner;
+  const lang     = LANGS()[course?.language] || LANGS().fr;
   const discount = course?.original_price && course?.price && !course?.is_free
     ? Math.round(((course.original_price - course.price) / course.original_price) * 100)
     : null;
@@ -595,38 +592,28 @@ export default function CourseDetails() {
         <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
           <AlertCircle className="w-10 h-10 text-red-500" />
         </div>
-        <h3 className="text-xl font-black text-gray-900 mb-2">Cours non disponible</h3>
+        <h3 className="text-xl font-black text-gray-900 mb-2">{t("cours_non_disponible")}</h3>
         <p className="text-gray-500 mb-5 text-sm leading-relaxed">
-          {error || "Ce cours n'est pas accessible actuellement."}
+          {error || t("ce_cours_n_est_pas_accessible")}
         </p>
         {/* Si l'user est probablement inscrit, proposer d'aller directement au contenu */}
         <div className="space-y-2">
           <button
             onClick={() => navigate(`/courses/${id}/learn`)}
             className="w-full py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2"
-            style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
-            ▶ Accéder directement au cours
-          </button>
+            style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>{t("acceder_directement_au_cours")}</button>
           <div className="flex gap-2">
             <button onClick={() => navigate("/student")}
               className="flex-1 py-2.5 rounded-xl font-bold text-white text-sm"
-              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-              Mon espace
-            </button>
+              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{t("mon_espace")}</button>
             <button onClick={() => navigate("/courses")}
               className="flex-1 py-2.5 rounded-xl font-bold text-sm border-2"
-              style={{ borderColor: "#2d287f", color: "#2d287f" }}>
-              Catalogue
-            </button>
+              style={{ borderColor: "#2d287f", color: "#2d287f" }}>{t("catalogue")}</button>
             <button onClick={() => window.location.reload()}
-              className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
-              Réessayer
-            </button>
+              className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition">{t("reessayer")}</button>
           </div>
         </div>
-        <p className="text-xs text-gray-400 mt-4">
-          Code cours: #{id} · Si le problème persiste, contactez le support.
-        </p>
+        <p className="text-xs text-gray-400 mt-4">{t("code_cours_si_le_probleme_persiste", { id })}</p>
       </div>
     </div>
   );
@@ -644,16 +631,16 @@ export default function CourseDetails() {
           onClose={() => setShowRealPayment(false)}
           onSuccess={() => {
             setShowRealPayment(false);
-            setNotif("✅ Preuve soumise ! Accès activé après validation sous 24h.");
+            setNotif(t("preuve_soumise_acces_active_apres_validation")); setNotifOk(true);
           }}
         />
       )}
 
       {/* Notification banner */}
       {notif && (
-        <div className={`border-b px-4 py-3 ${notif.startsWith("✅") ? "bg-emerald-50 border-emerald-200" : "bg-blue-50 border-blue-200"}`}>
+        <div className={`border-b px-4 py-3 ${notifOk ? "bg-emerald-50 border-emerald-200" : "bg-blue-50 border-blue-200"}`}>
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <p className={`text-sm font-medium ${notif.startsWith("✅") ? "text-emerald-800" : "text-blue-800"}`}>{notif}</p>
+            <p className={`text-sm font-medium ${notifOk ? "text-emerald-800" : "text-blue-800"}`}>{notif}</p>
             <button onClick={() => setNotif(null)} className="text-gray-400 hover:text-gray-600 flex-shrink-0"><X className="w-4 h-4" /></button>
           </div>
         </div>
@@ -663,9 +650,9 @@ export default function CourseDetails() {
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <button onClick={() => navigate("/")} className="hover:text-gray-800 transition">Accueil</button>
+          <button onClick={() => navigate("/")} className="hover:text-gray-800 transition">{t("accueil")}</button>
           <ChevronRight className="w-3.5 h-3.5" />
-          <button onClick={() => navigate("/courses")} className="hover:text-gray-800 transition">Formations</button>
+          <button onClick={() => navigate("/courses")} className="hover:text-gray-800 transition">{t("formations")}</button>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-gray-900 font-medium truncate max-w-xs">{course.title}</span>
         </nav>
@@ -680,7 +667,7 @@ export default function CourseDetails() {
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 <span className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${level.cls}`}>
-                  {level.icon} {level.label}
+                  {level.label}
                 </span>
                 <span className="px-3 py-1.5 bg-white text-gray-700 rounded-full text-sm font-medium border border-gray-200 flex items-center gap-1">
                   <Globe className="w-3.5 h-3.5" /> {lang.flag} {lang.name}
@@ -691,9 +678,7 @@ export default function CourseDetails() {
                   </span>
                 )}
                 {discount && (
-                  <span className="px-3 py-1.5 bg-red-500 text-white rounded-full text-sm font-bold animate-pulse">
-                    -{discount}% PROMO
-                  </span>
+                  <span className="px-3 py-1.5 bg-red-500 text-white rounded-full text-sm font-bold animate-pulse">{t("promo", { vdiscount: discount })}</span>
                 )}
               </div>
 
@@ -709,12 +694,11 @@ export default function CourseDetails() {
               <div className="flex flex-wrap items-center gap-5 mt-4 text-sm text-gray-600">
                 <span className="flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-blue-500" />
-                  <strong className="text-gray-900">{(course.student_count || 0).toLocaleString("fr-FR")}</strong> étudiants
-                </span>
+                  <strong className="text-gray-900">{(course.student_count || 0).toLocaleString(getLocale())}</strong>{" "}{t("etudiants")}</span>
                 <span className="flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                   <strong className="text-gray-900">{formatRating(course.rating)}/5</strong>
-                  {course.review_count > 0 && <span className="text-gray-400">({course.review_count} avis)</span>}
+                  {course.review_count > 0 && <span className="text-gray-400">{t("avis", { review_count: course.review_count })}</span>}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-emerald-500" />
@@ -723,8 +707,7 @@ export default function CourseDetails() {
                 {totalLessons > 0 && (
                   <span className="flex items-center gap-1.5">
                     <BookOpen className="w-4 h-4 text-purple-500" />
-                    <strong className="text-gray-900">{totalLessons}</strong> leçons
-                  </span>
+                    <strong className="text-gray-900">{totalLessons}</strong>{" "}{t("lecons")}</span>
                 )}
               </div>
 
@@ -735,7 +718,7 @@ export default function CourseDetails() {
                     style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
                     {(course.first_name?.[0] || "") + (course.last_name?.[0] || "")}
                   </div>
-                  <span>Présenté par <strong className="text-gray-800">{course.first_name} {course.last_name}</strong></span>
+                  <span>{t("presente_par")}{" "}<strong className="text-gray-800">{course.first_name} {course.last_name}</strong></span>
                 </div>
               )}
             </div>
@@ -748,10 +731,10 @@ export default function CourseDetails() {
             {/* Stats grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { icon: Users,    color: "text-blue-600",   bg: "bg-blue-50",   label: "Étudiants",       val: (course.student_count || 0).toLocaleString("fr-FR") },
-                { icon: Star,     color: "text-amber-600",  bg: "bg-amber-50",  label: "Note moyenne",    val: `${formatRating(course.rating)}/5` },
-                { icon: Clock,    color: "text-emerald-600",bg: "bg-emerald-50",label: "Durée",           val: formatDuration(course.duration_hours) },
-                { icon: BookOpen, color: "text-purple-600", bg: "bg-purple-50", label: "Leçons",          val: totalLessons || "—" },
+                { icon: Users,    color: "text-blue-600",   bg: "bg-blue-50",   label: t("etudiants_2"),       val: (course.student_count || 0).toLocaleString(getLocale()) },
+                { icon: Star,     color: "text-amber-600",  bg: "bg-amber-50",  label: t("note_moyenne"),    val: `${formatRating(course.rating)}/5` },
+                { icon: Clock,    color: "text-emerald-600",bg: "bg-emerald-50",label: t("duree"),           val: formatDuration(course.duration_hours) },
+                { icon: BookOpen, color: "text-purple-600", bg: "bg-purple-50", label: t("lecons_2"),          val: totalLessons || "—" },
               ].map(({ icon: Icon, color, bg, label, val }) => (
                 <div key={label} className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3">
@@ -772,12 +755,12 @@ export default function CourseDetails() {
               {/* Tab nav */}
               <div className="flex gap-1 border-b border-gray-200 overflow-x-auto pb-0">
                 {[
-                  { id: "overview",    icon: Eye,       label: "Aperçu" },
-                  { id: "curriculum",  icon: BookOpen,  label: "Programme" },
-                  { id: "instructor",  icon: Users,     label: "Instructeur" },
-                  { id: "outcomes",    icon: Target,    label: "Compétences" },
+                  { id: "overview",    icon: Eye,       label: t("apercu") },
+                  { id: "curriculum",  icon: BookOpen,  label: t("programme") },
+                  { id: "instructor",  icon: Users,     label: t("instructeur") },
+                  { id: "outcomes",    icon: Target,    label: t("competences") },
                   { id: "faq",         icon: HelpCircle,label: "FAQ" },
-                  { id: "reviews",     icon: Star,      label: "Avis" },
+                  { id: "reviews",     icon: Star,      label: t("avis_2") },
                 ].map(({ id: tid, icon: Icon, label }) => (
                   <button key={tid} onClick={() => setActiveTab(tid)}
                     className={`flex items-center gap-1.5 py-3 px-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all -mb-px
@@ -801,16 +784,16 @@ export default function CourseDetails() {
                     <div className="space-y-7">
                       {/* Description */}
                       <div>
-                        <h3 className="text-xl font-black text-gray-900 mb-4">À propos de ce cours</h3>
+                        <h3 className="text-xl font-black text-gray-900 mb-4">{t("a_propos_de_ce_cours")}</h3>
                         <div className="text-gray-700 leading-relaxed whitespace-pre-line text-sm">
-                          {course.description || "Aucune description disponible."}
+                          {course.description || t("aucune_description_disponible")}
                         </div>
                       </div>
 
                       {/* Ce que vous apprendrez */}
                       {course.learning_outcomes && (
                         <div>
-                          <h3 className="text-xl font-black text-gray-900 mb-4">Ce que vous apprendrez</h3>
+                          <h3 className="text-xl font-black text-gray-900 mb-4">{t("ce_que_vous_apprendrez")}</h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {parseJsonField(course.learning_outcomes).map((item, i) => (
                               <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-gray-100 bg-gray-50">
@@ -825,7 +808,7 @@ export default function CourseDetails() {
                       {/* Prérequis */}
                       {course.requirements && (
                         <div>
-                          <h3 className="text-xl font-black text-gray-900 mb-4">Prérequis</h3>
+                          <h3 className="text-xl font-black text-gray-900 mb-4">{t("prerequis")}</h3>
                           <ul className="space-y-2">
                             {parseJsonField(course.requirements).map((r, i) => (
                               <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
@@ -839,15 +822,15 @@ export default function CourseDetails() {
 
                       {/* Ce qui est inclus */}
                       <div>
-                        <h3 className="text-xl font-black text-gray-900 mb-4">Ce qui est inclus</h3>
+                        <h3 className="text-xl font-black text-gray-900 mb-4">{t("ce_qui_est_inclus")}</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           {[
-                            { icon: Video,      label: `Vidéos HD ${formatDuration(course.duration_hours)}` },
-                            { icon: Download,   label: "Ressources téléchargeables" },
-                            { icon: Award,      label: "Certificat officiel" },
-                            { icon: GraduationCap, label: "Accès mobile & TV" },
-                            { icon: HelpCircle, label: "Support Q&A" },
-                            { icon: Clock,      label: "Accès à vie" },
+                            { icon: Video,      label: t("videos_hd", { formatDuration: formatDuration(course.duration_hours) }) },
+                            { icon: Download,   label: t("ressources_telechargeables") },
+                            { icon: Award,      label: t("certificat_officiel") },
+                            { icon: GraduationCap, label: t("acces_mobile_tv") },
+                            { icon: HelpCircle, label: t("support_q_a") },
+                            { icon: Clock,      label: t("acces_a_vie") },
                           ].map(({ icon: Icon, label }) => (
                             <div key={label} className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-700">
                               <Icon className="w-4 h-4 text-indigo-500 flex-shrink-0" />
@@ -859,15 +842,15 @@ export default function CourseDetails() {
 
                       {/* Infos clés */}
                       <div className="bg-gray-50 rounded-2xl border border-gray-200 p-5">
-                        <h3 className="text-base font-black text-gray-900 mb-4">Informations clés</h3>
+                        <h3 className="text-base font-black text-gray-900 mb-4">{t("informations_cles")}</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                           {[
-                            { l: "Niveau",      v: level.label },
-                            { l: "Catégorie",   v: course.category_name || "—" },
-                            { l: "Accès",       v: "À vie" },
-                            { l: "Langue",      v: `${lang.flag} ${lang.name}` },
-                            { l: "Durée",       v: formatDuration(course.duration_hours) },
-                            { l: "Mise à jour", v: course.updated_at ? new Date(course.updated_at).toLocaleDateString("fr-FR", { year:"numeric", month:"short" }) : "Récent" },
+                            { l: i18n.t("courseDetails:niveau"),      v: level.label },
+                            { l: i18n.t("courseDetails:categorie"),   v: course.category_name || "—" },
+                            { l: i18n.t("courseDetails:acces"),       v: i18n.t("courseDetails:a_vie") },
+                            { l: i18n.t("courseDetails:langue"),      v: `${lang.flag} ${lang.name}` },
+                            { l: i18n.t("courseDetails:duree"),       v: formatDuration(course.duration_hours) },
+                            { l: i18n.t("courseDetails:mise_a_jour"), v: course.updated_at ? new Date(course.updated_at).toLocaleDateString(getLocale(), { year:"numeric", month:"short" }) : i18n.t("courseDetails:recent") },
                           ].map(({ l, v }) => (
                             <div key={l}>
                               <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">{l}</p>
@@ -885,18 +868,16 @@ export default function CourseDetails() {
                       {/* ── En-tête ── */}
                       <div className="flex items-center justify-between mb-5">
                         <div>
-                          <h3 className="text-xl font-black text-gray-900">Programme du cours</h3>
+                          <h3 className="text-xl font-black text-gray-900">{t("programme_du_cours")}</h3>
                           {course.modules?.length > 0 && (
-                            <p className="text-sm text-gray-400 mt-0.5">
-                              {course.modules.length} module{course.modules.length > 1 ? "s" : ""}
-                              {totalLessons > 0 && ` · ${totalLessons} leçon${totalLessons > 1 ? "s" : ""}`}
+                            <p className="text-sm text-gray-400 mt-0.5">{i18n.t("courseDetails:module", { length: course.modules.length, s: course.modules.length > 1 ? "s" : "" })}{totalLessons > 0 && t("lecon", { totalLessons, v: totalLessons > 1 ? "s" : "" })}
                             </p>
                           )}
                         </div>
                         {access.status !== "approved" && access.status !== "pending" && (
                           <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#2d287f] bg-[#2d287f]/8 border border-[#2d287f]/20 px-3 py-1.5 rounded-full font-medium">
                             <Lock className="w-3 h-3" />
-                            {isAuthenticated ? "Inscrivez-vous pour accéder" : "Connectez-vous pour accéder"}
+                            {isAuthenticated ? t("inscrivez_vous_pour_acceder") : t("connectez_vous_pour_acceder")}
                           </div>
                         )}
                       </div>
@@ -925,11 +906,10 @@ export default function CourseDetails() {
                                     </div>
                                     <div className="min-w-0">
                                       <p className="font-bold text-gray-900 truncate">{mod.title}</p>
-                                      <p className="text-xs text-gray-500 mt-0.5">
-                                        {lessonCount} leçon{lessonCount !== 1 ? "s" : ""}
+                                      <p className="text-xs text-gray-500 mt-0.5">{t("lecon_2_p", { lessonCount, s: lessonCount !== 1 ? "s" : "" })}
                                         {mod.total_duration > 0 && ` · ${Math.round(mod.total_duration / 60)}h`}
                                         {previewCount > 0 && access.status !== "approved" && (
-                                          <span className="ml-2 text-amber-600 font-semibold">{previewCount} aperçu{previewCount > 1 ? "s" : ""} gratuit{previewCount > 1 ? "s" : ""}</span>
+                                          <span className="ml-2 text-amber-600 font-semibold">{t("apercu_2", { previewCount })}{i18n.t("courseDetails:gratuit_2", { s: previewCount > 1 ? "s" : "", s2: previewCount > 1 ? "s" : "" })}</span>
                                         )}
                                       </p>
                                     </div>
@@ -944,7 +924,7 @@ export default function CourseDetails() {
                                 {isExpanded && (
                                   <div className="divide-y divide-gray-50">
                                     {lessonList.length > 0 ? lessonList.map((les, li) => {
-                                      const lt = LESSON_TYPES[les.content_type] || LESSON_TYPES.video;
+                                      const lt = LESSON_TYPES()[les.content_type] || LESSON_TYPES().video;
                                       const LesIcon = lt.icon;
                                       const canAccess  = access.status === "approved";
                                       const isPreview  = !!les.is_preview;
@@ -980,7 +960,7 @@ export default function CourseDetails() {
                                               </div>
                                               <p className="text-[11px] text-gray-400 mt-0.5 ml-7">
                                                 {lt.label}
-                                                {les.duration_minutes > 0 && ` · ${les.duration_minutes} min`}
+                                                {les.duration_minutes > 0 && t("min", { vduration_minutes: les.duration_minutes })}
                                               </p>
                                             </div>
                                           </div>
@@ -991,17 +971,15 @@ export default function CourseDetails() {
                                               <button onClick={() => navigate(`/courses/${course.id}/learn`)}
                                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition hover:opacity-90"
                                                 style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                                                <PlayCircle className="w-3.5 h-3.5" /> Continuer
-                                              </button>
+                                                <PlayCircle className="w-3.5 h-3.5" />{" "}{t("continuer")}</button>
                                             ) : isPreview ? (
                                               <button onClick={() => navigate(`/courses/${course.id}/preview`)}
                                                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition">
-                                                <PlayCircle className="w-3 h-3" /> Aperçu
-                                              </button>
+                                                <PlayCircle className="w-3 h-3" />{" "}{t("apercu")}</button>
                                             ) : (
                                               <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-gray-400 bg-gray-50 border border-gray-100 select-none">
                                                 <Lock className="w-3 h-3" />
-                                                {isAuthenticated ? "Inscrit requis" : "Connexion requise"}
+                                                {isAuthenticated ? t("inscrit_requis") : t("connexion_requise")}
                                               </span>
                                             )}
                                           </div>
@@ -1011,7 +989,7 @@ export default function CourseDetails() {
                                       /* Fallback si API ne retourne pas encore les leçons */
                                       <div className="px-5 py-4 flex items-center gap-3 text-sm text-gray-400">
                                         <Lock className="w-4 h-4" />
-                                        <span>{lessonCount} leçon{lessonCount > 1 ? "s" : ""} disponible{lessonCount > 1 ? "s" : ""} — {isAuthenticated ? "inscrivez-vous" : "connectez-vous"} pour y accéder</span>
+                                        <span>{t("lecon_2", { lessonCount })}{i18n.t("courseDetails:disponible", { s: lessonCount > 1 ? "s" : "", s2: lessonCount > 1 ? "s" : "" })}{" "}{isAuthenticated ? "inscrivez-vous" : "connectez-vous"}{" "}{t("pour_y_acceder")}</span>
                                       </div>
                                     )}
                                   </div>
@@ -1023,8 +1001,8 @@ export default function CourseDetails() {
                       ) : (
                         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
                           <FileCode className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                          <p className="font-bold text-gray-700 mb-1">Programme en cours de finalisation</p>
-                          <p className="text-sm text-gray-500">Le programme détaillé sera disponible prochainement.</p>
+                          <p className="font-bold text-gray-700 mb-1">{t("programme_en_cours_de_finalisation")}</p>
+                          <p className="text-sm text-gray-500">{t("le_programme_detaille_sera_disponible_prochainem")}</p>
                         </div>
                       )}
 
@@ -1036,18 +1014,16 @@ export default function CourseDetails() {
                             <div className="flex-1 text-center sm:text-left">
                               <p className="font-bold text-[#1f1b5a] text-sm">
                                 {isAuthenticated
-                                  ? "Inscrivez-vous pour accéder à tout le programme"
-                                  : "Connectez-vous pour accéder au programme complet"}
+                                  ? t("inscrivez_vous_pour_acceder_a_tout")
+                                  : t("connectez_vous_pour_acceder_au_programme")}
                               </p>
-                              <p className="text-xs text-[#2d287f]/70 mt-0.5">
-                                {totalLessons} leçons · Accès à vie · Certificat inclus
-                              </p>
+                              <p className="text-xs text-[#2d287f]/70 mt-0.5">{t("lecons_acces_a_vie_certificat_inclus", { totalLessons })}</p>
                             </div>
                             <button
                               onClick={handleEnroll}
                               className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
                               style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                              {isAuthenticated ? "S'inscrire maintenant" : "Se connecter"} →
+                              {isAuthenticated ? t("s_inscrire_maintenant") : t("se_connecter")} →
                             </button>
                           </div>
                         </div>
@@ -1058,8 +1034,8 @@ export default function CourseDetails() {
                         <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 flex items-center gap-3">
                           <Clock className="w-5 h-5 text-amber-600 shrink-0" />
                           <div>
-                            <p className="font-bold text-amber-800 text-sm">Validation en cours</p>
-                            <p className="text-xs text-amber-600 mt-0.5">Votre paiement est en cours de vérification. Accès sous 24h.</p>
+                            <p className="font-bold text-amber-800 text-sm">{t("validation_en_cours")}</p>
+                            <p className="text-xs text-amber-600 mt-0.5">{t("votre_paiement_est_en_cours_de")}</p>
                           </div>
                         </div>
                       )}
@@ -1069,7 +1045,7 @@ export default function CourseDetails() {
                   {/* ── Instructeur ── */}
                   {activeTab === "instructor" && (
                     <div className="space-y-5">
-                      <h3 className="text-xl font-black text-gray-900">Votre instructeur</h3>
+                      <h3 className="text-xl font-black text-gray-900">{t("votre_instructeur")}</h3>
                       <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-gray-200">
                         <div className="flex items-start gap-5">
                           <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-black text-white flex-shrink-0"
@@ -1078,17 +1054,14 @@ export default function CourseDetails() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-xl font-black text-gray-900">{course.first_name} {course.last_name}</h4>
-                            <p className="text-indigo-600 font-medium text-sm mb-3">Expert DevOps & Cloud</p>
-                            <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                              Spécialiste DevOps avec une expertise approfondie en CI/CD, conteneurisation et cloud.
-                              Formateur expérimenté avec de nombreux apprenants formés.
-                            </p>
+                            <p className="text-indigo-600 font-medium text-sm mb-3">{t("expert_devops_cloud")}</p>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-4">{t("specialiste_devops_avec_une_expertise_approfondi")}</p>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                               {[
-                                { icon: Users, label: "Étudiants", val: (course.student_count || 0).toLocaleString("fr-FR") },
-                                { icon: BookOpen, label: "Cours", val: "15+" },
-                                { icon: Star, label: "Note", val: `${formatRating(course.rating)}/5` },
-                                { icon: Award, label: "Certifié", val: "AWS & K8s" },
+                                { icon: Users, label: t("etudiants_2"), val: (course.student_count || 0).toLocaleString(getLocale()) },
+                                { icon: BookOpen, label: t("cours"), val: "15+" },
+                                { icon: Star, label: t("note"), val: `${formatRating(course.rating)}/5` },
+                                { icon: Award, label: t("certifie"), val: i18n.t("courseDetails:aws_k8s") },
                               ].map(({ icon: Icon, label, val }) => (
                                 <div key={label} className="bg-white rounded-xl p-3 border border-gray-100 text-center">
                                   <Icon className="w-4 h-4 mx-auto mb-1 text-indigo-500" />
@@ -1106,7 +1079,7 @@ export default function CourseDetails() {
                   {/* ── Compétences ── */}
                   {activeTab === "outcomes" && (
                     <div className="space-y-5">
-                      <h3 className="text-xl font-black text-gray-900">Compétences acquises</h3>
+                      <h3 className="text-xl font-black text-gray-900">{t("competences_acquises")}</h3>
 
                       {/* Depuis la BDD learning_outcomes */}
                       {course.learning_outcomes && (() => {
@@ -1114,8 +1087,7 @@ export default function CourseDetails() {
                         if (outcomes.length > 0) return (
                           <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
                             <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                              <CheckCircle className="w-5 h-5 text-emerald-500" /> Objectifs de ce cours
-                            </h4>
+                              <CheckCircle className="w-5 h-5 text-emerald-500" />{" "}{t("objectifs_de_ce_cours")}</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {outcomes.map((o, i) => (
                                 <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
@@ -1130,10 +1102,10 @@ export default function CourseDetails() {
                       {/* Grille compétences DevOps génériques */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
-                          { icon: Code,       bg:"bg-blue-50 border-blue-100",    title:"Dev & CI/CD",     color:"text-blue-600",    skills:["Git & GitHub Actions","Jenkins Pipelines","Docker","Kubernetes","Terraform"] },
-                          { icon: Cloud,      bg:"bg-emerald-50 border-emerald-100",title:"Cloud",          color:"text-emerald-600", skills:["AWS / Azure / GCP","IaC","Networking","Monitoring","Cost Optim."] },
-                          { icon: ShieldCheck,bg:"bg-purple-50 border-purple-100", title:"DevSecOps",       color:"text-purple-600",  skills:["SAST/DAST","Secret Mgmt","Compliance","Vuln. Assessment","Zero Trust"] },
-                          { icon: Settings,   bg:"bg-amber-50 border-amber-100",   title:"Automatisation",  color:"text-amber-600",   skills:["Ansible","Prometheus","Grafana","ArgoCD","Helm"] },
+                          { icon: Code,       bg:"bg-blue-50 border-blue-100",    title:t("dev_ci_cd"),     color:"text-blue-600",    skills:[i18n.t("courseDetails:git_github_actions"),i18n.t("courseDetails:jenkins_pipelines"),"Docker","Kubernetes","Terraform"] },
+                          { icon: Cloud,      bg:"bg-emerald-50 border-emerald-100",title:t("cloud"),          color:"text-emerald-600", skills:[i18n.t("courseDetails:aws_azure_gcp"),"IaC",i18n.t("courseDetails:networking"),i18n.t("courseDetails:monitoring"),i18n.t("courseDetails:cost_optim")] },
+                          { icon: ShieldCheck,bg:"bg-purple-50 border-purple-100", title:t("devsecops"),       color:"text-purple-600",  skills:[i18n.t("courseDetails:sast_dast"),i18n.t("courseDetails:secret_mgmt"),i18n.t("courseDetails:compliance"),i18n.t("courseDetails:vuln_assessment"),i18n.t("courseDetails:zero_trust")] },
+                          { icon: Settings,   bg:"bg-amber-50 border-amber-100",   title:t("automatisation"),  color:"text-amber-600",   skills:["Ansible","Prometheus","Grafana","ArgoCD",i18n.t("courseDetails:helm")] },
                         ].map(({ icon: Icon, bg, title, color, skills }) => (
                           <div key={title} className={`rounded-xl p-4 border ${bg}`}>
                             <div className="flex items-center gap-2 mb-3">
@@ -1156,14 +1128,14 @@ export default function CourseDetails() {
                   {/* ── FAQ ── */}
                   {activeTab === "faq" && (
                     <div className="space-y-4">
-                      <h3 className="text-xl font-black text-gray-900 mb-5">Questions fréquentes</h3>
+                      <h3 className="text-xl font-black text-gray-900 mb-5">{t("questions_frequentes")}</h3>
                       {[
-                        { q:"Puis-je suivre ce cours à mon rythme ?",      a:"Oui, tous nos cours sont 100% à la demande. Vous apprenez quand vous voulez, depuis n'importe quel appareil." },
-                        { q:"Comment s'effectue le paiement ?",             a:"Le paiement s'effectue uniquement en FCFA via Orange Money, MTN MoMo, Wave ou virement bancaire. Envoyez la preuve à notre équipe, accès sous 24h." },
-                        { q:"Ai-je besoin de prérequis ?",                  a:"Chaque cours précise ses prérequis dans l'onglet Aperçu. Les cours Débutant n'en nécessitent aucun." },
-                        { q:"Comment obtenir mon certificat ?",             a:"Le certificat est généré automatiquement après avoir complété toutes les leçons et réussi les évaluations avec 80% minimum." },
-                        { q:"Puis-je obtenir un remboursement ?",           a:"Oui, garantie satisfait ou remboursé 30 jours. Contactez support@devopsakademy.com pour toute demande." },
-                        { q:"Le cours est-il accessible sur mobile ?",      a:"Oui, la plateforme est 100% responsive. Vous pouvez aussi télécharger les ressources pour un accès hors-ligne." },
+                        { q:t("puis_je_suivre_ce_cours_a"),      a:t("oui_tous_nos_cours_sont_100") },
+                        { q:t("comment_s_effectue_le_paiement"),             a:t("le_paiement_s_effectue_uniquement_en") },
+                        { q:t("ai_je_besoin_de_prerequis"),                  a:t("chaque_cours_precise_ses_prerequis_dans") },
+                        { q:t("comment_obtenir_mon_certificat"),             a:t("le_certificat_est_genere_automatiquement_apres") },
+                        { q:t("puis_je_obtenir_un_remboursement"),           a:t("oui_garantie_satisfait_ou_rembourse_30") },
+                        { q:t("le_cours_est_il_accessible_sur"),      a:t("oui_la_plateforme_est_100_responsive") },
                       ].map(({ q, a }) => (
                         <div key={q} className="bg-white border border-gray-200 rounded-xl p-5 hover:border-indigo-200 transition">
                           <h4 className="font-bold text-gray-900 mb-2 flex items-start gap-2 text-sm">
@@ -1200,9 +1172,7 @@ export default function CourseDetails() {
                 {discount && (
                   <div className="flex items-center justify-center gap-2 py-3 px-5 text-white text-sm font-bold"
                     style={{ background: "linear-gradient(135deg,#ef4444,#f97316)" }}>
-                    <Zap className="w-4 h-4 animate-pulse" />
-                    OFFRE LIMITÉE : -{discount}% · Valable encore 2 jours
-                  </div>
+                    <Zap className="w-4 h-4 animate-pulse" />{t("offre_limitee_valable_encore_2_jours", { vdiscount: discount })}</div>
                 )}
 
                 <div className="p-6">
@@ -1210,7 +1180,7 @@ export default function CourseDetails() {
                   <div className="mb-5">
                     {course.is_free ? (
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-emerald-600">Gratuit</span>
+                        <span className="text-4xl font-black text-emerald-600">{t("gratuit")}</span>
                       </div>
                     ) : (
                       <>
@@ -1225,8 +1195,7 @@ export default function CourseDetails() {
                               {formatPrice(course.original_price, false)}
                             </span>
                             {discount && (
-                              <span className="bg-red-50 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full border border-red-100">
-                                Économisez {formatPrice(course.original_price - course.price, false)}
+                              <span className="bg-red-50 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full border border-red-100">{t("economisez")}{" "}{formatPrice(course.original_price - course.price, false)}
                               </span>
                             )}
                           </div>
@@ -1238,10 +1207,10 @@ export default function CourseDetails() {
                   {/* Infos clés */}
                   <div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
                     {[
-                      { icon: Clock,    label: "Durée",      val: formatDuration(course.duration_hours) },
-                      { icon: BookOpen, label: "Leçons",     val: totalLessons || "N/A" },
-                      { icon: Globe,    label: "Langue",     val: `${lang.flag} ${lang.name}` },
-                      { icon: Award,    label: "Certificat", val: "Inclus", green: true },
+                      { icon: Clock,    label: t("duree"),      val: formatDuration(course.duration_hours) },
+                      { icon: BookOpen, label: t("lecons_2"),     val: totalLessons || "N/A" },
+                      { icon: Globe,    label: t("langue"),     val: `${lang.flag} ${lang.name}` },
+                      { icon: Award,    label: t("certificat"), val: i18n.t("courseDetails:inclus"), green: true },
                     ].map(({ icon: Icon, label, val, green }) => (
                       <div key={label} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2.5 text-gray-500">
@@ -1262,29 +1231,25 @@ export default function CourseDetails() {
                         <button onClick={() => navigate(`/courses/${course.id}/learn`)}
                           className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base hover:shadow-xl hover:-translate-y-0.5 transition-all"
                           style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
-                          <PlayCircle className="w-5 h-5" /> Continuer l'apprentissage
-                        </button>
+                          <PlayCircle className="w-5 h-5" />{" "}{t("continuer_l_apprentissage")}</button>
                         <button onClick={() => navigate(`/courses/${course.id}/progress`)}
                           className="w-full py-3 rounded-2xl font-bold text-sm border-2 flex items-center justify-center gap-2 transition hover:bg-gray-50"
                           style={{ borderColor: "#2d287f", color: "#2d287f" }}>
-                          <BarChart className="w-4 h-4" /> Voir ma progression
-                        </button>
+                          <BarChart className="w-4 h-4" />{" "}{t("voir_ma_progression")}</button>
                       </>
                     ) : access.status === "pending" ? (
                       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
                         <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
                           <Clock className="w-5 h-5 text-amber-600" />
                         </div>
-                        <p className="font-bold text-amber-800 text-sm">Validation en cours</p>
-                        <p className="text-xs text-amber-600 mt-1">Accès activé sous 24h ouvrées après vérification du paiement.</p>
+                        <p className="font-bold text-amber-800 text-sm">{t("validation_en_cours")}</p>
+                        <p className="text-xs text-amber-600 mt-1">{t("acces_active_sous_24h_ouvrees_apres")}</p>
                       </div>
                     ) : access.status === "rejected" ? (
                       <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-center">
-                        <p className="font-bold text-red-700 text-sm mb-2">Paiement refusé</p>
-                        <p className="text-xs text-red-600 mb-3">Veuillez renvoyer une preuve valide.</p>
-                        <button onClick={() => navigate("/student")} className="text-xs font-bold text-red-600 underline">
-                          Aller dans mon espace
-                        </button>
+                        <p className="font-bold text-red-700 text-sm mb-2">{t("paiement_refuse")}</p>
+                        <p className="text-xs text-red-600 mb-3">{t("veuillez_renvoyer_une_preuve_valide")}</p>
+                        <button onClick={() => navigate("/student")} className="text-xs font-bold text-red-600 underline">{t("aller_dans_mon_espace")}</button>
                       </div>
                     ) : (
                       <>
@@ -1293,12 +1258,11 @@ export default function CourseDetails() {
                           disabled={enrolling}
                           className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-70"
                           style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                          {enrolling ? <><Loader className="w-5 h-5 animate-spin" /> Inscription…</> : <><GraduationCap className="w-5 h-5" /> S'inscrire maintenant</>}
+                          {enrolling ? <><Loader className="w-5 h-5 animate-spin" />{" "}{t("inscription")}</> : <><GraduationCap className="w-5 h-5" />{" "}{t("s_inscrire_maintenant")}</>}
                         </button>
                         <button onClick={() => setShowPayment(true)}
                           className="w-full py-3 rounded-2xl font-semibold text-sm border border-gray-200 text-gray-600 flex items-center justify-center gap-2 hover:bg-gray-50 transition">
-                          <Info className="w-4 h-4" /> Voir les infos de paiement
-                        </button>
+                          <Info className="w-4 h-4" />{" "}{t("voir_les_infos_de_paiement")}</button>
                       </>
                     )}
                   </div>
@@ -1307,8 +1271,8 @@ export default function CourseDetails() {
                   <div className="mt-5 flex items-start gap-3 pt-5 border-t border-gray-100">
                     <ShieldCheck className="w-5 h-5 text-emerald-500 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">Garantie satisfait ou remboursé</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Sans risque pendant 30 jours</p>
+                      <p className="font-semibold text-gray-900 text-sm">{t("garantie_satisfait_ou_rembourse")}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{t("sans_risque_pendant_30_jours")}</p>
                     </div>
                   </div>
                 </div>
@@ -1317,13 +1281,13 @@ export default function CourseDetails() {
               {/* Processus d'inscription */}
               {access.status !== "approved" && (
                 <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                  <h4 className="font-black text-gray-900 text-sm mb-4">Processus d'inscription</h4>
+                  <h4 className="font-black text-gray-900 text-sm mb-4">{t("processus_d_inscription")}</h4>
                   <ol className="space-y-3">
                     {[
-                      { n:"1", t:"Inscription",   d:`Cliquez sur "S'inscrire"` },
-                      { n:"2", t:"Paiement",       d:"En FCFA (MoMo/Wave/Orange)" },
-                      { n:"3", t:"Validation",     d:"Admin vérifie la preuve" },
-                      { n:"4", t:"Accès",          d:"Accès immédiat au cours" },
+                      { n:"1", t:i18n.t("courseDetails:inscription_2"),   d:i18n.t("courseDetails:cliquez_sur_s_inscrire") },
+                      { n:"2", t:i18n.t("courseDetails:paiement"),       d:i18n.t("courseDetails:en_fcfa_momo_wave_orange") },
+                      { n:"3", t:i18n.t("courseDetails:validation"),     d:i18n.t("courseDetails:admin_verifie_la_preuve") },
+                      { n:"4", t:i18n.t("courseDetails:acces"),          d:i18n.t("courseDetails:acces_immediat_au_cours") },
                     ].map(({ n, t, d }) => (
                       <li key={n} className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
@@ -1340,11 +1304,11 @@ export default function CourseDetails() {
 
               {/* Partager */}
               <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                <h4 className="font-bold text-gray-900 text-sm mb-3">Partager ce cours</h4>
+                <h4 className="font-bold text-gray-900 text-sm mb-3">{t("partager_ce_cours")}</h4>
                 <div className="flex gap-2">
                   {[
-                    { l:"Facebook",  bg:"#1877f2", href:`https://facebook.com/sharer/sharer.php?u=${window.location.href}` },
-                    { l:"Twitter",   bg:"#1da1f2", href:`https://twitter.com/intent/tweet?url=${window.location.href}&text=${course.title}` },
+                    { l:i18n.t("courseDetails:facebook"),  bg:"#1877f2", href:`https://facebook.com/sharer/sharer.php?u=${window.location.href}` },
+                    { l:i18n.t("courseDetails:twitter"),   bg:"#1da1f2", href:`https://twitter.com/intent/tweet?url=${window.location.href}&text=${course.title}` },
                     { l:"LinkedIn",  bg:"#0a66c2", href:`https://linkedin.com/sharing/share-offsite/?url=${window.location.href}` },
                     { l:"WhatsApp",  bg:"#25d366", href:`https://wa.me/?text=${course.title} ${window.location.href}` },
                   ].map(({ l, bg, href }) => (

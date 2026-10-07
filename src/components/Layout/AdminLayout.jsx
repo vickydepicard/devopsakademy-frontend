@@ -1,50 +1,58 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import NotificationBell from "../Common/NotificationBell";
 import {
   LayoutDashboard, Users, BookOpen, ClipboardList,
   BarChart2, Mail, FileText, CreditCard, Award,
   Tag, Trophy, Settings, LogOut, Menu, X,
-  ChevronLeft, ChevronRight, Bell, Shield
+  ChevronLeft, ChevronRight, Bell, Shield, GraduationCap, CheckSquare, Radio, Globe
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
-const NAV_GROUPS = [
+const NAV_GROUPS = () => ([
   {
-    label: "Principal",
+    label: i18n.t("adminLayout:principal"),
     items: [
-      { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-      { to: "/admin/stats", label: "Statistiques", icon: BarChart2 },
+      { to: "/admin", label: i18n.t("adminLayout:dashboard"), icon: LayoutDashboard, exact: true },
+      { to: "/admin/stats", label: i18n.t("adminLayout:statistiques"), icon: BarChart2 },
+      { to: "/admin/notifications", label: i18n.t("adminLayout:notifications"), icon: Bell },
     ],
   },
   {
-    label: "Gestion",
+    label: i18n.t("adminLayout:gestion"),
     items: [
-      { to: "/admin/users", label: "Utilisateurs", icon: Users },
-      { to: "/admin/courses", label: "Cours", icon: BookOpen },
-      { to: "/admin/enrollments", label: "Inscriptions", icon: ClipboardList },
-      { to: "/admin/submissions", label: "Devoirs", icon: FileText },
-      { to: "/admin/instructor-applications", label: "Candidatures", icon: Award },
+      { to: "/admin/users", label: i18n.t("adminLayout:utilisateurs"), icon: Users },
+      { to: "/admin/courses", label: i18n.t("adminLayout:cours"), icon: BookOpen },
+      { to: "/admin/course-reviews", label: i18n.t("adminLayout:cours_a_valider"), icon: CheckSquare },
+      { to: "/admin/enrollments", label: i18n.t("adminLayout:inscriptions"), icon: ClipboardList },
+      { to: "/admin/submissions", label: i18n.t("adminLayout:devoirs"), icon: FileText },
+      { to: "/admin/instructors", label: i18n.t("adminLayout:instructeurs"), icon: GraduationCap },
+      { to: "/admin/instructor-applications", label: i18n.t("adminLayout:candidatures"), icon: Award },
+      { to: "/admin/bootcamps", label: i18n.t("adminLayout:bootcamps_lives"), icon: Radio },
     ],
   },
   {
-    label: "Financier",
+    label: i18n.t("adminLayout:financier"),
     items: [
-      { to: "/admin/subscriptions", label: "Abonnements", icon: CreditCard },
+      { to: "/admin/subscriptions", label: i18n.t("adminLayout:abonnements"), icon: CreditCard },
     ],
   },
   {
-    label: "Plateforme",
+    label: i18n.t("adminLayout:plateforme"),
     items: [
-      { to: "/admin/certificates", label: "Certificats", icon: Award },
-      { to: "/admin/categories", label: "Catégories", icon: Tag },
-      { to: "/admin/leaderboard", label: "Classement", icon: Trophy },
-      { to: "/admin/messages", label: "Messages", icon: Mail },
-      { to: "/admin/settings", label: "Paramètres", icon: Settings },
+      { to: "/admin/certificates", label: i18n.t("adminLayout:certificats"), icon: Award },
+      { to: "/admin/categories", label: i18n.t("adminLayout:categories"), icon: Tag },
+      { to: "/admin/leaderboard", label: i18n.t("adminLayout:classement"), icon: Trophy },
+      { to: "/admin/messages", label: i18n.t("adminLayout:messages"), icon: Mail },
+      { to: "/admin/settings", label: i18n.t("adminLayout:parametres"), icon: Settings },
     ],
   },
-];
+]);
 
 export default function AdminLayout() {
+  const { t } = useTranslation("adminLayout");
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -67,13 +75,13 @@ export default function AdminLayout() {
         </div>
         {!collapsed && (
           <div>
-            <p className="font-bold text-white text-sm leading-none">Admin Panel</p>
+            <p className="font-bold text-white text-sm leading-none">{t("admin_panel")}</p>
             <p className="text-indigo-300 text-xs mt-0.5">DevOpsAkademy</p>
           </div>
         )}
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
-        {NAV_GROUPS.map(({ label, items }) => (
+        {NAV_GROUPS().map(({ label, items }) => (
           <div key={label}>
             {!collapsed && (
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">{label}</p>
@@ -93,14 +101,18 @@ export default function AdminLayout() {
       <div className="px-3 py-4 border-t border-white/10 space-y-1 shrink-0">
         {!collapsed && (
           <div className="px-3 py-2 mb-2">
-            <p className="text-xs text-slate-400">Connecté en tant que</p>
+            <p className="text-xs text-slate-400">{t("connecte_en_tant_que")}</p>
             <p className="text-sm font-semibold text-white truncate">{user?.email}</p>
           </div>
         )}
+        <NavLink to="/" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-white/10 hover:text-white transition ${collapsed ? "justify-center" : ""}`}>
+          <Globe className="w-4 h-4 shrink-0" />
+          {!collapsed && <span>{t("viewSite")}</span>}
+        </NavLink>
         <button onClick={handleLogout}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 transition ${collapsed ? "justify-center" : ""}`}>
           <LogOut className="w-4 h-4 shrink-0" />
-          {!collapsed && <span>Déconnexion</span>}
+          {!collapsed && <span>{t("deconnexion")}</span>}
         </button>
       </div>
     </div>
@@ -132,21 +144,22 @@ export default function AdminLayout() {
             <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
               <Menu className="w-5 h-5" />
             </button>
-            <span className="font-semibold text-gray-800 text-sm hidden lg:block">Panneau d'administration</span>
+            <span className="font-semibold text-gray-800 text-sm">{t("panneau_d_administration")}</span>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell basePath="/admin/notifications" />
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{background:"#facc15",color:"#2d287f"}}>
                 {user?.first_name?.[0]}{user?.last_name?.[0]}
               </div>
               <div className="hidden sm:block text-sm">
                 <p className="font-semibold text-gray-800 leading-none">{user?.first_name} {user?.last_name}</p>
-                <p className="text-xs text-indigo-400 mt-0.5">Administrateur</p>
+                <p className="text-xs text-indigo-400 mt-0.5">{t("administrateur")}</p>
               </div>
             </div>
           </div>
         </div>
-        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto text-left">
           <Outlet />
         </main>
       </div>

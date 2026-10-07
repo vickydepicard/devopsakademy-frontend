@@ -1,0 +1,47 @@
+{
+  "meta": { "title": "Pricing — DevOpsAkademy" },
+  "hero": {
+    "badge": "Pricing adapted to local markets",
+    "title": "Invest in your career",
+    "subtitle": "Flexible plans, local prices, worldwide access to DevOps training.",
+    "monthly": "Monthly",
+    "yearly": "Yearly"
+  },
+  "currency": "XAF",
+  "free": "Free",
+  "perMonth": "per month",
+  "perYear": "per year, billed annually",
+  "save": "Save {{amount}} compared to monthly",
+  "plans": {
+    "free": { "name": "Free", "description": "Discover DevOpsAkademy and start your DevOps journey.", "cta": "Create a free account" },
+    "pro": { "name": "Pro", "badge": "Popular", "description": "Everything you need to progress quickly and earn your certificates.", "cta": "Get started with Pro" },
+    "elite": { "name": "Elite", "badge": "Best value", "description": "Full access, dedicated support and exclusive resources to go the furthest.", "cta": "Go Elite" }
+  },
+  "features": {
+    "freeCourses": "Access to free courses",
+    "forum": "Community forum",
+    "certificates": "Completion certificates",
+    "premium": "Unlimited premium courses",
+    "labs": "Interactive labs",
+    "support": "Priority support",
+    "downloads": "Downloadable resources"
+  },
+  "guarantees": {
+    "secure": { "title": "Secure payment", "desc": "Your transactions are protected. Payments are manually verified by our team." },
+    "activation": { "title": "Activation within 24 h", "desc": "Your access is activated once your proof of payment has been verified." },
+    "support": { "title": "Human support", "desc": "Our team answers your questions personally." }
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Everything you need to know before subscribing.",
+    "items": [
+      { "q": "How does payment work?", "a": "We accept Mobile Money (Orange Money, MTN MoMo), bank transfer and other local methods. Once you submit your proof of payment, an administrator validates your access within 24 hours." },
+      { "q": "Can I cancel at any time?", "a": "Yes. You can cancel your subscription from your personal area. Access remains active until the end of the period already paid." },
+      { "q": "Are prices in XAF?", "a": "Yes, all prices are shown in Central African CFA francs (XAF). We adapt our pricing to Central and West African markets." },
+      { "q": "Is there a free trial?", "a": "The Free plan is permanent. It gives you unlimited-time access to free courses so you can discover the platform." },
+      { "q": "What is an \"interactive lab\"?", "a": "Preconfigured Docker and Kubernetes environments available directly in your browser. You run real commands on real infrastructure." }
+    ],
+    "moreQuestions": "More questions?",
+    "contactUs": "Contact us"
+  }
+}

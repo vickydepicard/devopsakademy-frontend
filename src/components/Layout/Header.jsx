@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { initialsAvatar, coverPlaceholder, onAvatarError } from "../../utils/avatar";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useProfile } from "../../contexts/ProfileContext";
 import { usePermissions } from "../../contexts/PermissionContext"; // NOUVEAU
@@ -16,8 +17,12 @@ import {
   ChevronDown
 } from "lucide-react";
 import logo from "../../assets/logo.png";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../Common/LanguageSwitcher";
+import NotificationBell from "../Common/NotificationBell";
 
 export default function Header() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { profile } = useProfile();
   const { 
@@ -29,6 +34,9 @@ export default function Header() {
     canManageCourse 
   } = usePermissions(); // NOUVEAU
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
+  // Espaces admin / instructeur : ils ont leur propre barre sur mobile
+  const workspace = /^\/(admin|instructor)(\/|$)/.test(pathname);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hasPendingEnrollments, setHasPendingEnrollments] = useState(false);
@@ -66,6 +74,17 @@ export default function Header() {
       ? "text-accent font-semibold"
       : "text-white hover:text-accent transition duration-300";
 
+  // Navigation principale selon le profil connecté
+  const navLinks = (() => {
+    const home = { to: "/", label: t("nav.home") };
+    const courses = { to: "/courses", label: t("nav.courses") };
+    const contact = { to: "/contact", label: t("nav.contact") };
+    if (isAdmin()) return [home, courses, { to: "/admin", label: t("nav.admin") }, { to: "/admin/course-reviews", label: t("nav.toReview") }, { to: "/admin/bootcamps", label: t("nav.bootcamps") }, { to: "/admin/users", label: t("nav.users") }];
+    if (isInstructor()) return [home, courses, { to: "/instructor/courses", label: t("nav.myCourses") }, { to: "/instructor/bootcamps", label: t("nav.myLives") }, { to: "/instructor/earnings", label: t("nav.earnings") }, contact];
+    if (user) return [home, courses, { to: "/my-courses", label: t("nav.myCourses") }, { to: "/bootcamps", label: t("nav.bootcamps") }, { to: "/forum", label: t("nav.forum") }, contact];
+    return [home, courses, { to: "/about", label: t("nav.about") }, { to: "/pricing", label: t("nav.pricing") }, { to: "/instructors", label: t("nav.instructors") }, { to: "/bootcamps", label: t("nav.bootcamps") }, contact];
+  })();
+
   const getDashboardLink = () => {
     if (!user) return "/login";
     if (isAdmin()) return "/admin";
@@ -78,7 +97,7 @@ export default function Header() {
     
     if (isAdmin()) {
       return {
-        text: "👑 Admin",
+        text: t("roles.admin"),
         color: "bg-red-100 text-red-800 border-red-300",
         icon: <Crown className="w-3 h-3" />
       };
@@ -86,14 +105,14 @@ export default function Header() {
     
     if (isInstructor()) {
       return {
-        text: "👨‍🏫 Instructeur",
+        text: t("roles.instructor"),
         color: "bg-purple-100 text-purple-800 border-purple-300",
         icon: <Shield className="w-3 h-3" />
       };
     }
     
     return {
-      text: "🎓 Étudiant",
+      text: t("roles.student"),
       color: "bg-blue-100 text-blue-800 border-blue-300",
       icon: <GraduationCap className="w-3 h-3" />
     };
@@ -123,13 +142,13 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-500 ${
+      className={`sticky top-0 z-50 transition-all duration-500 ${workspace ? "hidden lg:block" : ""} ${
         scrolled ? "bg-primary-dark/95 shadow-lg backdrop-blur-md" : "bg-primary"
       }`}
     >
-      {/* 🔹 Top Bar */}
+      {/* Top Bar */}
       <div
-        className={`bg-primary-dark text-gray-200 text-xs sm:text-sm py-1 px-4 flex justify-between items-center border-b border-primary-light transition-all duration-500 ${
+        className={`bg-primary-dark text-gray-200 text-xs sm:text-sm py-1 px-4 hidden sm:flex justify-between items-center border-b border-primary-light transition-all duration-500 ${
           scrolled ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
         }`}
       >
@@ -138,6 +157,7 @@ export default function Header() {
           <span>contact@devopsakademy.cloud</span>
         </div>
         <div className="hidden sm:flex items-center gap-3">
+          <LanguageSwitcher />
           <a
             href="https://www.linkedin.com/company/devopsakademy/?viewAsMember=true"
             target="_blank"
@@ -155,7 +175,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 🔹 Main Navigation */}
+      {/* Main Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
@@ -165,58 +185,20 @@ export default function Header() {
         </Link>
 
         {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center space-x-8">
-          <NavLink to="/" className={navLinkClass}>Accueil</NavLink>
-          <NavLink to="/courses" className={navLinkClass}>Cours</NavLink>
-          <NavLink to="/about" className={navLinkClass}>À propos</NavLink>
-          <NavLink to="/pricing" className={navLinkClass}>Tarifs</NavLink>
-          
-          {/* Menu Instructeurs visible pour tous */}
-          <NavLink to="/instructors" className={navLinkClass}>Instructeurs</NavLink>
-          <NavLink to="/bootcamps" className={navLinkClass}>
-            <span style={{ display:"flex", alignItems:"center", gap:4 }}>
-              Bootcamps
-            </span>
-          </NavLink>
-          
-          {/* Menu Instructeur (visible seulement pour les instructeurs) */}
-          {isInstructor() && (
-            <NavLink 
-              to="/instructor/courses" 
-              className="flex items-center gap-1 text-white hover:text-accent transition duration-300"
-            >
-              <BookOpen className="w-4 h-4" />
-              Mes Cours
-            </NavLink>
-          )}
-          
-          <NavLink to="/contact" className={navLinkClass}>Contact</NavLink>
+        <nav className="hidden lg:flex items-center gap-7">
+          {navLinks.map((l) => (
+            <NavLink key={l.to} to={l.to} end={l.to === "/"} className={navLinkClass}>{l.label}</NavLink>
+          ))}
         </nav>
 
+        {/* Droite : notifications + compte + menu mobile */}
+        <div className="flex items-center gap-1 lg:gap-4">
+        {user && <NotificationBell variant="dark" basePath={isAdmin() ? "/admin/notifications" : "/notifications"} />}
+
         {/* Auth / Profil */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden lg:flex items-center space-x-4">
           {user ? (
             <>
-              {/* Notifications pour inscriptions en attente */}
-              {hasPendingEnrollments && (
-                <div className="relative">
-                  <Link
-                    to="/dashboard"
-                    className="relative p-2 text-white hover:text-accent transition"
-                  >
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      !
-                    </span>
-                  </Link>
-                  <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl p-4 animate-fadeIn z-50 hidden group-hover:block">
-                    <p className="text-sm text-gray-700">
-                      Vous avez {getPendingCount()} inscription(s) en attente de validation
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {/* Badge de rôle */}
               {roleBadge && (
                 <div className={`px-3 py-1 rounded-full text-xs font-medium border ${roleBadge.color} flex items-center gap-1`}>
@@ -233,8 +215,9 @@ export default function Header() {
                 >
                   <div className="relative">
                     <img
-                      src={profile?.avatar_url || "/default-avatar.png"}
-                      alt="Avatar"
+                      src={profile?.avatar_url || initialsAvatar(`${profile?.first_name || ""} ${profile?.last_name || ""}`)}
+                      onError={onAvatarError(`${profile?.first_name || ""} ${profile?.last_name || ""}`)}
+                      alt={t("header.avatarAlt")}
                       className="w-9 h-9 rounded-full border-2 border-accent hover:scale-105 transition"
                     />
                     {/* Indicateur en ligne */}
@@ -249,8 +232,9 @@ export default function Header() {
                     <div className="px-4 py-3 border-b">
                       <div className="flex items-center gap-3">
                         <img
-                          src={profile?.avatar_url || "/default-avatar.png"}
-                          alt="Avatar"
+                          src={profile?.avatar_url || initialsAvatar(`${profile?.first_name || ""} ${profile?.last_name || ""}`)}
+                      onError={onAvatarError(`${profile?.first_name || ""} ${profile?.last_name || ""}`)}
+                          alt={t("header.avatarAlt")}
                           className="w-10 h-10 rounded-full border-2 border-accent"
                         />
                         <div>
@@ -267,17 +251,17 @@ export default function Header() {
                       <div className="flex justify-between text-sm">
                         <div className="text-center">
                           <p className="font-semibold text-gray-900">{getMyCoursesCount()}</p>
-                          <p className="text-xs text-gray-500">Cours</p>
+                          <p className="text-xs text-gray-500">{t("header.stats.courses")}</p>
                         </div>
                         <div className="text-center">
                           <p className="font-semibold text-gray-900">{getPendingCount()}</p>
-                          <p className="text-xs text-gray-500">En attente</p>
+                          <p className="text-xs text-gray-500">{t("header.stats.pending")}</p>
                         </div>
                         <div className="text-center">
                           <p className="font-semibold text-gray-900">
                             {enrollments?.filter(e => e.completion_percentage >= 100).length || 0}
                           </p>
-                          <p className="text-xs text-gray-500">Terminés</p>
+                          <p className="text-xs text-gray-500">{t("header.stats.completed")}</p>
                         </div>
                       </div>
                     </div>
@@ -289,7 +273,7 @@ export default function Header() {
                       onClick={() => setDropdownOpen(false)}
                     >
                       <User className="w-4 h-4" />
-                      Mon Profil
+                      {t("nav.profile")}
                     </Link>
                     
                     <Link
@@ -298,7 +282,7 @@ export default function Header() {
                       onClick={() => setDropdownOpen(false)}
                     >
                       <GraduationCap className="w-4 h-4" />
-                      Tableau de bord
+                      {t("nav.dashboard")}
                     </Link>
 
                     {/* Lien admin/instructeur si applicable */}
@@ -309,7 +293,7 @@ export default function Header() {
                         onClick={() => setDropdownOpen(false)}
                       >
                         <Crown className="w-4 h-4" />
-                        Administration
+                        {t("nav.admin")}
                       </Link>
                     )}
 
@@ -320,7 +304,7 @@ export default function Header() {
                         onClick={() => setDropdownOpen(false)}
                       >
                         <BookOpen className="w-4 h-4" />
-                        Gérer mes cours
+                        {t("nav.manageCourses")}
                       </Link>
                     )}
 
@@ -335,7 +319,7 @@ export default function Header() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
-                      Déconnexion
+                      {t("nav.logout")}
                     </button>
                   </div>
                 )}
@@ -348,14 +332,14 @@ export default function Header() {
                 className="flex items-center gap-1 text-white hover:text-accent transition"
               >
                 <User className="w-4 h-4" />
-                Connexion
+                {t("nav.login")}
               </NavLink>
               <Link
                 to="/register"
                 className="bg-accent hover:bg-accent-light text-primary font-semibold py-2 px-5 rounded-full transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2"
               >
                 <GraduationCap className="w-4 h-4" />
-                Inscription
+                {t("nav.register")}
               </Link>
             </>
           )}
@@ -364,8 +348,8 @@ export default function Header() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Menu"
-          className="md:hidden text-white hover:text-accent transition relative"
+          aria-label={t("nav.menu")}
+          className="lg:hidden text-white hover:text-accent transition relative"
         >
           {hasPendingEnrollments && (
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-primary"></span>
@@ -383,11 +367,12 @@ export default function Header() {
             />
           </svg>
         </button>
+        </div>
       </div>
 
-      {/* 🔹 Mobile Menu */}
+      {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-primary-dark px-6 py-6 space-y-4 border-t border-primary-light animate-slideDown">
+        <div className="lg:hidden bg-primary-dark px-5 py-5 space-y-4 border-t border-primary-light animate-slideDown max-h-[calc(100vh-4rem)] overflow-y-auto">
           {/* Badge de rôle (mobile) */}
           {user && roleBadge && (
             <div className={`px-3 py-2 rounded-lg ${roleBadge.color} flex items-center justify-center gap-2 mb-4`}>
@@ -396,39 +381,14 @@ export default function Header() {
             </div>
           )}
 
-          <NavLink to="/" onClick={() => setMobileOpen(false)} className={navLinkClass}>
-            Accueil
-          </NavLink>
-          <NavLink to="/courses" onClick={() => setMobileOpen(false)} className={navLinkClass}>
-            Cours
-          </NavLink>
-          <NavLink to="/about" onClick={() => setMobileOpen(false)} className={navLinkClass}>
-            À propos
-          </NavLink>
-          <NavLink to="/pricing" onClick={() => setMobileOpen(false)} className={navLinkClass}>
-            Tarifs
-          </NavLink>
-          
-          {/* Menu instructeurs */}
-          <NavLink to="/instructors" onClick={() => setMobileOpen(false)} className={navLinkClass}>
-            Instructeurs
-          </NavLink>
-          
-          {/* Menu instructeur (mobile) */}
-          {isInstructor() && (
-            <NavLink 
-              to="/instructor/courses" 
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 text-white hover:text-accent transition"
-            >
-              <BookOpen className="w-4 h-4" />
-              Mes Cours
-            </NavLink>
-          )}
-          
-          <NavLink to="/contact" onClick={() => setMobileOpen(false)} className={navLinkClass}>
-            Contact
-          </NavLink>
+          <div className="flex flex-col divide-y divide-white/10">
+            {navLinks.map((l) => (
+              <NavLink key={l.to} to={l.to} end={l.to === "/"} onClick={() => setMobileOpen(false)}
+                className={(st) => `block py-3 text-base ${navLinkClass(st)}`}>{l.label}</NavLink>
+            ))}
+          </div>
+
+          <LanguageSwitcher className="my-2" />
 
           {user ? (
             <>
@@ -438,11 +398,11 @@ export default function Header() {
                   <div className="flex items-center gap-2">
                     <Bell className="w-4 h-4 text-yellow-400" />
                     <span className="text-yellow-300 text-sm font-medium">
-                      {getPendingCount()} inscription(s) en attente
+                      {t("header.pendingMobile", { count: getPendingCount() })}
                     </span>
                   </div>
                   <p className="text-yellow-200/70 text-xs mt-1">
-                    Votre accès sera activé après validation
+                    {t("header.pendingNote")}
                   </p>
                 </div>
               )}
@@ -452,42 +412,42 @@ export default function Header() {
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
                     <p className="text-2xl font-bold text-white">{getMyCoursesCount()}</p>
-                    <p className="text-xs text-gray-300">Cours</p>
+                    <p className="text-xs text-gray-300">{t("header.stats.courses")}</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">{getPendingCount()}</p>
-                    <p className="text-xs text-gray-300">En attente</p>
+                    <p className="text-xs text-gray-300">{t("header.stats.pending")}</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">
                       {enrollments?.filter(e => e.completion_percentage >= 100).length || 0}
                     </p>
-                    <p className="text-xs text-gray-300">Terminés</p>
+                    <p className="text-xs text-gray-300">{t("header.stats.completed")}</p>
                   </div>
                 </div>
               </div>
 
-              <NavLink to={getDashboardLink()} onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2`}>
+              <NavLink to={getDashboardLink()} onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2 py-2.5`}>
                 <GraduationCap className="w-4 h-4" />
-                Dashboard
+                {t("nav.dashboard")}
               </NavLink>
               
-              <NavLink to="/profile" onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2`}>
+              <NavLink to="/profile" onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2 py-2.5`}>
                 <User className="w-4 h-4" />
-                Profil
+                {t("nav.profileShort")}
               </NavLink>
               
               {isAdmin() && (
-                <NavLink to="/admin" onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2`}>
+                <NavLink to="/admin" onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2 py-2.5`}>
                   <Crown className="w-4 h-4" />
-                  Administration
+                  {t("nav.admin")}
                 </NavLink>
               )}
               
               {isInstructor() && (
-                <NavLink to="/instructor/courses" onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2`}>
+                <NavLink to="/instructor/courses" onClick={() => setMobileOpen(false)} className={`${navLinkClass({})} flex items-center gap-2 py-2.5`}>
                   <BookOpen className="w-4 h-4" />
-                  Gérer mes cours
+                  {t("nav.manageCourses")}
                 </NavLink>
               )}
               
@@ -498,7 +458,7 @@ export default function Header() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Déconnexion
+                {t("nav.logout")}
               </button>
             </>
           ) : (
@@ -509,7 +469,7 @@ export default function Header() {
                 className="block w-full text-center bg-primary-light hover:bg-primary-light/80 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center gap-2"
               >
                 <User className="w-4 h-4" />
-                Connexion
+                {t("nav.login")}
               </NavLink>
               <Link
                 to="/register"
@@ -517,7 +477,7 @@ export default function Header() {
                 className="block w-full text-center bg-accent hover:bg-accent-light text-primary font-semibold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2"
               >
                 <GraduationCap className="w-4 h-4" />
-                Inscription
+                {t("nav.register")}
               </Link>
             </div>
           )}

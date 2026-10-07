@@ -1,0 +1,76 @@
+{
+  "faq_title": "Questions fréquentes",
+  "faq_intro": "Les réponses aux questions les plus courantes sur la plateforme.",
+  "faq": [
+    [
+      "Comment m'inscrire à un cours ?",
+      "Ouvrez la fiche du cours, cliquez sur « S'inscrire », puis suivez les instructions de paiement (Mobile Money, virement). Votre accès est ouvert dès que l'administration valide la preuve de paiement."
+    ],
+    [
+      "Combien de temps dure la validation du paiement ?",
+      "En général moins de 24 heures ouvrées. Vous recevez une notification dès que l'accès est confirmé."
+    ],
+    [
+      "Puis-je télécharger les ressources d'un cours ?",
+      "Oui. Chaque leçon peut contenir des fichiers à télécharger, accessibles depuis le lecteur de cours une fois inscrit."
+    ],
+    [
+      "Comment obtenir un certificat ?",
+      "Terminez toutes les leçons et réussissez les évaluations du cours. Le certificat est ensuite émis et vérifiable publiquement grâce à son numéro."
+    ],
+    [
+      "Comment devenir instructeur ?",
+      "Déposez une candidature depuis la page « Devenir instructeur ». Après validation, vous pouvez créer des cours ; ils sont publiés après relecture par l'administration."
+    ],
+    [
+      "Comment suivre un bootcamp en direct ?",
+      "Les lives sont annoncés dans la rubrique Bootcamps. Inscrivez-vous, puis rejoignez la salle à l'heure prévue."
+    ]
+  ],
+  "privacy_title": "Politique de confidentialité",
+  "terms_title": "Conditions d'utilisation",
+  "updated": "Dernière mise à jour",
+  "privacy": [
+    [
+      "Données collectées",
+      "Nous collectons les informations nécessaires au fonctionnement du service : identité, adresse email, progression pédagogique, justificatifs de paiement et échanges avec le support."
+    ],
+    [
+      "Utilisation",
+      "Ces données servent à gérer votre compte, valider vos inscriptions, délivrer vos certificats et améliorer la plateforme. Elles ne sont jamais vendues."
+    ],
+    [
+      "Conservation et sécurité",
+      "Les données sont conservées pendant la durée de votre compte, protégées par des accès restreints et un chiffrement des mots de passe."
+    ],
+    [
+      "Vos droits",
+      "Vous pouvez demander l'accès, la rectification ou la suppression de vos données en écrivant à contact@devopsakademy.cloud."
+    ]
+  ],
+  "terms": [
+    [
+      "Objet",
+      "DevOps Akademy propose des formations en ligne, des bootcamps en direct et des certificats. L'inscription implique l'acceptation des présentes conditions."
+    ],
+    [
+      "Compte",
+      "Vous êtes responsable de la confidentialité de vos identifiants et des activités réalisées depuis votre compte."
+    ],
+    [
+      "Contenus",
+      "Les cours appartiennent à l'établissement. Leur reproduction, diffusion ou revente sans autorisation est interdite ; l'accès est personnel."
+    ],
+    [
+      "Paiements",
+      "Les tarifs sont affichés avant l'inscription. L'accès est ouvert après validation du paiement par l'administration."
+    ],
+    [
+      "Contact",
+      "Pour toute question : contact@devopsakademy.cloud."
+    ]
+  ],
+  "nf_title": "Page introuvable",
+  "nf_text": "La page demandée n'existe pas ou a été déplacée.",
+  "nf_home": "Retour à l'accueil"
+}

@@ -8,20 +8,24 @@ import {
   RefreshCw, AlertCircle, FileText, Eye, ChevronDown
 } from "lucide-react";
 import { ProofButton } from "../payment/ProofViewer";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" };
 
-const STATUS = {
-  free:     { label: "Gratuit",            bg: "bg-emerald-50",  tx: "text-emerald-700",  bd: "border-emerald-200",  icon: <CheckCircle className="w-4 h-4" /> },
-  verified: { label: "Validé",             bg: "bg-emerald-50",  tx: "text-emerald-700",  bd: "border-emerald-200",  icon: <CheckCircle className="w-4 h-4" /> },
-  pending:  { label: "En cours de vérif.", bg: "bg-amber-50",    tx: "text-amber-700",    bd: "border-amber-200",    icon: <Clock className="w-4 h-4" /> },
-  rejected: { label: "Preuve rejetée",     bg: "bg-red-50",      tx: "text-red-700",      bd: "border-red-200",      icon: <XCircle className="w-4 h-4" /> },
-};
+const STATUS = () => ({
+  free:     { label: i18n.t("studentPayments:gratuit"),            bg: "bg-emerald-50",  tx: "text-emerald-700",  bd: "border-emerald-200",  icon: <CheckCircle className="w-4 h-4" /> },
+  verified: { label: i18n.t("studentPayments:valide"),             bg: "bg-emerald-50",  tx: "text-emerald-700",  bd: "border-emerald-200",  icon: <CheckCircle className="w-4 h-4" /> },
+  pending:  { label: i18n.t("studentPayments:en_cours_de_verif"), bg: "bg-amber-50",    tx: "text-amber-700",    bd: "border-amber-200",    icon: <Clock className="w-4 h-4" /> },
+  rejected: { label: i18n.t("studentPayments:preuve_rejetee"),     bg: "bg-red-50",      tx: "text-red-700",      bd: "border-red-200",      icon: <XCircle className="w-4 h-4" /> },
+});
 
-const fmtDate  = (d) => d ? new Date(d).toLocaleDateString("fr-FR", { day:"2-digit", month:"short", year:"numeric" }) : "—";
-const fmtPrice = (p) => p ? Number(p).toLocaleString("fr-FR") + " XAF" : "Gratuit";
+const fmtDate  = (d) => d ? new Date(d).toLocaleDateString(getLocale(), { day:"2-digit", month:"short", year:"numeric" }) : "—";
+const fmtPrice = (p) => p ? Number(p).toLocaleString(getLocale()) + " XAF" : i18n.t("studentPayments:gratuit");
 
 export default function StudentPayments() {
+  const { t } = useTranslation("studentPayments");
   const { token } = useAuth();
   const [enrollments, setEnrollments] = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -88,26 +92,21 @@ export default function StudentPayments() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black" style={{ color: C.primary }}>
-            Mes Paiements
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Historique et statuts de vos inscriptions payantes
-          </p>
+          <h1 className="text-2xl font-black" style={{ color: C.primary }}>{t("mes_paiements")}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{t("historique_et_statuts_de_vos_inscriptions")}</p>
         </div>
         <button onClick={load}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition text-sm font-semibold text-gray-600">
-          <RefreshCw className="w-4 h-4" /> Actualiser
-        </button>
+          <RefreshCw className="w-4 h-4" />{" "}{t("actualiser")}</button>
       </div>
 
       {/* Statistiques */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { key: "all",      label: "Total",          val: stats.all,      color: C.primary },
-          { key: "pending",  label: "En vérification",val: stats.pending,  color: "#d97706" },
-          { key: "verified", label: "Validés",        val: stats.verified, color: "#059669" },
-          { key: "rejected", label: "Refusés",        val: stats.rejected, color: "#dc2626" },
+          { key: "all",      label: t("total"),          val: stats.all,      color: C.primary },
+          { key: "pending",  label: t("en_verification"),val: stats.pending,  color: "#d97706" },
+          { key: "verified", label: t("valides"),        val: stats.verified, color: "#059669" },
+          { key: "rejected", label: t("refuses"),        val: stats.rejected, color: "#dc2626" },
         ].map(s => (
           <button key={s.key}
             onClick={() => setFilter(s.key)}
@@ -125,12 +124,9 @@ export default function StudentPayments() {
         <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4">
           <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-red-800 text-sm">
-              {stats.rejected} preuve{stats.rejected > 1 ? "s" : ""} de paiement refusée{stats.rejected > 1 ? "s" : ""}
+            <p className="font-bold text-red-800 text-sm">{i18n.t("studentPayments:preuve", { rejected: stats.rejected, s: stats.rejected > 1 ? "s" : "" })}{" "}{t("de_paiement_refusee_p", { s: stats.rejected > 1 ? "s" : "" })}
             </p>
-            <p className="text-red-600 text-xs mt-0.5">
-              Cliquez sur "Renvoyer la preuve" pour re-soumettre avec une capture correcte.
-            </p>
+            <p className="text-red-600 text-xs mt-0.5">{t("cliquez_sur_renvoyer_la_preuve_pour")}</p>
           </div>
         </div>
       )}
@@ -140,12 +136,8 @@ export default function StudentPayments() {
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-amber-800 text-sm">
-              {stats.pending} paiement{stats.pending > 1 ? "s" : ""} en cours de vérification
-            </p>
-            <p className="text-amber-600 text-xs mt-0.5">
-              Délai habituel : 24 à 48h ouvrées. Vous serez notifié par email.
-            </p>
+            <p className="font-bold text-amber-800 text-sm">{i18n.t("studentPayments:paiement", { pending: stats.pending, s: stats.pending > 1 ? "s" : "" })}{" "}{t("en_cours_de_verification")}</p>
+            <p className="text-amber-600 text-xs mt-0.5">{t("delai_habituel_24_a_48h_ouvrees")}</p>
           </div>
         </div>
       )}
@@ -154,17 +146,17 @@ export default function StudentPayments() {
       {filtered.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
           <CreditCard className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="font-bold text-gray-500">Aucun paiement dans cette catégorie</p>
+          <p className="font-bold text-gray-500">{t("aucun_paiement_dans_cette_categorie")}</p>
           <p className="text-sm text-gray-400 mt-1">
             {filter === "all"
-              ? "Inscrivez-vous à un cours payant pour voir vos paiements ici."
-              : "Essayez un autre filtre."}
+              ? t("inscrivez_vous_a_un_cours_payant")
+              : t("essayez_un_autre_filtre")}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((e) => {
-            const st = STATUS[e.payment_status] || STATUS.pending;
+            const st = STATUS()[e.payment_status] || STATUS().pending;
             const isOpen = expanded === e.id;
             return (
               <div key={e.id}
@@ -192,8 +184,7 @@ export default function StudentPayments() {
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border ${st.bg} ${st.tx} ${st.bd}`}>
                         {st.icon} {st.label}
                       </span>
-                      <span className="text-xs text-gray-400">
-                        Inscrit le {fmtDate(e.enrolled_at)}
+                      <span className="text-xs text-gray-400">{t("inscrit_le")}{" "}{fmtDate(e.enrolled_at)}
                       </span>
                     </div>
                   </div>
@@ -209,18 +200,15 @@ export default function StudentPayments() {
                       <button onClick={() => handleResubmit(e)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition hover:opacity-90"
                         style={{ background: "linear-gradient(135deg,#dc2626,#ef4444)" }}>
-                        <Upload className="w-3 h-3" /> Renvoyer la preuve
-                      </button>
+                        <Upload className="w-3 h-3" />{" "}{t("renvoyer_la_preuve")}</button>
                     )}
                     {e.payment_status === "pending" && (
                       <span className="flex items-center gap-1 text-xs text-amber-600 font-semibold">
-                        <Clock className="w-3 h-3" /> En vérification
-                      </span>
+                        <Clock className="w-3 h-3" />{" "}{t("en_verification")}</span>
                     )}
                     {(e.payment_status === "verified" || e.payment_status === "free") && (
                       <span className="flex items-center gap-1 text-xs text-emerald-600 font-semibold">
-                        <CheckCircle className="w-3 h-3" /> Accès actif
-                      </span>
+                        <CheckCircle className="w-3 h-3" />{" "}{t("acces_actif")}</span>
                     )}
 
                     {/* Toggle détails */}
@@ -236,32 +224,32 @@ export default function StudentPayments() {
                   <div className="border-t border-gray-100 p-4 bg-gray-50 space-y-3">
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Montant</p>
+                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">{t("montant")}</p>
                         <p className="font-bold" style={{ color: C.primary }}>{fmtPrice(e.price)}</p>
                       </div>
                       <div>
-                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Statut</p>
+                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">{t("statut")}</p>
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border ${st.bg} ${st.tx} ${st.bd}`}>
                           {st.icon} {st.label}
                         </span>
                       </div>
                       <div>
-                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Date d'inscription</p>
+                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">{t("date_d_inscription")}</p>
                         <p className="font-semibold text-gray-700">{fmtDate(e.enrolled_at)}</p>
                       </div>
                       {e.approved_at && (
                         <div>
-                          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Date de validation</p>
+                          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">{t("date_de_validation")}</p>
                           <p className="font-semibold text-gray-700">{fmtDate(e.approved_at)}</p>
                         </div>
                       )}
                       {e.payment_proof_url && (
                         <div className="col-span-2">
-                          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Preuve soumise</p>
+                          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">{t("preuve_soumise")}</p>
                           <div className="flex gap-2 flex-wrap">
                             <ProofButton
                               url={e.payment_proof_url}
-                              label="Voir la preuve"
+                              label={t("voir_la_preuve")}
                               size="sm"
                             />
                           </div>
@@ -271,18 +259,17 @@ export default function StudentPayments() {
 
                     {e.payment_status === "rejected" && (
                       <div className="bg-red-50 border border-red-100 rounded-xl p-3">
-                        <p className="text-xs text-red-700 font-semibold mb-1">⚠️ Pourquoi c'est refusé ?</p>
+                        <p className="text-xs text-red-700 font-semibold mb-1">{t("pourquoi_c_est_refuse")}</p>
                         <ul className="text-xs text-red-600 space-y-0.5 list-disc list-inside">
-                          <li>Montant incorrect ou non visible</li>
-                          <li>Destinataire différent de DevOpsAkademy</li>
-                          <li>Image floue ou tronquée</li>
-                          <li>Transaction trop ancienne</li>
+                          <li>{t("montant_incorrect_ou_non_visible")}</li>
+                          <li>{t("destinataire_different_de_devopsakademy")}</li>
+                          <li>{t("image_floue_ou_tronquee")}</li>
+                          <li>{t("transaction_trop_ancienne")}</li>
                         </ul>
                         <button onClick={() => handleResubmit(e)}
                           className="mt-3 w-full py-2 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 hover:opacity-90 transition"
                           style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                          <Upload className="w-3.5 h-3.5" /> Renvoyer une preuve correcte
-                        </button>
+                          <Upload className="w-3.5 h-3.5" />{" "}{t("renvoyer_une_preuve_correcte")}</button>
                       </div>
                     )}
                   </div>
@@ -296,12 +283,8 @@ export default function StudentPayments() {
       {/* Cours gratuits */}
       {filter === "all" && stats.free > 0 && (
         <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
-          <p className="text-sm font-bold text-emerald-800 mb-1">
-            🎁 {stats.free} cours gratuit{stats.free > 1 ? "s" : ""} actif{stats.free > 1 ? "s" : ""}
-          </p>
-          <p className="text-xs text-emerald-600">
-            Ces cours ne nécessitent aucun paiement — accès immédiat.
-          </p>
+          <p className="text-sm font-bold text-emerald-800 mb-1">{t("cours_gratuit", { free: stats.free })}{i18n.t("studentPayments:actif", { s: stats.free > 1 ? "s" : "", s2: stats.free > 1 ? "s" : "" })}</p>
+          <p className="text-xs text-emerald-600">{t("ces_cours_ne_necessitent_aucun_paiement")}</p>
         </div>
       )}
 

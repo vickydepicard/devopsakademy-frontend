@@ -1,21 +1,24 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   MessageSquare, Plus, Eye, Clock, Hash,
-  Pin, ChevronRight, Search, Loader, AlertCircle, Users
+  Pin, ChevronRight, Search, Loader, AlertCircle, Users, CheckCircle
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
+import i18n from "../../i18n";
 
 // ─── Helpers ────────────────────────────────────────────────────
 const timeAgo = (date) => {
   if (!date) return "";
   const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (diff < 60)     return "à l'instant";
+  if (diff < 60)     return i18n.t("forumList:a_l_instant");
   if (diff < 3600)   return `il y a ${Math.floor(diff / 60)} min`;
   if (diff < 86400)  return `il y a ${Math.floor(diff / 3600)} h`;
   if (diff < 604800) return `il y a ${Math.floor(diff / 86400)} j`;
-  return new Date(date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  return new Date(date).toLocaleDateString(getLocale(), { day: "numeric", month: "short" });
 };
 
 const getInitials = (first, last) =>
@@ -61,8 +64,10 @@ function ThreadSkeleton() {
 // PAGE PRINCIPALE
 // ═══════════════════════════════════════════════════════════════
 export default function ForumList() {
+  const { t } = useTranslation("forumList");
   const { user } = useAuth();
   const navigate  = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [categories,    setCategories]    = useState([]);
   const [threads,       setThreads]       = useState([]);
@@ -72,7 +77,8 @@ export default function ForumList() {
   const [loadingMore,   setLoadingMore]   = useState(false);
   const [error,         setError]         = useState(null);
   const [search,        setSearch]        = useState("");
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") ? Number(searchParams.get("category")) : null);
+  const [filter, setFilter] = useState("");
 
   const LIMIT = 15;
 
@@ -90,6 +96,7 @@ export default function ForumList() {
     const params = new URLSearchParams({ page: 1, limit: LIMIT });
     if (activeCategory) params.set("category_id", activeCategory);
     if (search.trim())  params.set("search", search.trim());
+    if (filter)         params.set("filter", filter);
 
     api.get(`/forum/threads?${params}`)
       .then(r => {
@@ -97,9 +104,9 @@ export default function ForumList() {
         setTotal(r.data?.total || 0);
         setPage(1);
       })
-      .catch(() => setError("Impossible de charger le forum."))
+      .catch(() => setError(t("impossible_de_charger_le_forum")))
       .finally(() => setLoading(false));
-  }, [activeCategory, search]);
+  }, [activeCategory, search, filter]);
 
   const loadMore = () => {
     const nextPage = page + 1;
@@ -107,6 +114,7 @@ export default function ForumList() {
     const params = new URLSearchParams({ page: nextPage, limit: LIMIT });
     if (activeCategory) params.set("category_id", activeCategory);
     if (search.trim())  params.set("search", search.trim());
+    if (filter)         params.set("filter", filter);
 
     api.get(`/forum/threads?${params}`)
       .then(r => {
@@ -122,22 +130,22 @@ export default function ForumList() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── Header ── */}
-      <div className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white py-14 px-6">
+      <div className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white py-10 sm:py-14 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
               <MessageSquare className="w-5 h-5" />
             </div>
-            <h1 className="text-3xl font-black">Forum communautaire</h1>
+            <h1 className="text-2xl sm:text-3xl font-black">{t("forum_communautaire")}</h1>
           </div>
-          <p className="text-white/65 mb-8">Posez vos questions, partagez vos expériences DevOps.</p>
+          <p className="text-white/65 mb-8">{t("posez_vos_questions_partagez_vos_experiences")}</p>
 
           {/* Barre de recherche */}
           <div className="relative max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <input
               type="text"
-              placeholder="Rechercher un sujet..."
+              placeholder={t("rechercher_un_sujet")}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-white/50 text-sm"
@@ -146,19 +154,17 @@ export default function ForumList() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col md:flex-row gap-6">
 
           {/* ── Sidebar catégories ── */}
-          <aside className="md:w-52 shrink-0">
-            <div className="bg-white border border-gray-100 rounded-2xl p-4 sticky top-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Catégories</p>
+          <aside className="md:w-56 shrink-0">
+            <div className="bg-white border border-gray-100 rounded-2xl p-4 md:sticky md:top-24">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t("categories")}</p>
               <button
                 onClick={() => setActiveCategory(null)}
                 className={"w-full text-left px-3 py-2 rounded-xl text-sm font-medium mb-1 transition-colors " + (!activeCategory ? "bg-[#2d287f]/8 text-[#2d287f]" : "text-gray-600 hover:bg-gray-50")}
-              >
-                Tous les sujets
-              </button>
+              >{t("tous_les_sujets")}</button>
               {categories.map(cat => (
                 <button
                   key={cat.id}
@@ -170,13 +176,17 @@ export default function ForumList() {
                 </button>
               ))}
 
+              {!user && (
+                <Link to="/login" className="w-full mt-4 flex items-center justify-center gap-2 border border-[#2d287f] text-[#2d287f] font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-[#2d287f] hover:text-white transition-colors">
+                  {t("connectez_vous_pour_participer")}
+                </Link>
+              )}
               {user && (
                 <button
-                  onClick={() => navigate("/forum/new")}
+                  onClick={() => navigate(`/forum/new${activeCategory ? `?category=${activeCategory}` : ""}`)}
                   className="w-full mt-4 flex items-center justify-center gap-2 bg-[#2d287f] text-white font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-[#3b3aab] transition-colors"
                 >
-                  <Plus className="w-4 h-4" /> Nouveau sujet
-                </button>
+                  <Plus className="w-4 h-4" />{" "}{t("nouveau_sujet")}</button>
               )}
             </div>
           </aside>
@@ -184,14 +194,20 @@ export default function ForumList() {
           {/* ── Liste des threads ── */}
           <div className="flex-1 min-w-0">
             {/* Header liste */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {[["", t("filterAll")], ["unanswered", t("filterUnanswered")], ["resolved", t("filterResolved")], ...(user ? [["mine", t("filterMine")]] : [])].map(([k, label]) => (
+                <button key={k || "all"} onClick={() => setFilter(k)}
+                  className={"px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors " + (filter === k ? "bg-[#2d287f] text-white border-[#2d287f]" : "bg-white text-gray-600 border-gray-200 hover:border-[#2d287f]/40")}>
+                  {label}
+                </button>
+              ))}
+            </div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-500">
-                {loading ? "Chargement..." : `${total} sujet${total > 1 ? "s" : ""}`}
+                {loading ? t("chargement") : `${total} sujet${total > 1 ? "s" : ""}`}
               </p>
               {!user && (
-                <Link to="/login" className="text-sm text-[#2d287f] font-semibold hover:underline">
-                  Connectez-vous pour participer →
-                </Link>
+                <Link to="/login" className="text-sm text-[#2d287f] font-semibold hover:underline">{t("connectez_vous_pour_participer")}</Link>
               )}
             </div>
 
@@ -214,12 +230,11 @@ export default function ForumList() {
             {!loading && threads.length === 0 && !error && (
               <div className="text-center py-16 text-gray-400">
                 <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="font-semibold">Aucun sujet trouvé</p>
-                <p className="text-sm mt-1">Soyez le premier à lancer une discussion !</p>
+                <p className="font-semibold">{t("aucun_sujet_trouve")}</p>
+                <p className="text-sm mt-1">{t("soyez_le_premier_a_lancer_une")}</p>
                 {user && (
                   <button onClick={() => navigate("/forum/new")} className="mt-4 inline-flex items-center gap-2 bg-[#2d287f] text-white font-bold py-2.5 px-6 rounded-xl text-sm hover:bg-[#3b3aab] transition-colors">
-                    <Plus className="w-4 h-4" /> Créer un sujet
-                  </button>
+                    <Plus className="w-4 h-4" />{" "}{t("creer_un_sujet")}</button>
                 )}
               </div>
             )}
@@ -230,7 +245,7 @@ export default function ForumList() {
                   <Link
                     key={thread.id}
                     to={`/forum/thread/${thread.id}`}
-                    className="group flex items-start gap-4 bg-white border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-md rounded-2xl p-5 transition-all duration-200"
+                    className="group flex flex-wrap sm:flex-nowrap items-start gap-3 sm:gap-4 bg-white border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-md rounded-2xl p-5 transition-all duration-200"
                   >
                     <Avatar
                       firstName={thread.author_first_name}
@@ -241,10 +256,13 @@ export default function ForumList() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        {thread.is_pinned && (
+                        {!!thread.is_pinned && (
                           <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
-                            <Pin className="w-2.5 h-2.5" /> Épinglé
-                          </span>
+                            <Pin className="w-2.5 h-2.5" />{" "}{t("epingle")}</span>
+                        )}
+                        {!!thread.is_resolved && (
+                          <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
+                            <CheckCircle className="w-2.5 h-2.5" />{" "}{t("resolved")}</span>
                         )}
                         {thread.category_name && (
                           <span className="inline-flex items-center gap-1 text-xs bg-[#2d287f]/6 text-[#2d287f] px-2 py-0.5 rounded-full font-medium">
@@ -271,7 +289,7 @@ export default function ForumList() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 shrink-0 text-xs text-gray-400 w-full sm:w-auto pl-12 sm:pl-0">
                       <span className="flex items-center gap-1">
                         <MessageSquare className="w-3.5 h-3.5" />
                         {thread.message_count || thread.replies_count || 0}
@@ -296,7 +314,7 @@ export default function ForumList() {
                   className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 font-medium py-2.5 px-6 rounded-xl text-sm hover:border-[#2d287f] hover:text-[#2d287f] transition-colors disabled:opacity-50"
                 >
                   {loadingMore ? <Loader className="w-4 h-4 animate-spin" /> : null}
-                  {loadingMore ? "Chargement..." : "Voir plus de sujets"}
+                  {loadingMore ? t("chargement") : t("voir_plus_de_sujets")}
                 </button>
               </div>
             )}

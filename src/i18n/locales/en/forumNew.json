@@ -1,0 +1,17 @@
+{
+  "title": "New topic",
+  "subtitle": "Ask a clear question or share an experience: the community and instructors will reply.",
+  "back": "Back to forum",
+  "category": "Category",
+  "subject": "Subject",
+  "subjectPlaceholder": "E.g. Why does my Docker container exit immediately?",
+  "message": "Message",
+  "messagePlaceholder": "Describe your context, what you tried and what happened…",
+  "rules": "Be respectful and precise. Never post passwords or secret keys.",
+  "publish": "Publish",
+  "sending": "Publishing…",
+  "titleShort": "The subject must be at least 5 characters long.",
+  "contentRequired": "The message is required.",
+  "loadError": "Unable to load categories.",
+  "sendError": "Unable to publish the topic."
+}

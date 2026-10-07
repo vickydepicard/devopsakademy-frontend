@@ -13,7 +13,7 @@
   to="/admin/messages"
   className="flex items-center gap-2 hover:bg-blue-600 p-2 rounded transition"
 >
-  📩 <span>Messages</span>
+  <span>Messages</span>
 </Link>
 
 </NavLink>

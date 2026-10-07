@@ -23,8 +23,11 @@ import {
   Loader2,
   Star
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
 
 export default function AdminSubmissionReview() {
+  const { t } = useTranslation("adminSubmissionReview");
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
@@ -131,14 +134,13 @@ export default function AdminSubmissionReview() {
         ));
         
         setSelectedSubmission(null);
-        alert("✅ Soumission validée avec succès !");
+        alert(t("soumission_validee_avec_succes"));
         
         // Notification à l'étudiant
-        notifyStudent(selectedSubmission.user_id, 'approved');
       }
     } catch (error) {
       console.error("Erreur validation:", error);
-      alert(error.response?.data?.message || "❌ Erreur lors de la validation");
+      alert(error.response?.data?.message || t("erreur_lors_de_la_validation"));
     } finally {
       setActionLoading(false);
     }
@@ -146,7 +148,7 @@ export default function AdminSubmissionReview() {
 
   const handleReject = async () => {
     if (!selectedSubmission || !feedback.trim()) {
-      alert("Veuillez fournir un feedback pour expliquer le rejet");
+      alert(t("veuillez_fournir_un_feedback_pour_expliquer"));
       return;
     }
 
@@ -172,14 +174,13 @@ export default function AdminSubmissionReview() {
         ));
         
         setSelectedSubmission(null);
-        alert("✅ Soumission rejetée avec feedback.");
+        alert(t("soumission_rejetee_avec_feedback"));
         
         // Notification à l'étudiant
-        notifyStudent(selectedSubmission.user_id, 'rejected');
       }
     } catch (error) {
       console.error("Erreur rejet:", error);
-      alert(error.response?.data?.message || "❌ Erreur lors du rejet");
+      alert(error.response?.data?.message || t("erreur_lors_du_rejet"));
     } finally {
       setActionLoading(false);
     }
@@ -189,10 +190,10 @@ export default function AdminSubmissionReview() {
     try {
       await api.post("/notifications", {
         user_id: userId,
-        title: status === 'approved' ? "🎉 Votre soumission a été validée !" : "📝 Retour sur votre soumission",
+        title: status === 'approved' ? t("votre_soumission_a_ete_validee") : t("retour_sur_votre_soumission"),
         message: status === 'approved' 
-          ? "Félicitations ! Votre travail a été approuvé par l'administrateur."
-          : "Votre soumission nécessite des corrections. Consultez le feedback de l'administrateur.",
+          ? t("felicitations_votre_travail_a_ete_approuve")
+          : t("votre_soumission_necessite_des_corrections_consu"),
         type: status === 'approved' ? 'success' : 'warning'
       });
     } catch (error) {
@@ -201,7 +202,7 @@ export default function AdminSubmissionReview() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    return new Date(dateString).toLocaleDateString(getLocale(), {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -214,21 +215,21 @@ export default function AdminSubmissionReview() {
     switch(status) {
       case 'approved':
         return {
-          text: "Validé",
+          text: t("valide"),
           color: "bg-emerald-100 text-emerald-800",
           border: "border-emerald-200",
           icon: <CheckCircle className="w-4 h-4" />
         };
       case 'rejected':
         return {
-          text: "Rejeté",
+          text: t("rejete"),
           color: "bg-red-100 text-red-800",
           border: "border-red-200",
           icon: <XCircle className="w-4 h-4" />
         };
       default:
         return {
-          text: "En attente",
+          text: t("en_attente"),
           color: "bg-yellow-100 text-yellow-800",
           border: "border-yellow-200",
           icon: <Clock className="w-4 h-4" />
@@ -237,7 +238,7 @@ export default function AdminSubmissionReview() {
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return t("0_bytes");
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -273,12 +274,8 @@ export default function AdminSubmissionReview() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            📝 Revue des soumissions
-          </h1>
-          <p className="text-gray-600">
-            Validez ou rejetez les travaux soumis par les apprenants
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("revue_des_soumissions")}</h1>
+          <p className="text-gray-600">{t("validez_ou_rejetez_les_travaux_soumis")}</p>
         </div>
 
         {/* Statistiques */}
@@ -286,7 +283,7 @@ export default function AdminSubmissionReview() {
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total</p>
+                <p className="text-sm text-gray-600">{t("total")}</p>
                 <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
@@ -298,7 +295,7 @@ export default function AdminSubmissionReview() {
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">En attente</p>
+                <p className="text-sm text-gray-600">{t("en_attente")}</p>
                 <p className="text-3xl font-bold text-gray-900">{stats.pending}</p>
               </div>
               <div className="p-3 bg-yellow-50 rounded-lg">
@@ -310,7 +307,7 @@ export default function AdminSubmissionReview() {
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Validées</p>
+                <p className="text-sm text-gray-600">{t("validees")}</p>
                 <p className="text-3xl font-bold text-gray-900">{stats.approved}</p>
               </div>
               <div className="p-3 bg-emerald-50 rounded-lg">
@@ -322,7 +319,7 @@ export default function AdminSubmissionReview() {
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Rejetées</p>
+                <p className="text-sm text-gray-600">{t("rejetees")}</p>
                 <p className="text-3xl font-bold text-gray-900">{stats.rejected}</p>
               </div>
               <div className="p-3 bg-red-50 rounded-lg">
@@ -341,32 +338,28 @@ export default function AdminSubmissionReview() {
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
                     <div className="flex items-center gap-2">
-                      <Filter className="w-4 h-4" />
-                      Statut
-                    </div>
+                      <Filter className="w-4 h-4" />{t("statut")}</div>
                   </label>
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters({...filters, status: e.target.value})}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
                   >
-                    <option value="all">Tous les statuts</option>
-                    <option value="pending">En attente</option>
-                    <option value="approved">Validées</option>
-                    <option value="rejected">Rejetées</option>
+                    <option value="all">{t("tous_les_statuts")}</option>
+                    <option value="pending">{t("en_attente")}</option>
+                    <option value="approved">{t("validees")}</option>
+                    <option value="rejected">{t("rejetees")}</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Cours
-                  </label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">{t("cours")}</label>
                   <select
                     value={filters.course}
                     onChange={(e) => setFilters({...filters, course: e.target.value})}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
                   >
-                    <option value="">Tous les cours</option>
+                    <option value="">{t("tous_les_cours")}</option>
                     {courses.map(course => (
                       <option key={course.id} value={course.id}>{course.title}</option>
                     ))}
@@ -376,15 +369,13 @@ export default function AdminSubmissionReview() {
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
                     <div className="flex items-center gap-2">
-                      <Search className="w-4 h-4" />
-                      Recherche
-                    </div>
+                      <Search className="w-4 h-4" />{t("recherche")}</div>
                   </label>
                   <input
                     type="text"
                     value={filters.search}
                     onChange={(e) => setFilters({...filters, search: e.target.value})}
-                    placeholder="Titre, étudiant, cours..."
+                    placeholder={t("titre_etudiant_cours")}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
                   />
                 </div>
@@ -396,13 +387,11 @@ export default function AdminSubmissionReview() {
               {filteredSubmissions.length === 0 ? (
                 <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    Aucune soumission
-                  </h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{t("aucune_soumission")}</h3>
                   <p className="text-gray-600">
                     {filters.status !== 'all' || filters.course || filters.search
-                      ? "Aucune soumission ne correspond aux filtres"
-                      : "Aucune soumission n'a été effectuée pour le moment"}
+                      ? t("aucune_soumission_ne_correspond_aux_filtres")
+                      : t("aucune_soumission_n_a_ete_effectuee")}
                   </p>
                 </div>
               ) : (
@@ -447,11 +436,11 @@ export default function AdminSubmissionReview() {
                             
                             <div>
                               <div className="text-gray-600 mb-1">
-                                <span className="font-medium">Cours:</span> {submission.course_title}
+                                <span className="font-medium">{t("cours_2")}</span> {submission.course_title}
                               </div>
                               <div className="flex items-center gap-2 text-gray-600">
                                 <FileText className="w-4 h-4" />
-                                <span>{submission.files?.length || 0} fichier(s)</span>
+                                <span>{submission.files?.length || 0}{" "}{t("fichier_s")}</span>
                               </div>
                             </div>
                           </div>
@@ -469,9 +458,7 @@ export default function AdminSubmissionReview() {
                             handleReviewSubmission(submission);
                           }}
                           className="ml-4 px-4 py-2 bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white rounded-lg font-medium hover:shadow-lg transition-all"
-                        >
-                          Examiner
-                        </button>
+                        >{t("examiner")}</button>
                       </div>
                     </div>
                   );
@@ -486,7 +473,7 @@ export default function AdminSubmissionReview() {
               <div className="sticky top-8 space-y-6">
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xl">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Examen de la soumission</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{t("examen_de_la_soumission")}</h2>
                     <button
                       onClick={() => setSelectedSubmission(null)}
                       className="p-2 hover:bg-gray-100 rounded-lg"
@@ -505,20 +492,20 @@ export default function AdminSubmissionReview() {
                     <div className="bg-gray-50 rounded-xl p-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <div className="text-gray-600">Étudiant</div>
+                          <div className="text-gray-600">{t("etudiant")}</div>
                           <div className="font-medium">{selectedSubmission.user_name}</div>
                         </div>
                         <div>
-                          <div className="text-gray-600">Cours</div>
+                          <div className="text-gray-600">{t("cours")}</div>
                           <div className="font-medium">{selectedSubmission.course_title}</div>
                         </div>
                         <div>
-                          <div className="text-gray-600">Date</div>
+                          <div className="text-gray-600">{t("date")}</div>
                           <div className="font-medium">{formatDate(selectedSubmission.created_at)}</div>
                         </div>
                         <div>
-                          <div className="text-gray-600">Version</div>
-                          <div className="font-medium">Soumission #{selectedSubmission.attempt || 1}</div>
+                          <div className="text-gray-600">{t("version")}</div>
+                          <div className="font-medium">{t("soumission")}{selectedSubmission.attempt || 1}</div>
                         </div>
                       </div>
                     </div>
@@ -526,7 +513,7 @@ export default function AdminSubmissionReview() {
 
                   {/* Fichiers */}
                   <div className="mb-6">
-                    <h3 className="font-medium text-gray-900 mb-3">Fichiers soumis</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">{t("fichiers_soumis")}</h3>
                     <div className="space-y-2">
                       {selectedSubmission.files?.map((file, index) => (
                         <a
@@ -555,22 +542,18 @@ export default function AdminSubmissionReview() {
                   {/* Feedback */}
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Feedback à l'étudiant *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">{t("feedback_a_l_etudiant")}</label>
                       <textarea
                         value={feedback}
                         onChange={(e) => setFeedback(e.target.value)}
-                        placeholder="Donnez un retour constructif à l'étudiant..."
+                        placeholder={t("donnez_un_retour_constructif_a_l")}
                         rows="4"
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all resize-none"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Note (optionnelle)
-                      </label>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">{t("note_optionnelle")}</label>
                       <div className="flex items-center gap-4">
                         <input
                           type="number"
@@ -579,7 +562,7 @@ export default function AdminSubmissionReview() {
                           step="0.5"
                           value={grade}
                           onChange={(e) => setGrade(e.target.value)}
-                          placeholder="Ex: 16.5"
+                          placeholder={t("ex_16_5")}
                           className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
                         />
                         <div className="text-sm text-gray-600">/20</div>
@@ -597,9 +580,7 @@ export default function AdminSubmissionReview() {
                           <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                           <XCircle className="w-5 h-5" />
-                        )}
-                        Rejeter
-                      </button>
+                        )}{t("rejeter")}</button>
                       
                       <button
                         onClick={handleApprove}
@@ -610,50 +591,38 @@ export default function AdminSubmissionReview() {
                           <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                           <CheckCircle className="w-5 h-5" />
-                        )}
-                        Valider
-                      </button>
+                        )}{t("valider")}</button>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions rapides */}
                 <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-6">
-                  <h3 className="font-bold text-gray-900 mb-4">Actions rapides</h3>
+                  <h3 className="font-bold text-gray-900 mb-4">{t("actions_rapides")}</h3>
                   <div className="space-y-3">
                     <button
                       onClick={() => window.open(`/admin/users/${selectedSubmission.user_id}`, '_blank')}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
                     >
-                      <User className="w-5 h-5" />
-                      Voir le profil étudiant
-                    </button>
+                      <User className="w-5 h-5" />{t("voir_le_profil_etudiant")}</button>
                     <button
                       onClick={() => window.open(`/courses/${selectedSubmission.course_id}`, '_blank')}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
                     >
-                      <ExternalLink className="w-5 h-5" />
-                      Voir le cours
-                    </button>
+                      <ExternalLink className="w-5 h-5" />{t("voir_le_cours")}</button>
                     <a
                       href={`mailto:${selectedSubmission.user_email}`}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
                     >
-                      <Send className="w-5 h-5" />
-                      Contacter l'étudiant
-                    </a>
+                      <Send className="w-5 h-5" />{t("contacter_l_etudiant")}</a>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                 <Eye className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Aucune soumission sélectionnée
-                </h3>
-                <p className="text-gray-600">
-                  Cliquez sur une soumission dans la liste pour l'examiner
-                </p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t("aucune_soumission_selectionnee")}</h3>
+                <p className="text-gray-600">{t("cliquez_sur_une_soumission_dans_la")}</p>
               </div>
             )}
           </div>

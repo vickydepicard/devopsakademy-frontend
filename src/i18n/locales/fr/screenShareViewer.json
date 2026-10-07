@@ -1,0 +1,22 @@
+{
+  "l_instructeur_ne_repond_pas_reessayez": "L'instructeur ne répond pas. Réessayez dans quelques secondes.",
+  "connexion_interrompue_avec_l_instructeur": "Connexion interrompue avec l'instructeur",
+  "probleme_reseau_webrtc": "Problème réseau WebRTC",
+  "en_attente_du_live": "En attente du live…",
+  "l_instructeur_n_a_pas_encore": "L'instructeur n'a pas encore démarré. La page se met à jour automatiquement.",
+  "connexion_surveillee": "Connexion surveillée",
+  "en_attente_de_l_instructeur": "En attente de l'instructeur…",
+  "votre_connexion_est_prete_l_instructeur": "Votre connexion est prête. L'instructeur va vous envoyer le stream sous peu.",
+  "acces_reserve_aux_inscrits": "Accès réservé aux inscrits",
+  "inscrivez_vous_gratuitement_pour_acceder_au": "Inscrivez-vous gratuitement pour accéder au live.",
+  "inscrivez_vous_pour_fcfa": "Inscrivez-vous pour {{fmtPrice}} FCFA.",
+  "s_inscrire_gratuitement": "S'inscrire gratuitement",
+  "s_inscrire_fcfa": "S'inscrire — {{fmtPrice}} FCFA",
+  "live_termine": "Live terminé",
+  "merci_pour_votre_participation_le_replay": "Merci pour votre participation ! Le replay sera disponible prochainement.",
+  "probleme_de_connexion": "Problème de connexion",
+  "reessayer": "Réessayer",
+  "en_direct": "EN DIRECT",
+  "erreur_initialisation": "Erreur initialisation: ",
+  "erreur": "Erreur: "
+}

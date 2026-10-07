@@ -1,0 +1,9 @@
+{
+  "route_api_profile_introuvable_reponse": "Route /api/profile not found (response: {{status}})",
+  "erreur_lors_du_chargement_du_profil": "Error while loading the profile",
+  "erreur_profil": "Profile error",
+  "non_authentifie": "Not authenticated",
+  "erreur_lors_de_la_mise_a": "Error while updating",
+  "erreur_mise_a_jour": "Update error",
+  "useprofile_must_be_used_within_a": "useProfile must be used within a ProfileProvider"
+}

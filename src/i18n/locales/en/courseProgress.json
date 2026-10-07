@@ -1,0 +1,17 @@
+{
+  "impossible_de_charger_la_progression": "Unable to load progress.",
+  "retour": "← Back",
+  "mon_dashboard": "← My dashboard",
+  "progression_detaillee": "Detailed progress",
+  "modules": "Modules",
+  "completees": "Completed",
+  "total": "Total",
+  "aucune_donnee_de_progression": "No progress data",
+  "commencez_le_cours_pour_voir_votre": "Start the course to see your progress",
+  "commencer_le_cours": "Start the course",
+  "lecons": "lessons",
+  "min": " · {{Math}} min",
+  "continuer_le_cours": "Continue the course",
+  "min_2": "{{vduration_minutes}} min",
+  "lecons_terminees": "{{completedLessons}} / {{totalLessons}} lessons completed"
+}

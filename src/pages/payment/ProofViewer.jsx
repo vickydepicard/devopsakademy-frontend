@@ -1,6 +1,7 @@
 // src/pages/payment/ProofViewer.jsx
 import { useState, useEffect } from "react";
 import { X, Download, ZoomIn, ZoomOut, RotateCw, ExternalLink, FileText, Eye } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function normalizeProofUrl(url) {
   if (!url) return null;
@@ -23,7 +24,8 @@ function isImage(url) {
   return false;
 }
 
-export function ProofButton({ url, label = "Voir la preuve", size = "sm", className = "" }) {
+export function ProofButton({ url, label = t("voir_la_preuve"), size = "sm", className = "" }) {
+  const { t } = useTranslation("proofViewer");
   const [open, setOpen] = useState(false);
   const normalized = normalizeProofUrl(url);
   if (!normalized) return null;
@@ -50,6 +52,7 @@ export function ProofButton({ url, label = "Voir la preuve", size = "sm", classN
 }
 
 export function ProofModal({ url, onClose }) {
+  const { t } = useTranslation("proofViewer");
   const [zoom,       setZoom]      = useState(1);
   const [rotate,     setRotate]    = useState(0);
   const [loaded,     setLoaded]    = useState(false);
@@ -63,7 +66,7 @@ export function ProofModal({ url, onClose }) {
     if (!url || pdf) return;
     let objectUrl = null;
     fetch(url, { credentials: "include" })
-      .then(r => { if (!r.ok) throw new Error("fetch failed"); return r.blob(); })
+      .then(r => { if (!r.ok) throw new Error(t("fetch_failed")); return r.blob(); })
       .then(blob => {
         const type = blob.type && blob.type !== "application/octet-stream"
           ? blob.type
@@ -82,11 +85,11 @@ export function ProofModal({ url, onClose }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // ✅ Téléchargement avec MIME réel + bonne extension
+  // Téléchargement avec MIME réel + bonne extension
   const handleDownload = async () => {
     try {
       const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Erreur réseau");
+      if (!res.ok) throw new Error(t("erreur_reseau"));
       const blob = await res.blob();
 
       // Table MIME → extension
@@ -145,7 +148,7 @@ export function ProofModal({ url, onClose }) {
               }
             </div>
             <div>
-              <p className="font-black text-gray-900 text-sm">Preuve de paiement</p>
+              <p className="font-black text-gray-900 text-sm">{t("preuve_de_paiement")}</p>
               <p className="text-xs text-gray-400 truncate max-w-[200px]">{url.split("/").pop()}</p>
             </div>
           </div>
@@ -154,28 +157,27 @@ export function ProofModal({ url, onClose }) {
               <>
                 <button onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
                   className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
-                  title="Dézoomer"><ZoomOut className="w-3.5 h-3.5 text-gray-600" /></button>
+                  title={t("dezoomer")}><ZoomOut className="w-3.5 h-3.5 text-gray-600" /></button>
                 <span className="text-xs font-bold text-gray-500 w-10 text-center">
                   {Math.round(zoom * 100)}%
                 </span>
                 <button onClick={() => setZoom(z => Math.min(3, z + 0.25))}
                   className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
-                  title="Zoomer"><ZoomIn className="w-3.5 h-3.5 text-gray-600" /></button>
+                  title={t("zoomer")}><ZoomIn className="w-3.5 h-3.5 text-gray-600" /></button>
                 <button onClick={() => setRotate(r => (r + 90) % 360)}
                   className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
-                  title="Rotation"><RotateCw className="w-3.5 h-3.5 text-gray-600" /></button>
+                  title={t("rotation")}><RotateCw className="w-3.5 h-3.5 text-gray-600" /></button>
               </>
             )}
             <button onClick={() => window.open(url, "_blank")}
               className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
-              title="Ouvrir dans un nouvel onglet">
+              title={t("ouvrir_dans_un_nouvel_onglet")}>
               <ExternalLink className="w-3.5 h-3.5 text-gray-600" />
             </button>
             <button onClick={handleDownload}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-bold transition hover:opacity-90"
               style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-              <Download className="w-3.5 h-3.5" /> Télécharger
-            </button>
+              <Download className="w-3.5 h-3.5" />{" "}{t("telecharger")}</button>
             <button onClick={onClose}
               className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition ml-1">
               <X className="w-4 h-4" />
@@ -191,7 +193,7 @@ export function ProofModal({ url, onClose }) {
               src={`${url}#toolbar=1&view=FitH`}
               className="w-full rounded-xl shadow-md border border-gray-200"
               style={{ minHeight: 500, height: "65vh" }}
-              title="Preuve PDF"
+              title={t("preuve_pdf")}
               onLoad={() => setLoaded(true)}
               onError={() => setError(true)}
             />
@@ -200,18 +202,15 @@ export function ProofModal({ url, onClose }) {
               <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto">
                 <FileText className="w-8 h-8 text-red-400" />
               </div>
-              <p className="text-gray-600 font-semibold text-sm">Impossible d'afficher l'image</p>
+              <p className="text-gray-600 font-semibold text-sm">{t("impossible_d_afficher_l_image")}</p>
               <div className="flex gap-2 justify-center">
                 <button onClick={handleDownload}
                   className="px-4 py-2 rounded-xl text-white text-sm font-bold"
                   style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                  <Download className="w-4 h-4 inline mr-1.5" /> Télécharger
-                </button>
+                  <Download className="w-4 h-4 inline mr-1.5" />{" "}{t("telecharger")}</button>
                 <button onClick={() => window.open(url, "_blank")}
                   className="px-4 py-2 rounded-xl border-2 text-sm font-bold"
-                  style={{ borderColor: "#2d287f", color: "#2d287f" }}>
-                  Ouvrir ↗
-                </button>
+                  style={{ borderColor: "#2d287f", color: "#2d287f" }}>{t("ouvrir")}</button>
               </div>
             </div>
           ) : (
@@ -223,7 +222,7 @@ export function ProofModal({ url, onClose }) {
               )}
               <img
                 src={blobUrl || url}
-                alt="Preuve de paiement"
+                alt={t("preuve_de_paiement")}
                 className="rounded-xl shadow-lg border border-gray-200 block"
                 style={{
                   transform: `scale(${zoom}) rotate(${rotate}deg)`,
@@ -243,19 +242,16 @@ export function ProofModal({ url, onClose }) {
         {/* Footer */}
         <div className="px-5 py-3 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
           <p className="text-xs text-gray-400">
-            {pdf ? "Document PDF" : `Image · Zoom: ${Math.round(zoom * 100)}% · Rotation: ${rotate}°`}
+            {pdf ? t("document_pdf") : t("image_zoom_rotation", { Math: Math.round(zoom * 100), rotate })}
           </p>
           <div className="flex gap-2">
             <button onClick={handleDownload}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition hover:opacity-90"
               style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-              <Download className="w-3.5 h-3.5" /> Télécharger
-            </button>
+              <Download className="w-3.5 h-3.5" />{" "}{t("telecharger")}</button>
             <button onClick={onClose}
               className="px-4 py-2 rounded-xl border-2 text-xs font-bold transition"
-              style={{ borderColor: "#e5e7eb", color: "#6b7280" }}>
-              Fermer
-            </button>
+              style={{ borderColor: "#e5e7eb", color: "#6b7280" }}>{t("fermer")}</button>
           </div>
         </div>
       </div>

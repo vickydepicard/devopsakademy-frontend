@@ -10,42 +10,37 @@ import {
   BarChart2, Terminal, Globe, Eye, Quote,
   TrendingUp, Layers
 } from "lucide-react";
+import { TechIcon } from "../../components/UI/Icons";
+import { useTranslation } from "react-i18next";
 
 // ─── Tech Stack ──────────────────────────────────────────────
 const TECH_STACK = [
-  { name: "Docker",         color: "#0db7ed", icon: "🐳" },
-  { name: "Kubernetes",     color: "#326ce5", icon: "⚙️" },
-  { name: "AWS",            color: "#ff9900", icon: "☁️" },
-  { name: "Terraform",      color: "#7b42bc", icon: "🏗️" },
-  { name: "GitHub Actions", color: "#2088ff", icon: "🔗" },
-  { name: "Ansible",        color: "#e8e8e8", icon: "🔧" },
-  { name: "Prometheus",     color: "#e6522c", icon: "📊" },
-  { name: "Grafana",        color: "#f46800", icon: "📈" },
-  { name: "Jenkins",        color: "#d24939", icon: "🚀" },
-  { name: "Azure",          color: "#0089d6", icon: "🌐" },
-  { name: "Linux",          color: "#fcc624", icon: "🐧" },
-  { name: "Nginx",          color: "#009639", icon: "🛡️" },
+  { name: "Docker",         color: "#0db7ed" },
+  { name: "Kubernetes",     color: "#326ce5" },
+  { name: "AWS",            color: "#ff9900" },
+  { name: "Terraform",      color: "#7b42bc" },
+  { name: "GitHub Actions", color: "#2088ff" },
+  { name: "Ansible",        color: "#ee0000" },
+  { name: "Prometheus",     color: "#e6522c" },
+  { name: "Grafana",        color: "#f46800" },
+  { name: "Jenkins",        color: "#d24939" },
+  { name: "Azure",          color: "#0089d6" },
+  { name: "Linux",          color: "#fcc624" },
+  { name: "Nginx",          color: "#009639" },
 ];
 
 const FEATURES = [
-  { icon: Terminal, title: "Labs interactifs", desc: "Environnements Docker & K8s préconfigurés, directement dans votre navigateur. Zéro configuration.", color: "from-violet-500 to-purple-600", link: "/courses" },
-  { icon: Award, title: "Certifications vérifiables", desc: "Chaque parcours aboutit à un certificat numérique authentifié, valorisé par les recruteurs tech.", color: "from-amber-400 to-orange-500", link: "/certificates/verify" },
-  { icon: MessageSquare, title: "Communauté active", desc: "Forum, entraide et webinaires mensuels. Vous n'apprenez jamais seul chez DevOpsAkademy.", color: "from-emerald-400 to-teal-600", link: "/forum" },
-  { icon: BarChart2, title: "Progression trackée", desc: "Tableau de bord personnel, classement, points. Chaque complétion vous fait progresser.", color: "from-sky-400 to-blue-600", link: "/leaderboard" },
+  { icon: Terminal, key: "labs", color: "from-violet-500 to-purple-600", link: "/courses" },
+  { icon: Award, key: "certs", color: "from-amber-400 to-orange-500", link: "/certificates/verify" },
+  { icon: MessageSquare, key: "community", color: "from-emerald-400 to-teal-600", link: "/forum" },
+  { icon: BarChart2, key: "progress", color: "from-sky-400 to-blue-600", link: "/leaderboard" },
 ];
 
 const LEARNING_STEPS = [
-  { num: "01", icon: BookOpen, title: "Choisissez votre parcours", desc: "Débutant à expert — trouvez le cours adapté à votre niveau.", link: "/courses", color: "text-violet-600", bg: "bg-violet-50 border-violet-100" },
-  { num: "02", icon: Terminal, title: "Pratiquez en conditions réelles", desc: "Labs interactifs sur de vraies infrastructures Cloud & K8s.", link: "/courses", color: "text-sky-600", bg: "bg-sky-50 border-sky-100" },
-  { num: "03", icon: Award, title: "Obtenez votre certificat", desc: "Certification numérique vérifiable, partageable sur LinkedIn.", link: "/certificates/verify", color: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
-  { num: "04", icon: Trophy, title: "Progressez dans le classement", desc: "Montez dans le leaderboard et devenez un référent de la communauté.", link: "/leaderboard", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" },
-];
-
-// Avatars de fallback si aucune review API
-const FALLBACK_REVIEWS = [
-  { first_name: "Jean", last_name: "Dupont", job_title: "DevOps Engineer", company: "Scale-up Dakar", rating: 5, comment: "Les cours DevOpsAkademy m'ont permis de décrocher ma première mission Cloud en moins de 3 mois. Le contenu est dense et 100% pratique.", course_title: "Docker & Kubernetes en production" },
-  { first_name: "Amina", last_name: "Traoré", job_title: "SRE Junior", company: "Fintech Abidjan", rating: 5, comment: "Une plateforme claire, complète et très interactive. Les labs Kubernetes sont particulièrement bien faits. Je recommande sans hésitation.", course_title: "Kubernetes avancé" },
-  { first_name: "Lucas", last_name: "M.", job_title: "Cloud Architect", company: "Freelance", rating: 5, comment: "J'ai adoré les projets pratiques sur Docker et Terraform. La communauté répond vite et les instructeurs sont de vrais praticiens.", course_title: "Terraform & AWS" },
+  { num: "01", icon: BookOpen, key: "choose", link: "/courses", color: "text-violet-600", bg: "bg-violet-50 border-violet-100" },
+  { num: "02", icon: Terminal, key: "practice", link: "/courses", color: "text-sky-600", bg: "bg-sky-50 border-sky-100" },
+  { num: "03", icon: Award, key: "certify", link: "/certificates/verify", color: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
+  { num: "04", icon: Trophy, key: "rank", link: "/leaderboard", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" },
 ];
 
 const GRADIENT_AVATARS = [
@@ -59,11 +54,11 @@ const GRADIENT_AVATARS = [
 
 const getLevelInfo = (level) => {
   const map = {
-    beginner:     { label: "Débutant",      cls: "bg-emerald-100 text-emerald-700" },
-    intermediate: { label: "Intermédiaire", cls: "bg-blue-100 text-blue-700" },
-    advanced:     { label: "Avancé",        cls: "bg-purple-100 text-purple-700" },
+    beginner:     { key: "beginner",     cls: "bg-emerald-100 text-emerald-700" },
+    intermediate: { key: "intermediate", cls: "bg-blue-100 text-blue-700" },
+    advanced:     { key: "advanced",     cls: "bg-purple-100 text-purple-700" },
   };
-  return map[level?.toLowerCase()] || { label: "Tous niveaux", cls: "bg-gray-100 text-gray-600" };
+  return map[level?.toLowerCase()] || { key: "all", cls: "bg-gray-100 text-gray-600" };
 };
 
 const getInitials = (first, last) =>
@@ -90,6 +85,7 @@ function TerminalLine({ children, delay = 0, prompt = false, color = "text-white
 // ═══════════════════════════════════════════════════════════════
 function HeroSection() {
   const { user } = useAuth();
+  const { t } = useTranslation("home");
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#1f1b5a] via-[#2d287f] to-[#3b3aab] text-white min-h-[90vh] flex items-center">
       <div className="absolute inset-0 pointer-events-none opacity-100" style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px)`, backgroundSize: "56px 56px" }} />
@@ -101,49 +97,34 @@ function HeroSection() {
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#facc15]/15 border border-[#facc15]/30 rounded-full text-[#facc15] text-sm font-bold mb-8">
               <Zap className="w-4 h-4" />
-              Plateforme DevOps francophone n°1
+              {t("hero.badge")}
             </div>
             <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.04] mb-6 tracking-tight">
-              Maîtrisez{" "}<span className="text-[#facc15]">DevOps</span><br />de A à Z
+              {t("hero.titleStart")}{" "}<span className="text-[#facc15]">DevOps</span><br />{t("hero.titleEnd")}
             </h1>
             <p className="text-xl text-white/72 leading-relaxed mb-10 max-w-xl">
-              Formations pratiques en français — Cloud, Kubernetes, CI/CD, Terraform.
-              Construites par des praticiens, pour aller directement en production.
+              {t("hero.subtitle")}
             </p>
             <div className="flex flex-wrap gap-4">
               {user ? (
                 <>
                   <Link to="/my-courses" className="inline-flex items-center gap-2 bg-[#facc15] hover:bg-[#fde047] text-[#1f1b5a] font-black py-4 px-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                    Mes cours <ArrowRight className="w-5 h-5" />
+                    {t("hero.myCourses")} <ArrowRight className="w-5 h-5" />
                   </Link>
                   <Link to="/courses" className="inline-flex items-center gap-2 border-2 border-white/25 hover:border-white text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
-                    Explorer les cours
+                    {t("hero.explore")}
                   </Link>
                 </>
               ) : (
                 <>
                   <Link to="/register" className="inline-flex items-center gap-2 bg-[#facc15] hover:bg-[#fde047] text-[#1f1b5a] font-black py-4 px-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                    Commencer gratuitement <ArrowRight className="w-5 h-5" />
+                    {t("hero.signUp")} <ArrowRight className="w-5 h-5" />
                   </Link>
                   <Link to="/courses" className="inline-flex items-center gap-2 border-2 border-white/25 hover:border-white text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
-                    Explorer les cours
+                    {t("hero.explore")}
                   </Link>
                 </>
               )}
-            </div>
-            <div className="flex items-center gap-6 mt-10 flex-wrap">
-              <div className="flex -space-x-2">
-                {[["JD","#7c3aed"],["AT","#059669"],["LM","#0284c7"],["SR","#dc2626"],["KM","#d97706"]].map(([init, bg], i) => (
-                  <div key={i} className="w-9 h-9 rounded-full border-2 border-[#2d287f] flex items-center justify-center text-xs font-bold text-white" style={{ background: bg }}>{init}</div>
-                ))}
-              </div>
-              <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-[#facc15] text-[#facc15]" />)}
-                  <span className="text-white font-bold ml-1">4.9/5</span>
-                </div>
-                <p className="text-white/55 text-sm">+++ apprenants satisfaits</p>
-              </div>
             </div>
           </div>
 
@@ -187,6 +168,7 @@ function HeroSection() {
 // STATS BAR — DYNAMIQUE
 // ═══════════════════════════════════════════════════════════════
 function StatsBar() {
+  const { t } = useTranslation("home");
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -197,25 +179,23 @@ function StatsBar() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Uniquement des chiffres réels renvoyés par l'API (aucune valeur de repli inventée)
   const items = stats
     ? [
-        { value: stats.learners > 0 ? `${stats.learners}+` : "20+",  label: "Apprenants formés",    icon: Users },
-        { value: stats.courses  > 0 ? `${stats.courses}+`  : "30+",  label: "Cours disponibles",    icon: BookOpen },
-        { value: stats.avg_rating > 0 ? `${stats.avg_rating}/5` : "4.9/5", label: "Note moyenne",  icon: Star },
-        { value: stats.countries > 0 ? `${stats.countries}+` : "12+", label: "Pays représentés",   icon: Globe },
-      ]
-    : [
-        { value: "20+",  label: "Apprenants formés",    icon: Users },
-        { value: "30+",  label: "Cours disponibles",    icon: BookOpen },
-        { value: "4.9/5", label: "Note moyenne",        icon: Star },
-        { value: "12+",  label: "Pays représentés",     icon: Globe },
-      ];
+        { value: stats.learners > 0 ? `${stats.learners}+` : null, label: t("stats.learners"), icon: Users },
+        { value: stats.courses > 0 ? `${stats.courses}+` : null, label: t("stats.courses"), icon: BookOpen },
+        { value: stats.avg_rating > 0 ? `${stats.avg_rating}/5` : null, label: t("stats.rating"), icon: Star },
+        { value: stats.countries > 0 ? `${stats.countries}+` : null, label: t("stats.countries"), icon: Globe },
+      ].filter(i => i.value)
+    : [];
+
+  if (!loading && items.length < 2) return null;
 
   return (
     <section className="bg-white border-y border-gray-100 py-10">
       <div className="max-w-5xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {items.map(({ value, label, icon: Icon }, i) => (
+          {(loading ? [1, 2, 3, 4] : items).map((item, i) => (
             <div key={i} className="text-center">
               {loading ? (
                 <div className="animate-pulse">
@@ -226,10 +206,10 @@ function StatsBar() {
               ) : (
                 <>
                   <div className="w-11 h-11 bg-[#2d287f]/8 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Icon className="w-5 h-5 text-[#2d287f]" />
+                    <item.icon className="w-5 h-5 text-[#2d287f]" />
                   </div>
-                  <p className="text-3xl font-black text-[#1f1b5a] leading-none">{value}</p>
-                  <p className="text-sm text-gray-500 mt-1">{label}</p>
+                  <p className="text-3xl font-black text-[#1f1b5a] leading-none">{item.value}</p>
+                  <p className="text-sm text-gray-500 mt-1">{item.label}</p>
                 </>
               )}
             </div>
@@ -244,6 +224,8 @@ function StatsBar() {
 // COURS POPULAIRES
 // ═══════════════════════════════════════════════════════════════
 function PopularCoursesSection() {
+  const { t, i18n } = useTranslation("home");
+  const nf = new Intl.NumberFormat(i18n.language);
   const { isAuthenticated } = useAuth();
   const { getEnrollmentStatus } = usePermissions();
   const navigate = useNavigate();
@@ -258,11 +240,11 @@ function PopularCoursesSection() {
   }, []);
 
   const getAction = (courseId) => {
-    if (!isAuthenticated) return { label: "S'inscrire", icon: <BookOpen className="w-4 h-4" />, onClick: () => navigate("/login", { state: { from: `/courses/${courseId}` } }), cls: "bg-[#2d287f] text-white hover:bg-[#3b3aab]" };
+    if (!isAuthenticated) return { label: t("popular.enroll"), icon: <BookOpen className="w-4 h-4" />, onClick: () => navigate("/login", { state: { from: `/courses/${courseId}` } }), cls: "bg-[#2d287f] text-white hover:bg-[#3b3aab]" };
     const status = getEnrollmentStatus(courseId);
-    if (status === "approved") return { label: "Continuer", icon: <Play className="w-4 h-4" />, onClick: () => navigate(`/courses/${courseId}/learn`), cls: "bg-emerald-600 text-white hover:bg-emerald-700" };
-    if (status === "pending")  return { label: "En attente", icon: <Clock className="w-4 h-4" />, onClick: null, cls: "bg-amber-500 text-white cursor-not-allowed opacity-70" };
-    return { label: "S'inscrire", icon: <BookOpen className="w-4 h-4" />, onClick: () => navigate(`/courses/${courseId}`), cls: "bg-[#2d287f] text-white hover:bg-[#3b3aab]" };
+    if (status === "approved") return { label: t("popular.continue"), icon: <Play className="w-4 h-4" />, onClick: () => navigate(`/courses/${courseId}/learn`), cls: "bg-emerald-600 text-white hover:bg-emerald-700" };
+    if (status === "pending")  return { label: t("popular.pending"), icon: <Clock className="w-4 h-4" />, onClick: null, cls: "bg-amber-500 text-white cursor-not-allowed opacity-70" };
+    return { label: t("popular.enroll"), icon: <BookOpen className="w-4 h-4" />, onClick: () => navigate(`/courses/${courseId}`), cls: "bg-[#2d287f] text-white hover:bg-[#3b3aab]" };
   };
 
   return (
@@ -270,12 +252,12 @@ function PopularCoursesSection() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">Formations</span>
-            <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">Les plus populaires</h2>
-            <p className="text-gray-500 mt-1.5">Plébiscitées par notre communauté d'apprenants</p>
+            <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">{t("popular.eyebrow")}</span>
+            <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">{t("popular.title")}</h2>
+            <p className="text-gray-500 mt-1.5">{t("popular.subtitle")}</p>
           </div>
           <Link to="/courses" className="hidden md:inline-flex items-center gap-2 text-[#2d287f] font-bold hover:gap-3 transition-all duration-200 text-sm">
-            Voir tout <ArrowRight className="w-4 h-4" />
+            {t("popular.seeAll")} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -299,8 +281,8 @@ function PopularCoursesSection() {
               ? (
                 <div className="col-span-3 text-center py-16 text-gray-400">
                   <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p className="font-semibold">Aucune formation disponible pour l'instant</p>
-                  <p className="text-sm mt-1">Revenez bientôt !</p>
+                  <p className="font-semibold">{t("popular.empty")}</p>
+                  <p className="text-sm mt-1">{t("popular.emptyHint")}</p>
                 </div>
               )
               : courses.map(course => {
@@ -318,24 +300,24 @@ function PopularCoursesSection() {
                             <span className="text-white/70 text-7xl font-black">{course.title?.[0]?.toUpperCase()}</span>
                           </div>
                         )}
-                        {isFree && <div className="absolute top-3 left-3"><span className="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">GRATUIT</span></div>}
-                        {!isFree && <div className="absolute bottom-3 right-3 bg-[#1f1b5a]/85 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-xl">{parseFloat(course.price || 0).toLocaleString("fr-FR")} FCFA</div>}
+                        {isFree && <div className="absolute top-3 left-3"><span className="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">{t("popular.free")}</span></div>}
+                        {!isFree && <div className="absolute bottom-3 right-3 bg-[#1f1b5a]/85 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-xl">{t("popular.price", { amount: nf.format(parseFloat(course.price || 0)) })}</div>}
                       </div>
                       <div className="p-5 flex-1 flex flex-col">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <span className={"text-xs font-semibold px-2.5 py-0.5 rounded-full " + level.cls}>{level.label}</span>
+                          <span className={"text-xs font-semibold px-2.5 py-0.5 rounded-full " + level.cls}>{t(`levels.${level.key}`)}</span>
                           {course.duration_hours && <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="w-3 h-3" />{course.duration_hours}h</span>}
                         </div>
                         <h3 className="font-bold text-[#1f1b5a] text-lg leading-snug mb-1 group-hover:text-[#2d287f] transition-colors line-clamp-2">{course.title}</h3>
-                        <p className="text-sm text-gray-400 mb-2">Par {course.first_name} {course.last_name}</p>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1 leading-relaxed">{course.short_description || "Formation complète avec labs pratiques et certification incluse."}</p>
+                        <p className="text-sm text-gray-400 mb-2">{t("popular.by", { name: `${course.first_name} ${course.last_name}` })}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1 leading-relaxed">{course.short_description || t("popular.defaultDescription")}</p>
                         <div className="flex items-center justify-between text-xs text-gray-400 mb-4 pb-4 border-b border-gray-50">
                           <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /><strong className="text-gray-600">{parseFloat(course.rating || 0).toFixed(1)}</strong><span>({course.review_count || 0})</span></span>
                           <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {course.student_count || 0}</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2.5 mt-auto">
                           <button onClick={() => navigate(`/courses/${course.id}`)} className="flex items-center justify-center gap-1.5 py-2.5 px-3 border-2 border-[#2d287f]/25 text-[#2d287f] font-semibold rounded-xl text-sm hover:border-[#2d287f] hover:bg-[#2d287f]/5 transition-all">
-                            <Eye className="w-4 h-4" /> Détails
+                            <Eye className="w-4 h-4" /> {t("popular.details")}
                           </button>
                           <button onClick={action.onClick || undefined} disabled={!action.onClick} className={"flex items-center justify-center gap-1.5 py-2.5 px-3 font-bold rounded-xl text-sm transition-all " + action.cls + (!action.onClick ? " cursor-not-allowed" : " hover:shadow-md hover:-translate-y-0.5")}>
                             {action.icon} {action.label}
@@ -349,7 +331,7 @@ function PopularCoursesSection() {
         </div>
         <div className="text-center mt-10">
           <Link to="/courses" className="inline-flex items-center gap-2 bg-[#1f1b5a] text-white font-bold py-3.5 px-8 rounded-2xl hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
-            Voir toutes les formations <ArrowRight className="w-5 h-5" />
+            {t("popular.seeAllCourses")} <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </div>
@@ -361,6 +343,7 @@ function PopularCoursesSection() {
 // FEATURES
 // ═══════════════════════════════════════════════════════════════
 function FeaturesSection() {
+  const { t } = useTranslation("home");
   const ref = useRef(null);
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -377,19 +360,19 @@ function FeaturesSection() {
     <section ref={ref} className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14 ri opacity-0 translate-y-8 transition-all duration-700">
-          <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">Pourquoi nous</span>
-          <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">Tout pour progresser vite</h2>
+          <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">{t("features.eyebrow")}</span>
+          <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">{t("features.title")}</h2>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {FEATURES.map(({ icon: Icon, title, desc, color, link }, i) => (
+          {FEATURES.map(({ icon: Icon, key, color, link }, i) => (
             <Link key={i} to={link} className={"ri opacity-0 translate-y-8 transition-all duration-700 group p-6 rounded-2xl border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-xl hover:-translate-y-1.5 bg-white block"} style={{ transitionDelay: i * 80 + "ms" }}>
               <div className={"w-12 h-12 rounded-2xl bg-gradient-to-br " + color + " flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform duration-300"}>
                 <Icon className="w-6 h-6 text-white" />
               </div>
-              <h3 className="font-bold text-[#1f1b5a] text-lg mb-2 leading-snug">{title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+              <h3 className="font-bold text-[#1f1b5a] text-lg mb-2 leading-snug">{t(`features.${key}.title`)}</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">{t(`features.${key}.desc`)}</p>
               <div className="flex items-center gap-1 mt-4 text-[#2d287f] text-sm font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-0 group-hover:translate-x-1">
-                En savoir plus <ChevronRight className="w-4 h-4" />
+                {t("features.learnMore")} <ChevronRight className="w-4 h-4" />
               </div>
             </Link>
           ))}
@@ -403,22 +386,23 @@ function FeaturesSection() {
 // PARCOURS
 // ═══════════════════════════════════════════════════════════════
 function LearningPathSection() {
+  const { t } = useTranslation("home");
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-14">
-          <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">Comment ça marche</span>
-          <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">De zéro à expert en 4 étapes</h2>
+          <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">{t("steps.eyebrow")}</span>
+          <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-1.5">{t("steps.title")}</h2>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {LEARNING_STEPS.map(({ num, icon: Icon, title, desc, link, color, bg }, i) => (
+          {LEARNING_STEPS.map(({ num, icon: Icon, key, link, color, bg }, i) => (
             <Link key={i} to={link} className={"group relative p-6 rounded-2xl border text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-white block " + bg}>
               <span className="absolute top-4 right-4 text-2xl font-black text-gray-100 group-hover:text-[#2d287f]/15 transition-colors">{num}</span>
               <div className={"w-14 h-14 rounded-2xl bg-white border flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:shadow-md transition-shadow " + bg}>
                 <Icon className={"w-7 h-7 " + color} />
               </div>
-              <h3 className="font-bold text-[#1f1b5a] mb-2 text-sm leading-snug">{title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+              <h3 className="font-bold text-[#1f1b5a] mb-2 text-sm leading-snug">{t(`steps.${key}.title`)}</h3>
+              <p className="text-xs text-gray-500 leading-relaxed">{t(`steps.${key}.desc`)}</p>
             </Link>
           ))}
         </div>
@@ -431,17 +415,18 @@ function LearningPathSection() {
 // TECH STACK
 // ═══════════════════════════════════════════════════════════════
 function TechStackSection() {
+  const { t } = useTranslation("home");
   return (
     <section className="py-16 bg-white">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-10">
-          <h2 className="text-2xl lg:text-3xl font-black text-[#1f1b5a]">Technologies que vous maîtriserez</h2>
-          <p className="text-gray-500 mt-2 text-sm">Stack utilisée en production par les meilleures équipes DevOps</p>
+          <h2 className="text-2xl lg:text-3xl font-black text-[#1f1b5a]">{t("tech.title")}</h2>
+          <p className="text-gray-500 mt-2 text-sm">{t("tech.subtitle")}</p>
         </div>
         <div className="flex flex-wrap justify-center gap-3">
-          {TECH_STACK.map(({ name, color, icon }) => (
+          {TECH_STACK.map(({ name, color }) => (
             <div key={name} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:shadow-sm hover:-translate-y-0.5 px-4 py-2.5 rounded-xl transition-all duration-200 cursor-default" style={{ borderLeftColor: color, borderLeftWidth: "3px" }}>
-              <span className="text-lg leading-none">{icon}</span>
+              <TechIcon name={name} className="w-5 h-5 shrink-0" style={{ color }} />
               <span className="font-semibold text-sm text-gray-700">{name}</span>
             </div>
           ))}
@@ -455,27 +440,29 @@ function TechStackSection() {
 // TÉMOIGNAGES — DYNAMIQUES avec fallback
 // ═══════════════════════════════════════════════════════════════
 function TestimonialsSection() {
+  const { t } = useTranslation("home");
   const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get("/courses/featured-reviews")
       .then(r => {
         const data = r.data?.data || [];
-        setReviews(data.length >= 2 ? data.slice(0, 3) : FALLBACK_REVIEWS);
+        setReviews(data.length >= 2 ? data.slice(0, 3) : []);
       })
-      .catch(() => setReviews(FALLBACK_REVIEWS))
-      .finally(() => setLoading(false));
+      .catch(() => setReviews([]));
   }, []);
 
-  const displayed = loading ? FALLBACK_REVIEWS : reviews;
+  // Aucun témoignage fictif : la section n'apparaît que s'il existe de vrais avis
+  if (reviews.length === 0) return null;
+  const displayed = reviews;
+  const loading = false;
 
   return (
     <section className="py-20 bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14">
-          <span className="text-[#facc15] font-semibold text-sm uppercase tracking-wider">Témoignages</span>
-          <h2 className="text-3xl lg:text-4xl font-black mt-2">Ce que disent nos apprenants</h2>
+          <span className="text-[#facc15] font-semibold text-sm uppercase tracking-wider">{t("testimonials.eyebrow")}</span>
+          <h2 className="text-3xl lg:text-4xl font-black mt-2">{t("testimonials.title")}</h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {displayed.map((r, i) => (
@@ -498,7 +485,7 @@ function TestimonialsSection() {
                 <div>
                   <p className="font-bold text-sm">{r.first_name} {r.last_name}</p>
                   <p className="text-white/50 text-xs">
-                    {r.job_title || "Apprenant"}{r.company ? ` · ${r.company}` : ""}
+                    {r.job_title || t("testimonials.learner")}{r.company ? ` · ${r.company}` : ""}
                   </p>
                 </div>
               </div>
@@ -507,7 +494,7 @@ function TestimonialsSection() {
         </div>
         <div className="text-center mt-10">
           <Link to="/about" className="inline-flex items-center gap-2 border-2 border-white/25 hover:border-white text-white font-semibold py-3 px-7 rounded-2xl transition-all duration-300">
-            En savoir plus sur nous <ArrowRight className="w-4 h-4" />
+            {t("testimonials.about")} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -520,6 +507,7 @@ function TestimonialsSection() {
 // ═══════════════════════════════════════════════════════════════
 function CTASection() {
   const { user } = useAuth();
+  const { t } = useTranslation("home");
   return (
     <section className="py-24 bg-white relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(45,40,127,0.05) 0%, transparent 70%)" }} />
@@ -528,38 +516,37 @@ function CTASection() {
           <Zap className="w-8 h-8 text-[#2d287f]" />
         </div>
         <h2 className="text-4xl lg:text-5xl font-black text-[#1f1b5a] mb-5 leading-tight">
-          Prêt à booster<br />votre carrière{" "}<span className="text-[#2d287f]">DevOps</span> ?
+          {t("cta.titleStart")}{" "}<span className="text-[#2d287f]">DevOps</span>{t("cta.titleEnd")}
         </h2>
         <p className="text-xl text-gray-500 mb-10 leading-relaxed">
-          Rejoignez +2 000 ingénieurs qui ont transformé leur carrière avec DevOpsAkademy.
-          Commencez gratuitement dès aujourd'hui.
+          {t("cta.subtitle")}
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           {user ? (
             <>
               <Link to="/courses" className="inline-flex items-center gap-2 bg-[#1f1b5a] hover:bg-[#2d287f] text-white font-black py-4 px-10 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-[#2d287f]/20">
-                Explorer les cours <ArrowRight className="w-5 h-5" />
+                {t("cta.explore")} <ArrowRight className="w-5 h-5" />
               </Link>
               <Link to="/forum" className="inline-flex items-center gap-2 border-2 border-[#2d287f]/25 hover:border-[#2d287f] text-[#2d287f] font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
-                Rejoindre le forum
+                {t("cta.forum")}
               </Link>
             </>
           ) : (
             <>
               <Link to="/register" className="inline-flex items-center gap-2 bg-[#1f1b5a] hover:bg-[#2d287f] text-white font-black py-4 px-10 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-[#2d287f]/20">
-                Créer un compte gratuit <ArrowRight className="w-5 h-5" />
+                {t("cta.createAccount")} <ArrowRight className="w-5 h-5" />
               </Link>
               <Link to="/pricing" className="inline-flex items-center gap-2 border-2 border-[#2d287f]/25 hover:border-[#2d287f] text-[#2d287f] font-semibold py-4 px-8 rounded-2xl transition-all duration-300">
-                Voir les tarifs
+                {t("cta.pricing")}
               </Link>
             </>
           )}
         </div>
         <div className="flex flex-wrap justify-center gap-8 mt-12 text-sm text-gray-400">
           {[
-            [Shield, "Aucune carte requise"],
-            [CheckCircle, "Accès immédiat"],
-            [Users, "Communauté active"],
+            [Shield, t("cta.trust1")],
+            [CheckCircle, t("cta.trust2")],
+            [Users, t("cta.trust3")],
           ].map(([Icon, label]) => (
             <div key={label} className="flex items-center gap-2">
               <Icon className="w-4 h-4 text-[#2d287f]" />
@@ -576,9 +563,10 @@ function CTASection() {
 // PAGE PRINCIPALE
 // ═══════════════════════════════════════════════════════════════
 export default function Home() {
+  const { t, i18n } = useTranslation("home");
   useEffect(() => {
-    document.title = "DevOpsAkademy — Formations DevOps & Cloud en français";
-  }, []);
+    document.title = t("meta.title");
+  }, [t, i18n.language]);
 
   return (
     <div className="bg-white w-full">

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import FileUrlField from "../../components/Common/FileUrlField";
+import { askConfirm, askPrompt } from "../../utils/dialog";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import {
@@ -112,10 +114,8 @@ const LessonModal = ({ lesson, moduleId, onSave, onClose }) => {
 
         {form.type === "video" && (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">URL de la vidéo</label>
-            <input value={form.content_url} onChange={(e) => set("content_url", e.target.value)}
-              type="url" placeholder="https://youtube.com/… ou lien direct"
-              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <FileUrlField label="Vidéo (lien ou fichier)" kind="video" value={form.content_url} onChange={(v) => set("content_url", v)}
+              placeholder="https://youtube.com/… ou lien direct" labelClass="block text-sm font-semibold text-gray-700 mb-1.5" />
           </div>
         )}
 
@@ -130,7 +130,7 @@ const LessonModal = ({ lesson, moduleId, onSave, onClose }) => {
 
         {form.type === "quiz" && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700">
-            💡 Après la création, gérez les questions depuis l'onglet <strong>Quizzes</strong> du cours.
+            Après la création, gérez les questions depuis l'onglet <strong>Quizzes</strong> du cours.
           </div>
         )}
 
@@ -216,7 +216,7 @@ export default function CourseModules() {
   };
 
   const deleteModule = async (moduleId) => {
-    if (!window.confirm("Supprimer ce module et toutes ses leçons ?")) return;
+    if (!(await askConfirm("Supprimer ce module et toutes ses leçons ?"))) return;
     setDeletingModule(moduleId);
     try {
       await api.delete(`/admin/modules/${moduleId}`);
@@ -241,7 +241,7 @@ export default function CourseModules() {
   };
 
   const deleteLesson = async (lessonId) => {
-    if (!window.confirm("Supprimer cette leçon ?")) return;
+    if (!(await askConfirm("Supprimer cette leçon ?"))) return;
     setDeletingLesson(lessonId);
     try {
       await api.delete(`/admin/lessons/${lessonId}`);
@@ -360,7 +360,7 @@ export default function CourseModules() {
                             {(lesson.is_preview || lesson.is_free_preview) && <span className="bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full">Aperçu gratuit</span>}
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                           <button onClick={() => setLessonModal({ moduleId: mod.id, lesson })}
                             className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition"><Edit3 className="w-3.5 h-3.5" /></button>
                           <button onClick={() => deleteLesson(lesson.id)} disabled={deletingLesson === lesson.id}

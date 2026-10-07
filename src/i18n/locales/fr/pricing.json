@@ -1,0 +1,47 @@
+{
+  "meta": { "title": "Tarifs — DevOpsAkademy" },
+  "hero": {
+    "badge": "Tarifs adaptés aux marchés locaux",
+    "title": "Investissez dans votre carrière",
+    "subtitle": "Des plans flexibles, des prix locaux, un accès mondial aux formations DevOps.",
+    "monthly": "Mensuel",
+    "yearly": "Annuel"
+  },
+  "currency": "FCFA",
+  "free": "Gratuit",
+  "perMonth": "par mois",
+  "perYear": "par an, facturé annuellement",
+  "save": "Économisez {{amount}} par rapport au mensuel",
+  "plans": {
+    "free": { "name": "Gratuit", "description": "Pour découvrir DevOpsAkademy et débuter votre parcours DevOps.", "cta": "Créer un compte gratuit" },
+    "pro": { "name": "Pro", "badge": "Populaire", "description": "L'essentiel pour progresser rapidement et obtenir vos certificats.", "cta": "Démarrer avec Pro" },
+    "elite": { "name": "Élite", "badge": "Meilleure valeur", "description": "Accès total, support dédié et ressources exclusives pour aller le plus loin.", "cta": "Passer en Élite" }
+  },
+  "features": {
+    "freeCourses": "Accès aux cours gratuits",
+    "forum": "Forum communautaire",
+    "certificates": "Certificats de complétion",
+    "premium": "Cours premium illimités",
+    "labs": "Labs interactifs",
+    "support": "Support prioritaire",
+    "downloads": "Téléchargement des ressources"
+  },
+  "guarantees": {
+    "secure": { "title": "Paiement sécurisé", "desc": "Vos transactions sont protégées. Validation manuelle par notre équipe." },
+    "activation": { "title": "Activation sous 24 h", "desc": "Votre accès est activé après vérification de votre preuve de paiement." },
+    "support": { "title": "Support humain", "desc": "Notre équipe répond personnellement à vos questions." }
+  },
+  "faq": {
+    "title": "Questions fréquentes",
+    "subtitle": "Tout ce que vous devez savoir avant de vous abonner.",
+    "items": [
+      { "q": "Comment fonctionne le paiement ?", "a": "Nous acceptons les paiements via Mobile Money (Orange Money, MTN MoMo), virement bancaire et d'autres méthodes locales. Après soumission de votre preuve de paiement, un administrateur valide votre accès sous 24 h." },
+      { "q": "Puis-je annuler à tout moment ?", "a": "Oui. Vous pouvez annuler votre abonnement depuis votre espace personnel. L'accès reste actif jusqu'à la fin de la période déjà payée." },
+      { "q": "Les prix sont-ils en FCFA ?", "a": "Oui, tous les prix sont affichés en francs CFA (XAF). Nous adaptons nos tarifs aux marchés d'Afrique centrale et de l'Ouest." },
+      { "q": "Y a-t-il un essai gratuit ?", "a": "Le plan Gratuit est permanent. Il vous donne accès aux cours gratuits, sans limite de temps, pour découvrir la plateforme." },
+      { "q": "Que contient un « lab interactif » ?", "a": "Ce sont des environnements Docker et Kubernetes préconfigurés, accessibles directement depuis votre navigateur. Vous exécutez de vraies commandes sur de vraies infrastructures." }
+    ],
+    "moreQuestions": "D'autres questions ?",
+    "contactUs": "Contactez-nous"
+  }
+}

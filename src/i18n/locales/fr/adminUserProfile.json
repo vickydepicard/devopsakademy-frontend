@@ -1,0 +1,20 @@
+{
+  "introuvable": "Utilisateur introuvable.",
+  "impossible_de_charger_le_profil": "Impossible de charger ce profil.",
+  "profil_indisponible": "Profil indisponible",
+  "retour": "Retour",
+  "retour_aux_utilisateurs": "Retour aux utilisateurs",
+  "site_web": "Site web",
+  "role_admin": "Administrateur",
+  "role_instructor": "Instructeur",
+  "role_student": "Étudiant",
+  "actif": "Actif",
+  "inactif": "Inactif",
+  "suivi_pedagogique": "Suivi pédagogique",
+  "inscrit_le": "Inscrit le",
+  "cours_suivis": "Cours suivis",
+  "progression_moyenne": "Progression moyenne",
+  "cours_enseignes": "Cours enseignés",
+  "publie": "Publié",
+  "brouillon": "Brouillon"
+}

@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
+import { askConfirm, askPrompt } from "../../utils/dialog";
 import api from "../../api/api";
 import {
   Award, Search, Plus, Eye, Download, Trash2,
   CheckCircle, RefreshCw, X, Copy, ExternalLink, Loader
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
+import i18n from "../../i18n";
 
 const IssueModal = ({ onClose, onIssue }) => {
+  const { t } = useTranslation("adminCertificates");
   const [users, setUsers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [form, setForm] = useState({ user_id: "", course_id: "" });
@@ -22,7 +27,7 @@ const IssueModal = ({ onClose, onIssue }) => {
   }, []);
 
   const handleIssue = async () => {
-    if (!form.user_id || !form.course_id) { alert("Sélectionnez un utilisateur et un cours."); return; }
+    if (!form.user_id || !form.course_id) { alert(t("selectionnez_un_utilisateur_et_un_cours")); return; }
     setSaving(true);
     await onIssue(form);
     setSaving(false);
@@ -32,31 +37,31 @@ const IssueModal = ({ onClose, onIssue }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
       <div className="bg-white rounded-2xl shadow-hard w-full max-w-md p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-gray-900">Émettre un certificat</h3>
+          <h3 className="font-bold text-gray-900">{t("emettre_un_certificat")}</h3>
           <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-xl"><X className="w-5 h-5" /></button>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Étudiant *</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t("etudiant")}</label>
           <select value={form.user_id} onChange={(e) => setForm(p => ({ ...p, user_id: e.target.value }))}
             className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white">
-            <option value="">Sélectionner un étudiant</option>
+            <option value="">{t("selectionner_un_etudiant")}</option>
             {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.email})</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cours *</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t("cours")}</label>
           <select value={form.course_id} onChange={(e) => setForm(p => ({ ...p, course_id: e.target.value }))}
             className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white">
-            <option value="">Sélectionner un cours</option>
+            <option value="">{t("selectionner_un_cours")}</option>
             {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
         </div>
         <div className="flex gap-3 justify-end pt-2">
-          <button onClick={onClose} className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition">Annuler</button>
+          <button onClick={onClose} className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition">{t("annuler")}</button>
           <button onClick={handleIssue} disabled={saving || !form.user_id || !form.course_id}
             className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-sm hover:-translate-y-0.5 transition shadow-md disabled:opacity-60">
             {saving ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Award className="w-4 h-4" />}
-            {saving ? "Génération…" : "Émettre"}
+            {saving ? t("generation") : t("emettre")}
           </button>
         </div>
       </div>
@@ -65,6 +70,7 @@ const IssueModal = ({ onClose, onIssue }) => {
 };
 
 const CertPreview = ({ cert, onClose }) => {
+  const { t } = useTranslation("adminCertificates");
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(cert.certificate_number);
@@ -79,22 +85,22 @@ const CertPreview = ({ cert, onClose }) => {
         <div className="bg-gradient-to-br from-[#0B1B3A] via-primary to-indigo-800 p-8 text-center text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
           <Award className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
-          <p className="text-xs text-white/60 uppercase tracking-widest mb-1">Certificat de complétion</p>
+          <p className="text-xs text-white/60 uppercase tracking-widest mb-1">{t("certificat_de_completion")}</p>
           <h2 className="text-xl font-extrabold mb-1">DevOpsAkademy</h2>
           <div className="my-4 border-t border-white/20" />
-          <p className="text-sm text-white/70 mb-1">Décerné à</p>
+          <p className="text-sm text-white/70 mb-1">{t("decerne_a")}</p>
           <p className="text-2xl font-bold text-yellow-400">{cert.first_name} {cert.last_name}</p>
-          <p className="text-sm text-white/70 mt-2">pour avoir complété</p>
+          <p className="text-sm text-white/70 mt-2">{t("pour_avoir_complete")}</p>
           <p className="text-lg font-semibold mt-1 px-4">{cert.course_title}</p>
           <p className="text-xs text-white/50 mt-4">
-            {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : ""}
+            {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString(getLocale(), { day: "numeric", month: "long", year: "numeric" }) : ""}
           </p>
         </div>
         {/* Numéro + actions */}
         <div className="p-5 space-y-4">
           <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Numéro de certificat</p>
+              <p className="text-xs text-gray-400 mb-0.5">{t("numero_de_certificat")}</p>
               <p className="font-mono font-bold text-gray-800 text-sm">{cert.certificate_number}</p>
             </div>
             <button onClick={copy} className={`p-2 rounded-lg transition ${copied ? "text-emerald-500 bg-emerald-50" : "text-gray-400 hover:bg-gray-200"}`}>
@@ -105,12 +111,9 @@ const CertPreview = ({ cert, onClose }) => {
             {cert.certificate_url && (
               <a href={cert.certificate_url} target="_blank" rel="noreferrer"
                 className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition">
-                <ExternalLink className="w-4 h-4" /> Voir PDF
-              </a>
+                <ExternalLink className="w-4 h-4" />{" "}{t("voir_pdf")}</a>
             )}
-            <button onClick={onClose} className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-700 transition">
-              Fermer
-            </button>
+            <button onClick={onClose} className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-700 transition">{t("fermer")}</button>
           </div>
         </div>
       </div>
@@ -119,6 +122,7 @@ const CertPreview = ({ cert, onClose }) => {
 };
 
 export default function AdminCertificates() {
+  const { t } = useTranslation("adminCertificates");
   const [certs, setCerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -127,7 +131,7 @@ export default function AdminCertificates() {
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
-    document.title = "Certificats — Admin";
+    document.title = t("certificats_admin");
     fetchCerts();
   }, []);
 
@@ -145,17 +149,17 @@ export default function AdminCertificates() {
       await api.post("/admin/certificates/issue", form);
       await fetchCerts();
       setIssueModal(false);
-      alert("✅ Certificat émis avec succès !");
-    } catch { alert("Erreur lors de l'émission."); }
+      alert(t("certificat_emis_avec_succes"));
+    } catch { alert(t("erreur_lors_de_l_emission")); }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Révoquer ce certificat ? Cette action est irréversible.")) return;
+    if (!(await askConfirm(t("revoquer_ce_certificat_cette_action_est")))) return;
     setDeletingId(id);
     try {
       await api.delete(`/admin/certificates/${id}`);
       setCerts(prev => prev.filter(c => c.id !== id));
-    } catch { alert("Erreur."); }
+    } catch { alert(t("erreur")); }
     setDeletingId(null);
   };
 
@@ -173,31 +177,29 @@ export default function AdminCertificates() {
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Certificats</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{certs.length} certificat{certs.length > 1 ? "s" : ""} émis</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("certificats")}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">{i18n.t("adminCertificates:certificat", { length: certs.length, s: certs.length > 1 ? "s" : "" })}{" "}{t("emis")}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={fetchCerts} className="p-2 text-gray-400 hover:bg-gray-100 rounded-xl transition"><RefreshCw className="w-4 h-4" /></button>
           <button onClick={() => setIssueModal(true)}
             className="flex items-center gap-2 bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-xl hover:-translate-y-0.5 transition shadow-md text-sm">
-            <Plus className="w-4 h-4" /> Émettre un certificat
-          </button>
+            <Plus className="w-4 h-4" />{" "}{t("emettre_un_certificat")}</button>
         </div>
       </div>
 
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher par nom, cours ou numéro…"
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("rechercher_par_nom_cours_ou_numero")}
           className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white" />
       </div>
 
       {filtered.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
           <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="font-semibold text-gray-600">Aucun certificat trouvé</p>
+          <p className="font-semibold text-gray-600">{t("aucun_certificat_trouve")}</p>
           <button onClick={() => setIssueModal(true)} className="mt-4 inline-flex items-center gap-2 bg-blue-600 text-white font-semibold py-2 px-5 rounded-xl text-sm hover:-translate-y-0.5 transition">
-            <Plus className="w-4 h-4" /> Émettre le premier certificat
-          </button>
+            <Plus className="w-4 h-4" />{" "}{t("emettre_le_premier_certificat")}</button>
         </div>
       ) : (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-soft overflow-hidden">
@@ -205,7 +207,7 @@ export default function AdminCertificates() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  {["Étudiant", "Cours", "Numéro", "Date d'émission", ""].map(h => (
+                  {[i18n.t("adminCertificates:etudiant_2"), i18n.t("adminCertificates:cours_2"), i18n.t("adminCertificates:numero"), i18n.t("adminCertificates:date_d_emission"), ""].map(h => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -231,15 +233,15 @@ export default function AdminCertificates() {
                       <p className="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">{cert.certificate_number}</p>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-500">
-                      {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString("fr-FR") : "—"}
+                      {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString(getLocale()) : "—"}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex gap-2">
-                        <button onClick={() => setPreview(cert)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="Voir">
+                        <button onClick={() => setPreview(cert)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" title={t("voir")}>
                           <Eye className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(cert.id)} disabled={deletingId === cert.id}
-                          className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition" title="Révoquer">
+                          className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition" title={t("revoquer")}>
                           {deletingId === cert.id
                             ? <span className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin block" />
                             : <Trash2 className="w-4 h-4" />

@@ -1,0 +1,15 @@
+{
+  "cours_introuvable": "Course not found.",
+  "erreur_lors_de_l_inscription": "Error while enrolling.",
+  "impossible_de_s_inscrire_reessayez": "Unable to enroll. Please try again.",
+  "inscription_confirmee": "Enrollment confirmed!",
+  "redirection_vers_le_cours": "Redirecting to the course…",
+  "confirmer_l_inscription": "Confirm enrollment",
+  "bonjour": "Hello",
+  "vous_allez_vous_inscrire_a": "you are about to enroll in:",
+  "cher_apprenant": "dear learner",
+  "acces_gratuit": "Free access",
+  "inscription_en_cours": "Enrolling…",
+  "retour_au_cours": "← Back to course",
+  "deja_inscrit": "already enrolled"
+}

@@ -1,6 +1,6 @@
 // src/pages/payment/PaymentModal.jsx — DevOpsAkademy
 // Parcours inscription & paiement 4 étapes
-// ✅ Tous les numéros, noms et activation lus depuis .env
+// Tous les numéros, noms et activation lus depuis .env
 import { useState, useRef, useCallback } from "react"
 import { useAuth } from "../../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
@@ -8,6 +8,9 @@ import {
   X, CheckCircle, Upload, FileText, AlertCircle,
   Shield, Loader,
 } from "lucide-react"
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 /* ══════════════════════════════════════════
    CONFIG DEPUIS .ENV — ne jamais hardcoder
@@ -41,8 +44,8 @@ const buildMethods = () => {
     {
       id:          "orange_money",
       envKey:      "ORANGE",
-      name:        "Orange Money",
-      short:       "Orange Money",
+      name:        i18n.t("paymentModal:orange_money"),
+      short:       i18n.t("paymentModal:orange_money"),
       code:        "#150*1#",
       color:       "#FF6900",
       bg:          "#fff7ed",
@@ -54,24 +57,24 @@ const buildMethods = () => {
           overflow:"hidden", padding:3, boxShadow:"0 4px 12px rgba(255,105,0,0.3)" }}>
           <img
             src="https://www.logo.wine/a/logo/Orange_Money/Orange_Money-Logo.wine.svg"
-            alt="Orange Money"
+            alt={i18n.t("paymentModal:orange_money")}
             style={{ width:"100%", height:"100%", objectFit:"contain" }}
-            onError={e => { e.target.style.display="none"; e.target.parentNode.innerHTML='<span style="color:#FF6900;font-size:20px">🟠</span>' }}
+            onError={e => { e.target.style.display="none"; e.target.parentNode.innerHTML='' }}
           />
         </div>
       ),
       steps: (num, name) => [
-        `Composez #150*1# ou ouvrez l'app Orange Money`,
-        `Choisissez « Paiement marchand »`,
-        `Entrez le numéro ${num} (${name}) et le montant exact`,
-        `Confirmez avec votre code — gardez le SMS de reçu`,
+        i18n.t("paymentModal:composez_150_1_ou_ouvrez_l"),
+        i18n.t("paymentModal:choisissez_paiement_marchand"),
+        i18n.t("paymentModal:entrez_le_numero_et_le_montant", { num, name }),
+        i18n.t("paymentModal:confirmez_avec_votre_code_gardez_le"),
       ],
     },
     {
       id:          "mtn_momo",
       envKey:      "MTN",
-      name:        "MTN Mobile Money",
-      short:       "MTN MoMo",
+      name:        i18n.t("paymentModal:mtn_mobile_money"),
+      short:       i18n.t("paymentModal:mtn_momo"),
       code:        "*126#",
       color:       "#FFCC00",
       bg:          "#fffbeb",
@@ -83,14 +86,14 @@ const buildMethods = () => {
           <rect x="0" y="13" width="44" height="6" fill="#111"/>
           <rect x="0" y="25" width="44" height="6" fill="#111"/>
           <text x="22" y="11" textAnchor="middle" fontSize="9" fontWeight="900" fill="#111" fontFamily="Arial Black,sans-serif">MTN</text>
-          <text x="22" y="40" textAnchor="middle" fontSize="8" fontWeight="800" fill="#111" fontFamily="Arial,sans-serif">MoMo</text>
+          <text x="22" y="40" textAnchor="middle" fontSize="8" fontWeight="800" fill="#111" fontFamily="Arial,sans-serif">{i18n.t("paymentModal:momo")}</text>
         </svg>
       ),
       steps: (num, name) => [
-        `Composez *126# ou ouvrez l'app MTN MoMo`,
-        `Choisissez « Transfert » → « Vers compte MoMo »`,
-        `Saisissez le numéro ${num} (${name}) et le montant exact`,
-        `Validez avec votre PIN — gardez le SMS de confirmation`,
+        i18n.t("paymentModal:composez_126_ou_ouvrez_l_app"),
+        i18n.t("paymentModal:choisissez_transfert_vers_compte_momo"),
+        i18n.t("paymentModal:saisissez_le_numero_et_le_montant", { num, name }),
+        i18n.t("paymentModal:validez_avec_votre_pin_gardez_le"),
       ],
     },
     {
@@ -121,10 +124,10 @@ const buildMethods = () => {
         </svg>
       ),
       steps: (num, name) => [
-        `Ouvrez l'application Wave sur votre téléphone`,
-        `Appuyez sur « Envoyer » et entrez le numéro ${num} (${name})`,
-        `Indiquez le montant exact et ajoutez le titre du cours en note`,
-        `Faites une capture d'écran de la confirmation`,
+        i18n.t("paymentModal:ouvrez_l_application_wave_sur_votre"),
+        i18n.t("paymentModal:appuyez_sur_envoyer_et_entrez_le", { num, name }),
+        i18n.t("paymentModal:indiquez_le_montant_exact_et_ajoutez"),
+        i18n.t("paymentModal:faites_une_capture_d_ecran_de"),
       ],
     },
   ]
@@ -144,9 +147,9 @@ const buildMethods = () => {
 
 const ACTIVE_METHODS = buildMethods()
 const SUPPORT_EMAIL  = env.VITE_PAYMENT_EMAIL || "support@devopsakademy.com"
-const STEPS_LABELS   = ["Récapitulatif", "Paiement", "Preuve", "Confirmation"]
-const fmtPrice = (p) => Number(p || 0).toLocaleString("fr-FR") + " XAF"
-const LEVELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced: "Avancé" }
+const STEPS_LABELS   = () => ([i18n.t("paymentModal:recapitulatif"), i18n.t("paymentModal:paiement"), i18n.t("paymentModal:preuve"), i18n.t("paymentModal:confirmation")])
+const fmtPrice = (p) => Number(p || 0).toLocaleString(getLocale()) + " XAF"
+const LEVELS = () => ({ beginner: i18n.t("paymentModal:debutant"), intermediate: i18n.t("paymentModal:intermediaire"), advanced: i18n.t("paymentModal:avance") })
 
 /* ══════════════════════════════════════════
    BARRE D'ÉTAPES
@@ -154,7 +157,7 @@ const LEVELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced
 function Steps({ current }) {
   return (
     <div className="flex items-center gap-0 px-5 py-3 bg-white border-b border-gray-100">
-      {STEPS_LABELS.map((label, i) => (
+      {STEPS_LABELS().map((label, i) => (
         <div key={label} className="flex items-center flex-1 last:flex-none">
           <div className="flex items-center gap-1.5 min-w-0">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 transition-all
@@ -167,7 +170,7 @@ function Steps({ current }) {
               {label}
             </span>
           </div>
-          {i < STEPS_LABELS.length - 1 && (
+          {i < STEPS_LABELS().length - 1 && (
             <div className={`flex-1 h-0.5 mx-1.5 rounded-full ${i < current ? "bg-emerald-400" : "bg-gray-200"}`} />
           )}
         </div>
@@ -211,6 +214,7 @@ function MethodCard({ method, selected, onSelect }) {
    COMPOSANT PRINCIPAL
 ══════════════════════════════════════════ */
 export default function PaymentModal({ course, onClose, onSuccess }) {
+  const { t } = useTranslation("paymentModal");
   const { token } = useAuth()
   const navigate  = useNavigate()
   const [step,    setStep]    = useState(0)
@@ -261,7 +265,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
         if (status === "pending") { setStep(2); return }
         setStep(isFree ? 3 : 1); return
       }
-      if (!res.ok) throw new Error(data?.message || "Erreur lors de l'inscription")
+      if (!res.ok) throw new Error(data?.message || t("erreur_lors_de_l_inscription"))
       if (isFree) { setStep(3); return }
       setStep(1)
     } catch (err) { setError(err.message) }
@@ -272,8 +276,8 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
   const handleFile = (f) => {
     if (!f) return
     const ok = ["image/jpeg","image/png","image/jpg","image/webp","application/pdf"]
-    if (!ok.includes(f.type)) { setError("Format non supporté. Utilisez JPG, PNG, WEBP ou PDF."); return }
-    if (f.size > 10 * 1024 * 1024) { setError("Fichier trop lourd (max 10 Mo)."); return }
+    if (!ok.includes(f.type)) { setError(t("format_non_supporte_utilisez_jpg_png")); return }
+    if (f.size > 10 * 1024 * 1024) { setError(t("fichier_trop_lourd_max_10_mo")); return }
     setFile(f); setError("")
     if (f.type.startsWith("image/")) {
       const r = new FileReader()
@@ -287,7 +291,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
 
   /* ─── Soumettre preuve ─── */
   const handleSubmit = async () => {
-    if (!file) { setError("Veuillez joindre votre preuve de paiement."); return }
+    if (!file) { setError(t("veuillez_joindre_votre_preuve_de_paiement")); return }
     setLoading(true); setError("")
     try {
       const fd = new FormData()
@@ -302,7 +306,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
         body: fd,
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.message || "Erreur lors de l'envoi")
+      if (!res.ok) throw new Error(data?.message || t("erreur_lors_de_l_envoi"))
       setStep(3)
     } catch (err) { setError(err.message) }
     finally { setLoading(false) }
@@ -326,19 +330,15 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                 <div className="w-6 h-6 bg-yellow-400 rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-xs font-black text-indigo-900">DA</span>
                 </div>
-                <span className="text-indigo-300 text-xs font-semibold uppercase tracking-widest">
-                  Inscription au cours
-                </span>
+                <span className="text-indigo-300 text-xs font-semibold uppercase tracking-widest">{t("inscription_au_cours")}</span>
               </div>
               <h2 className="text-white font-black text-base leading-snug line-clamp-2">{course?.title}</h2>
               <div className="flex items-center gap-3 mt-2">
                 <span className="text-2xl font-black" style={{ color:"#facc15" }}>
-                  {isFree ? "🎉 Gratuit" : priceFmt}
+                  {isFree ? t("gratuit") : priceFmt}
                 </span>
                 {!isFree && (
-                  <span className="text-indigo-300 text-xs bg-white/10 px-2 py-0.5 rounded-full">
-                    Paiement unique · Accès à vie
-                  </span>
+                  <span className="text-indigo-300 text-xs bg-white/10 px-2 py-0.5 rounded-full">{t("paiement_unique_acces_a_vie")}</span>
                 )}
               </div>
             </div>
@@ -357,17 +357,17 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
             {/* ══ ÉTAPE 0 : Récapitulatif ══ */}
             {step === 0 && (
               <>
-                <h3 className="font-black text-gray-900 text-lg">Récapitulatif</h3>
+                <h3 className="font-black text-gray-900 text-lg">{t("recapitulatif")}</h3>
                 <div className="rounded-2xl overflow-hidden border border-gray-100">
                   <div className="bg-gray-50 px-4 py-3 border-b border-gray-100">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Détails de la commande</p>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("details_de_la_commande")}</p>
                   </div>
                   <div className="divide-y divide-gray-50">
                     {[
-                      ["Cours",     course?.title],
-                      ["Niveau",    LEVELS[course?.level] || course?.level],
-                      course?.duration_hours && ["Durée", `${course.duration_hours} heures`],
-                      course?.category_name  && ["Catégorie", course.category_name],
+                      [i18n.t("paymentModal:cours"),     course?.title],
+                      [i18n.t("paymentModal:niveau"),    LEVELS()[course?.level] || course?.level],
+                      course?.duration_hours && [i18n.t("paymentModal:duree"), `${course.duration_hours} heures`],
+                      course?.category_name  && [i18n.t("paymentModal:categorie"), course.category_name],
                     ].filter(Boolean).map(([k, v]) => (
                       <div key={k} className="flex justify-between items-center px-4 py-2.5 text-sm">
                         <span className="text-gray-500">{k}</span>
@@ -375,9 +375,9 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                       </div>
                     ))}
                     <div className="flex justify-between items-center px-4 py-3 bg-indigo-50">
-                      <span className="font-black text-gray-900">Total à payer</span>
+                      <span className="font-black text-gray-900">{t("total_a_payer")}</span>
                       <span className="font-black text-xl" style={{ color:"#2d287f" }}>
-                        {isFree ? "🎉 Gratuit" : priceFmt}
+                        {isFree ? t("gratuit") : priceFmt}
                       </span>
                     </div>
                   </div>
@@ -386,11 +386,11 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                 {!isFree && (
                   <div className="rounded-2xl p-4 space-y-2.5"
                     style={{ background:"#fffbeb", border:"1px solid #fde68a" }}>
-                    <p className="font-bold text-amber-800 text-sm">📋 Processus de paiement</p>
-                    {["Choisissez votre moyen de paiement Mobile Money",
-                      "Effectuez le virement selon les instructions",
-                      "Téléversez la capture ou le PDF de confirmation",
-                      "Validation admin sous 24h — accès immédiat après",
+                    <p className="font-bold text-amber-800 text-sm">{t("processus_de_paiement")}</p>
+                    {[i18n.t("paymentModal:choisissez_votre_moyen_de_paiement_mobile"),
+                      i18n.t("paymentModal:effectuez_le_virement_selon_les_instructions"),
+                      i18n.t("paymentModal:televersez_la_capture_ou_le_pdf"),
+                      i18n.t("paymentModal:validation_admin_sous_24h_acces_immediat"),
                     ].map((t, i) => (
                       <div key={i} className="flex items-start gap-2.5">
                         <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0 mt-0.5"
@@ -405,15 +405,15 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                   style={{ background:"#ecfdf5", border:"1px solid #a7f3d0" }}>
                   <Shield className="w-5 h-5 text-emerald-600 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-emerald-800">Garantie satisfait ou remboursé 30 jours</p>
-                    <p className="text-xs text-emerald-600">Aucun risque — {SUPPORT_EMAIL}</p>
+                    <p className="text-sm font-bold text-emerald-800">{t("garantie_satisfait_ou_rembourse_30_jours")}</p>
+                    <p className="text-xs text-emerald-600">{t("aucun_risque", { SUPPORT_EMAIL })}</p>
                   </div>
                 </div>
 
                 {error && <ErrorBox msg={error} />}
-                <Btns onBack={onClose} backLabel="Annuler"
+                <Btns onBack={onClose} backLabel={i18n.t("paymentModal:annuler")}
                   onNext={handleRecap}
-                  nextLabel={isFree ? "🎉 S'inscrire gratuitement" : "Continuer →"}
+                  nextLabel={isFree ? t("s_inscrire_gratuitement") : t("continuer")}
                   loading={loading} />
               </>
             )}
@@ -422,17 +422,16 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
             {step === 1 && (
               <>
                 <div>
-                  <h3 className="font-black text-gray-900 text-lg">Moyen de paiement</h3>
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    Montant : <strong style={{ color:"#2d287f" }}>{priceFmt}</strong>
+                  <h3 className="font-black text-gray-900 text-lg">{t("moyen_de_paiement")}</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">{t("montant")}{" "}<strong style={{ color:"#2d287f" }}>{priceFmt}</strong>
                   </p>
                 </div>
 
                 {/* Aucun moyen configuré */}
                 {ACTIVE_METHODS.length === 0 && (
                   <div className="rounded-2xl p-5 text-center border border-orange-200 bg-orange-50">
-                    <p className="font-bold text-orange-700 text-sm">⚠️ Aucun moyen de paiement activé</p>
-                    <p className="text-xs text-orange-600 mt-1">Contactez l'admin : {SUPPORT_EMAIL}</p>
+                    <p className="font-bold text-orange-700 text-sm">{t("aucun_moyen_de_paiement_active")}</p>
+                    <p className="text-xs text-orange-600 mt-1">{t("contactez_l_admin", { SUPPORT_EMAIL })}</p>
                   </div>
                 )}
 
@@ -458,7 +457,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
 
                     {/* Numéro + bouton copier */}
                     <div className="px-4 py-4 text-center" style={{ background: method.bg }}>
-                      <p className="text-xs text-gray-500 mb-1">Envoyez à ce numéro</p>
+                      <p className="text-xs text-gray-500 mb-1">{t("envoyez_a_ce_numero")}</p>
                       <p className="font-black text-2xl text-gray-900 tracking-wider">{method.number}</p>
                       <p className="text-sm text-gray-500 italic mt-0.5">{method.accountName}</p>
                       <p className="font-black text-2xl mt-2" style={{ color:"#2d287f" }}>{priceFmt}</p>
@@ -466,7 +465,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                         className="mt-3 px-5 py-2 rounded-xl text-sm font-bold text-white transition"
                         style={{ background: copied ? "linear-gradient(135deg,#059669,#10b981)" : `linear-gradient(135deg,${method.color},${method.color}cc)`,
                           color: method.id==="mtn_momo" ? "#111" : "white" }}>
-                        {copied ? "✓ Numéro copié !" : "📋 Copier le numéro"}
+                        {copied ? t("numero_copie") : t("copier_le_numero")}
                       </button>
                     </div>
 
@@ -488,10 +487,10 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                 {error && <ErrorBox msg={error} />}
                 <Btns onBack={() => setStep(0)}
                   onNext={() => {
-                    if (!method) { setError("Sélectionnez un moyen de paiement."); return }
+                    if (!method) { setError(t("selectionnez_un_moyen_de_paiement")); return }
                     setError(""); setStep(2)
                   }}
-                  nextLabel="J'ai payé → Téléverser ma preuve" />
+                  nextLabel={t("j_ai_paye_televerser_ma_preuve")} />
               </>
             )}
 
@@ -499,7 +498,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
             {step === 2 && (
               <>
                 <div>
-                  <h3 className="font-black text-gray-900 text-lg">Preuve de paiement</h3>
+                  <h3 className="font-black text-gray-900 text-lg">{t("preuve_de_paiement")}</h3>
                   {method && (
                     <p className="text-sm text-gray-500 mt-0.5">
                       {method.short} · <strong style={{ color:"#2d287f" }}>{priceFmt}</strong>
@@ -508,12 +507,10 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">
-                    Référence de transaction
-                    <span className="font-normal text-gray-400 text-xs ml-1">(recommandé)</span>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">{t("reference_de_transaction")}<span className="font-normal text-gray-400 text-xs ml-1">{t("recommande")}</span>
                   </label>
                   <input type="text" value={ref_} onChange={e => setRef(e.target.value)}
-                    placeholder="Ex: TXN-20260305-XXXX"
+                    placeholder={t("ex_txn_20260305_xxxx")}
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition"
                     onFocus={e => e.target.style.borderColor="#6366f1"}
                     onBlur={e => e.target.style.borderColor="#e5e7eb"} />
@@ -534,24 +531,22 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                             <FileText className="w-8 h-8 text-red-500" />
                           </div>
                         : preview
-                          ? <img src={preview} alt="Preuve"
+                          ? <img src={preview} alt={t("preuve")}
                               className="max-h-44 max-w-full object-contain rounded-xl mx-auto shadow-md border border-gray-200" />
                           : null}
                       <p className="font-bold text-emerald-700 text-sm">✓ {file.name}</p>
-                      <p className="text-gray-400 text-xs">{(file.size/1024).toFixed(0)} Ko</p>
+                      <p className="text-gray-400 text-xs">{(file.size/1024).toFixed(0)}{" "}{t("ko")}</p>
                       <button onClick={e => { e.stopPropagation(); fileRef.current?.click() }}
-                        className="text-indigo-600 text-xs font-semibold underline">
-                        Changer le fichier
-                      </button>
+                        className="text-indigo-600 text-xs font-semibold underline">{t("changer_le_fichier")}</button>
                     </div>
                   ) : (
                     <div className="space-y-2 py-3">
                       <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto">
                         <Upload className="w-7 h-7 text-gray-400" />
                       </div>
-                      <p className="font-bold text-gray-700 text-sm">Glissez votre fichier ici</p>
-                      <p className="text-gray-400 text-xs">ou cliquez pour parcourir</p>
-                      <p className="text-gray-300 text-xs">JPG, PNG, WEBP, PDF · max 10 Mo</p>
+                      <p className="font-bold text-gray-700 text-sm">{t("glissez_votre_fichier_ici")}</p>
+                      <p className="text-gray-400 text-xs">{t("ou_cliquez_pour_parcourir")}</p>
+                      <p className="text-gray-300 text-xs">{t("jpg_png_webp_pdf_max_10")}</p>
                     </div>
                   )}
                 </div>
@@ -560,12 +555,12 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                   style={{ background:"#eff6ff", border:"1px solid #bfdbfe" }}>
                   <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-bold text-blue-800 mb-1">Ce que nous vérifions :</p>
+                    <p className="text-xs font-bold text-blue-800 mb-1">{t("ce_que_nous_verifions")}</p>
                     <ul className="text-xs text-blue-700 space-y-0.5 list-disc list-inside">
-                      <li>Le montant correspond exactement au prix du cours</li>
-                      <li>La date de la transaction est récente</li>
-                      <li>Le destinataire est bien DevOpsAkademy</li>
-                      <li>Le statut indique « réussi » ou « confirmé »</li>
+                      <li>{t("le_montant_correspond_exactement_au_prix")}</li>
+                      <li>{t("la_date_de_la_transaction_est")}</li>
+                      <li>{t("le_destinataire_est_bien_devopsakademy")}</li>
+                      <li>{t("le_statut_indique_reussi_ou_confirme")}</li>
                     </ul>
                   </div>
                 </div>
@@ -573,7 +568,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                 {error && <ErrorBox msg={error} />}
                 <Btns onBack={() => setStep(isFree ? 0 : 1)}
                   onNext={handleSubmit}
-                  nextLabel={<><Upload className="w-4 h-4" /> Soumettre ma preuve</>}
+                  nextLabel={<><Upload className="w-4 h-4" />{" "}{t("soumettre_ma_preuve")}</>}
                   nextStyle={{ background: loading?"#6b7280":"linear-gradient(135deg,#059669,#10b981)" }}
                   loading={loading} disabled={!file} />
               </>
@@ -586,24 +581,24 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                   <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center">
                     <CheckCircle className="w-10 h-10 text-emerald-500" />
                   </div>
-                  <span className="absolute -top-1 -right-1 text-2xl">🎉</span>
+                  
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-gray-900">
-                    {isFree ? "Inscription confirmée !" : "Preuve envoyée !"}
+                    {isFree ? t("inscription_confirmee") : t("preuve_envoyee")}
                   </h3>
                   <p className="text-gray-500 text-sm mt-2 leading-relaxed max-w-xs mx-auto">
                     {isFree
-                      ? "Votre inscription est active. Vous pouvez commencer immédiatement !"
-                      : "Votre preuve a bien été reçue. L'admin la vérifiera et activera votre accès sous 24h ouvrées."}
+                      ? t("votre_inscription_est_active_vous_pouvez")
+                      : t("votre_preuve_a_bien_ete_recue")}
                   </p>
                 </div>
                 <div className="rounded-2xl p-4 text-left space-y-2 border border-gray-100 bg-gray-50">
                   {[
-                    ["Cours",   course?.title],
-                    method && ["Paiement", method.short],
-                    ["Montant", isFree ? "Gratuit" : priceFmt],
-                    ["Statut",  isFree ? "✅ Actif" : "⏳ En cours de validation"],
+                    [i18n.t("paymentModal:cours"),   course?.title],
+                    method && [i18n.t("paymentModal:paiement"), method.short],
+                    [i18n.t("paymentModal:montant_2"), isFree ? i18n.t("paymentModal:gratuit") : priceFmt],
+                    [i18n.t("paymentModal:statut"),  isFree ? i18n.t("paymentModal:actif") : i18n.t("paymentModal:en_cours_de_validation")],
                   ].filter(Boolean).map(([k, v]) => (
                     <div key={k} className="flex justify-between text-sm">
                       <span className="text-gray-500">{k}</span>
@@ -614,18 +609,18 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                 {!isFree && (
                   <div className="rounded-xl p-3 text-left"
                     style={{ background:"#eff6ff", border:"1px solid #bfdbfe" }}>
-                    <p className="text-xs font-bold text-blue-800 mb-1.5">📧 Prochaines étapes</p>
+                    <p className="text-xs font-bold text-blue-800 mb-1.5">{t("prochaines_etapes")}</p>
                     <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
-                      <li>Notification par email dès validation</li>
-                      <li>Délai : 24h ouvrées maximum</li>
-                      <li>Support : {SUPPORT_EMAIL}</li>
+                      <li>{t("notification_par_email_des_validation")}</li>
+                      <li>{t("delai_24h_ouvrees_maximum")}</li>
+                      <li>{t("support", { SUPPORT_EMAIL })}</li>
                     </ul>
                   </div>
                 )}
                 <button onClick={() => { onSuccess?.(); onClose() }}
                   className="w-full py-4 text-white rounded-2xl font-black transition hover:opacity-90 shadow-lg"
                   style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                  {isFree ? "▶ Commencer le cours maintenant" : "Retour au catalogue"}
+                  {isFree ? t("commencer_le_cours_maintenant") : t("retour_au_catalogue")}
                 </button>
               </div>
             )}
@@ -654,17 +649,18 @@ function ErrorBox({ msg }) {
   )
 }
 
-function Btns({ onBack, backLabel="← Retour", onNext, nextLabel, nextStyle={}, loading, disabled }) {
+function Btns({ onBack, backLabel, onNext, nextLabel, nextStyle={}, loading, disabled }) {
+  const { t } = useTranslation("paymentModal");
   return (
     <div className="flex gap-3 pt-1">
       <button onClick={onBack}
         className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 transition font-semibold text-sm">
-        {backLabel}
+        {backLabel ?? t("retour")}
       </button>
       <button onClick={onNext} disabled={loading || disabled}
         className="flex-[2] py-3 text-white rounded-2xl font-black text-sm transition hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)", ...nextStyle }}>
-        {loading ? <><Loader className="w-4 h-4 animate-spin" /> Chargement...</> : nextLabel}
+        {loading ? <><Loader className="w-4 h-4 animate-spin" />{" "}{t("chargement")}</> : nextLabel}
       </button>
     </div>
   )

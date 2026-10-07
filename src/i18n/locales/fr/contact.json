@@ -1,0 +1,68 @@
+{
+  "meta": { "title": "Contact — DevOpsAkademy", "successTitle": "Message envoyé — DevOpsAkademy" },
+  "hero": {
+    "badge": "Nous sommes à votre écoute",
+    "titleStart": "Contactez",
+    "subtitle1": "Une question, un partenariat ou un besoin spécifique ?",
+    "subtitle2": "Notre équipe vous répond sous 24 à 48 h ouvrées."
+  },
+  "info": {
+    "title": "Nos coordonnées",
+    "email": "Email",
+    "phone": "Téléphone",
+    "location": "Localisation",
+    "locationValue": "Douala, Cameroun",
+    "response": "Délai de réponse",
+    "responseValue": "Sous 24 à 48 h ouvrées"
+  },
+  "social": { "title": "Suivez-nous" },
+  "faq": {
+    "title": "Questions fréquentes",
+    "items": [
+      { "q": "Les cours sont-ils accessibles à vie ?", "a": "Oui. Une fois inscrit, vous avez un accès illimité au cours, y compris aux futures mises à jour." },
+      { "q": "Les certificats sont-ils reconnus ?", "a": "Nos certificats sont numériques et vérifiables via un lien unique. Ils sont appréciés par de nombreux recruteurs du secteur tech." },
+      { "q": "Puis-je payer en Mobile Money ?", "a": "Oui. Nous acceptons MTN Mobile Money, Orange Money et Wave. Vous téléversez votre preuve de paiement depuis la plateforme." }
+    ]
+  },
+  "form": {
+    "title": "Envoyez-nous un message",
+    "subtitle": "Remplissez le formulaire ci-dessous et nous vous répondrons rapidement.",
+    "name": "Nom complet",
+    "namePlaceholder": "Jean Dupont",
+    "email": "Adresse email",
+    "emailPlaceholder": "jean@exemple.com",
+    "subject": "Sujet",
+    "subjectPlaceholder": "Sélectionnez un sujet…",
+    "message": "Message",
+    "messagePlaceholder": "Décrivez votre demande en détail…",
+    "sending": "Envoi en cours…",
+    "submit": "Envoyer le message",
+    "consent": "En soumettant ce formulaire, vous acceptez que vos données soient utilisées pour vous répondre.",
+    "error": "Une erreur est survenue. Veuillez réessayer ou nous écrire directement par email."
+  },
+  "subjects": {
+    "course": "Question sur un cours",
+    "technical": "Problème technique",
+    "partnership": "Partenariat / collaboration",
+    "custom": "Demande de formation sur mesure",
+    "billing": "Facturation / paiement",
+    "instructor": "Devenir instructeur",
+    "other": "Autre"
+  },
+  "urgent": {
+    "title": "Vous avez une urgence ?",
+    "text": "Écrivez-nous directement sur",
+    "seeCourses": "Voir nos cours"
+  },
+  "success": {
+    "title": "Message envoyé",
+    "thanks": "Merci de nous avoir contactés. Notre équipe vous répondra sous",
+    "delay": "24 à 48 h ouvrées",
+    "confirmation": "Un email de confirmation a été envoyé à votre adresse.",
+    "explore": "Explorer les formations",
+    "home": "Retour à l'accueil",
+    "redirect_one": "Redirection automatique dans {{count}} seconde",
+    "redirect_other": "Redirection automatique dans {{count}} secondes",
+    "urgent": "Urgent ?"
+  }
+}

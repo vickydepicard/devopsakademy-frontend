@@ -4,12 +4,14 @@
 //   Intégrer dans CourseDetails.jsx et CourseProgress.jsx
 
 import { useState, useEffect, useCallback } from "react";
+import { askConfirm, askPrompt } from "../../utils/dialog";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Star, Edit3, Trash2, Send, CheckCircle,
   ChevronDown, Loader, MessageSquare, Award
 } from "lucide-react";
+import { getLocale } from "../../i18n";
 
 // ─── Étoiles interactives ──────────────────────────────────
 function StarRating({ value, onChange, readonly = false, size = "md" }) {
@@ -65,7 +67,7 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
   const initials = [review.first_name?.[0], review.last_name?.[0]]
     .filter(Boolean).join("").toUpperCase() || "?";
   const fullName = [review.first_name, review.last_name].filter(Boolean).join(" ") || "Anonyme";
-  const date = new Date(review.created_at).toLocaleDateString("fr-FR", {
+  const date = new Date(review.created_at).toLocaleDateString(getLocale(), {
     day: "numeric", month: "long", year: "numeric",
   });
 
@@ -273,14 +275,14 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
   const handleSuccess = async () => {
     setShowForm(false);
     setEditMode(false);
-    setSuccess("✅ Avis publié avec succès !");
+    setSuccess("Avis publié avec succès !");
     setPage(1);
     await Promise.all([fetchReviews(1), fetchMyReview()]);
     setTimeout(() => setSuccess(""), 4000);
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Supprimer votre avis ?")) return;
+    if (!(await askConfirm("Supprimer votre avis ?"))) return;
     setDeleting(true);
     try {
       await api.delete(`/courses/${courseId}/reviews`);

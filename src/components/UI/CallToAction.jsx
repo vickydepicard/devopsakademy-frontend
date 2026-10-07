@@ -5,10 +5,10 @@ export default function CallToAction() {
     <section className="py-24 bg-gradient-to-br from-primary-dark via-primary to-primary-light text-white text-center px-6">
       <div className="fade-up opacity-0 translate-y-10 transition-all duration-700">
         <h2 className="text-4xl md:text-5xl font-extrabold mb-6">
-          Prêt à booster ta carrière ?
+          Prêt à développer vos compétences DevOps ?
         </h2>
         <p className="mb-10 text-gray-200 text-lg md:text-xl">
-          Inscris-toi dès aujourd'hui et lance-toi dans l'univers DevOps et Cloud avec nos formations professionnelles.
+          Inscrivez-vous dès aujourd'hui et accédez à nos formations professionnelles Cloud, DevOps et CI/CD.
         </p>
         <Link
           to="/register"

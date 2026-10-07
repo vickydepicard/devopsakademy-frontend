@@ -1,10 +1,10 @@
 // src/pages/BecomeInstructor/BecomeInstructor.jsx — DevOpsAkademy
 // VERSION COMPLÈTE CORRIGÉE v2.0
-// ✅ Flux instructeur complet avec validation email admin
-// ✅ Champ "experience" ajouté (manquait dans l'ancien form)
-// ✅ Statut de candidature visible si déjà soumise
-// ✅ Design professionnel et user-friendly
-// ✅ Gestion des états : pending / under_review / accepted / rejected
+// Flux instructeur complet avec validation email admin
+// Champ "experience" ajouté (manquait dans l'ancien form)
+// Statut de candidature visible si déjà soumise
+// Design professionnel et user-friendly
+// Gestion des états : pending / under_review / accepted / rejected
 
 import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -16,6 +16,9 @@ import {
   AlertCircle, Loader, ChevronRight, Shield, X,
   BarChart2, Terminal, Target, Lock, RefreshCw
 } from "lucide-react"
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 // ─────────────────────────────────────────────────────────────
 const C = {
@@ -28,44 +31,45 @@ const C = {
   danger:    "#dc2626",
 }
 
-const BENEFITS = [
-  { icon: Users, title: "Touchez des milliers d'apprenants", desc: "Votre expertise atteint des ingénieurs à travers toute l'Afrique francophone et bien au-delà.", color: "from-violet-500 to-purple-600" },
-  { icon: DollarSign, title: "Revenus passifs durables", desc: "Publiez un cours une fois, soyez rémunéré à chaque inscription sur le long terme.", color: "from-emerald-500 to-teal-600" },
-  { icon: Award, title: "Crédibilité renforcée", desc: "Être instructeur sur DevOpsAkademy est un signal fort de votre expertise dans la communauté.", color: "from-amber-400 to-orange-500" },
-  { icon: Globe, title: "Réseau professionnel actif", desc: "Rejoignez une communauté d'experts DevOps et échangez avec d'autres instructeurs.", color: "from-sky-400 to-blue-600" },
-]
+const BENEFITS = () => ([
+  { icon: Users, title: i18n.t("becomeInstructor:touchez_des_milliers_d_apprenants"), desc: i18n.t("becomeInstructor:votre_expertise_atteint_des_ingenieurs_a"), color: "from-violet-500 to-purple-600" },
+  { icon: DollarSign, title: i18n.t("becomeInstructor:revenus_passifs_durables"), desc: i18n.t("becomeInstructor:publiez_un_cours_une_fois_soyez"), color: "from-emerald-500 to-teal-600" },
+  { icon: Award, title: i18n.t("becomeInstructor:credibilite_renforcee"), desc: i18n.t("becomeInstructor:etre_instructeur_sur_devopsakademy_est_un"), color: "from-amber-400 to-orange-500" },
+  { icon: Globe, title: i18n.t("becomeInstructor:reseau_professionnel_actif"), desc: i18n.t("becomeInstructor:rejoignez_une_communaute_d_experts_devops"), color: "from-sky-400 to-blue-600" },
+])
 
-const STEPS = [
-  { n: "01", icon: Send,         title: "Candidature",  desc: "Remplissez le formulaire avec votre parcours, vos domaines d'expertise et votre projet de cours.", color: C.light },
-  { n: "02", icon: Clock,        title: "Revue admin",  desc: "Notre équipe étudie votre dossier sous 3 à 5 jours ouvrés. Vous recevrez un email de confirmation.", color: C.warning },
-  { n: "03", icon: Mail,         title: "Décision",     desc: "Accepté → accès immédiat à votre espace instructeur. Refusé → motif détaillé + possibilité de re-candidater.", color: C.success },
-  { n: "04", icon: BookOpen,     title: "Création",     desc: "Créez vos modules, leçons et quiz. Notre guide de création vous accompagne étape par étape.", color: C.accent },
-]
+const STEPS = () => ([
+  { n: "01", icon: Send,         title: i18n.t("becomeInstructor:candidature"),  desc: i18n.t("becomeInstructor:remplissez_le_formulaire_avec_votre_parcours"), color: C.light },
+  { n: "02", icon: Clock,        title: i18n.t("becomeInstructor:revue_admin"),  desc: i18n.t("becomeInstructor:notre_equipe_etudie_votre_dossier_sous"), color: C.warning },
+  { n: "03", icon: Mail,         title: i18n.t("becomeInstructor:decision"),     desc: i18n.t("becomeInstructor:accepte_acces_immediat_a_votre_espace"), color: C.success },
+  { n: "04", icon: BookOpen,     title: i18n.t("becomeInstructor:creation"),     desc: i18n.t("becomeInstructor:creez_vos_modules_lecons_et_quiz"), color: C.accent },
+])
 
-const EXPERTISE_OPTIONS = [
-  "Docker & Conteneurisation",
+const EXPERTISE_OPTIONS = () => ([
+  i18n.t("becomeInstructor:docker_conteneurisation"),
   "Kubernetes",
-  "CI/CD (GitHub Actions, GitLab CI, Jenkins)",
-  "Infrastructure as Code (Terraform, Ansible)",
+  i18n.t("becomeInstructor:ci_cd_github_actions_gitlab_ci"),
+  i18n.t("becomeInstructor:infrastructure_as_code_terraform_ansible"),
   "AWS",
   "Azure",
-  "Google Cloud Platform",
-  "Monitoring (Prometheus, Grafana, ELK)",
-  "Linux & Administration système",
-  "Sécurité DevSecOps",
-  "Python / Scripting Shell",
-  "Réseaux & Protocoles",
-  "Microservices & Architecture Cloud-Native",
-  "GitOps & ArgoCD",
-]
+  i18n.t("becomeInstructor:google_cloud_platform"),
+  i18n.t("becomeInstructor:monitoring_prometheus_grafana_elk"),
+  i18n.t("becomeInstructor:linux_administration_systeme"),
+  i18n.t("becomeInstructor:securite_devsecops"),
+  i18n.t("becomeInstructor:python_scripting_shell"),
+  i18n.t("becomeInstructor:reseaux_protocoles"),
+  i18n.t("becomeInstructor:microservices_architecture_cloud_native"),
+  i18n.t("becomeInstructor:gitops_argocd"),
+])
 
 // ── Badge de statut ───────────────────────────────────────────
 function StatusBadge({ status }) {
+  const { t } = useTranslation("becomeInstructor");
   const map = {
-    pending:      { label: "En attente d'examen", color: C.warning,  bg: "#fef3c7", icon: Clock },
-    under_review: { label: "En cours d'examen",   color: "#0284c7",  bg: "#e0f2fe", icon: BarChart2 },
-    accepted:     { label: "Candidature acceptée", color: C.success,  bg: "#d1fae5", icon: CheckCircle },
-    rejected:     { label: "Non retenue",          color: C.danger,   bg: "#fee2e2", icon: X },
+    pending:      { label: t("en_attente_d_examen"), color: C.warning,  bg: "#fef3c7", icon: Clock },
+    under_review: { label: t("en_cours_d_examen"),   color: "#0284c7",  bg: "#e0f2fe", icon: BarChart2 },
+    accepted:     { label: t("candidature_acceptee"), color: C.success,  bg: "#d1fae5", icon: CheckCircle },
+    rejected:     { label: t("non_retenue"),          color: C.danger,   bg: "#fee2e2", icon: X },
   }
   const s = map[status] || map.pending
   const Icon = s.icon
@@ -82,6 +86,7 @@ function StatusBadge({ status }) {
 
 // ── Bannière statut candidature existante ─────────────────────
 function ExistingApplicationBanner({ app, onNewApplication }) {
+  const { t } = useTranslation("becomeInstructor");
   const isRejected = app.status === "rejected"
   return (
     <div
@@ -98,7 +103,7 @@ function ExistingApplicationBanner({ app, onNewApplication }) {
         }}
       >
         <div>
-          <p className="text-sm font-bold text-gray-900 mb-1">Votre candidature du {new Date(app.submitted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
+          <p className="text-sm font-bold text-gray-900 mb-1">{t("votre_candidature_du")}{" "}{new Date(app.submitted_at).toLocaleDateString(getLocale(), { day: "numeric", month: "long", year: "numeric" })}</p>
           <StatusBadge status={app.status} />
         </div>
         {app.status === "accepted" && (
@@ -106,8 +111,7 @@ function ExistingApplicationBanner({ app, onNewApplication }) {
             to="/instructor"
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold transition hover:opacity-90"
             style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}
-          >
-            Accéder à mon espace <ArrowRight className="w-4 h-4" />
+          >{t("acceder_a_mon_espace")}{" "}<ArrowRight className="w-4 h-4" />
           </Link>
         )}
       </div>
@@ -115,18 +119,15 @@ function ExistingApplicationBanner({ app, onNewApplication }) {
       {/* Note de rejet */}
       {isRejected && app.review_note && (
         <div className="px-6 py-4 border-t" style={{ borderColor: "#fecaca", background: "#fff5f5" }}>
-          <p className="text-sm font-bold text-red-700 mb-1">Motif communiqué :</p>
+          <p className="text-sm font-bold text-red-700 mb-1">{t("motif_communique")}</p>
           <p className="text-sm text-red-600">{app.review_note}</p>
-          <p className="text-xs text-gray-400 mt-2">
-            Vous pouvez soumettre une nouvelle candidature avec un profil enrichi.
-          </p>
+          <p className="text-xs text-gray-400 mt-2">{t("vous_pouvez_soumettre_une_nouvelle_candidature")}</p>
           <button
             onClick={onNewApplication}
             className="mt-3 text-sm font-bold flex items-center gap-1.5 hover:underline"
             style={{ color: C.light }}
           >
-            <RefreshCw className="w-3.5 h-3.5" /> Soumettre une nouvelle candidature
-          </button>
+            <RefreshCw className="w-3.5 h-3.5" />{" "}{t("soumettre_une_nouvelle_candidature")}</button>
         </div>
       )}
 
@@ -134,9 +135,7 @@ function ExistingApplicationBanner({ app, onNewApplication }) {
       {(app.status === "pending" || app.status === "under_review") && (
         <div className="px-6 py-3 border-t" style={{ borderColor: "#bae6fd", background: "#f8faff" }}>
           <p className="text-xs text-blue-600 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            Vous recevrez une réponse par email sous 3 à 5 jours ouvrés. Vérifiez vos spams.
-          </p>
+            <Clock className="w-3.5 h-3.5" />{t("vous_recevrez_une_reponse_par_email")}</p>
         </div>
       )}
     </div>
@@ -145,6 +144,7 @@ function ExistingApplicationBanner({ app, onNewApplication }) {
 
 // ── Formulaire de candidature ─────────────────────────────────
 function ApplicationForm({ user, onSuccess }) {
+  const { t } = useTranslation("becomeInstructor");
   const [form, setForm] = useState({
     motivation:                   "",
     experience:                   "",
@@ -178,17 +178,17 @@ function ApplicationForm({ user, onSuccess }) {
   const validate = () => {
     const e = {}
     if (!form.motivation.trim() || form.motivation.trim().length < 50)
-      e.motivation = "Minimum 50 caractères — expliquez votre motivation en détail"
+      e.motivation = t("minimum_50_caracteres_expliquez_votre_motivation")
     if (!form.experience.trim() || form.experience.trim().length < 30)
-      e.experience = "Minimum 30 caractères — décrivez votre parcours professionnel"
+      e.experience = t("minimum_30_caracteres_decrivez_votre_parcours")
     if (form.expertise_areas.length === 0)
-      e.expertise_areas = "Sélectionnez au moins un domaine d'expertise"
+      e.expertise_areas = t("selectionnez_au_moins_un_domaine_d")
     if (!form.years_experience)
-      e.years_experience = "Indiquez vos années d'expérience"
+      e.years_experience = t("indiquez_vos_annees_d_experience")
     if (!form.proposed_course_title.trim() || form.proposed_course_title.trim().length < 5)
-      e.proposed_course_title = "Donnez un titre à votre cours (min 5 caractères)"
+      e.proposed_course_title = t("donnez_un_titre_a_votre_cours")
     if (form.linkedin_url && !form.linkedin_url.includes("linkedin.com"))
-      e.linkedin_url = "L'URL doit contenir linkedin.com"
+      e.linkedin_url = t("l_url_doit_contenir_linkedin_com")
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -207,11 +207,12 @@ function ApplicationForm({ user, onSuccess }) {
       })
       onSuccess()
     } catch (err) {
-      const msg = err?.message || err?.response?.data?.message
-      if (msg?.includes("déjà") || msg?.includes("existing")) {
-        setGlobalErr("Vous avez déjà une candidature en cours. Rechargez la page.")
+      const data = err?.response?.data
+      if (data?.errors && typeof data.errors === "object") setErrors((p) => ({ ...p, ...data.errors }))
+      if (err?.response?.status === 409) {
+        setGlobalErr(data?.message || t("vous_avez_deja_une_candidature_en"))
       } else {
-        setGlobalErr(msg || "Une erreur est survenue. Veuillez réessayer.")
+        setGlobalErr(data?.message || t("une_erreur_est_survenue_veuillez_reessayer"))
       }
     } finally {
       setLoading(false)
@@ -242,12 +243,8 @@ function ApplicationForm({ user, onSuccess }) {
         <div className="flex items-start gap-3 rounded-xl px-4 py-4" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
           <Lock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-amber-800 font-bold text-sm">Connexion requise</p>
-            <p className="text-amber-700 text-sm mt-0.5">
-              Vous devez être{" "}
-              <Link to="/login" className="font-black underline">connecté</Link>
-              {" "}pour soumettre votre candidature.
-            </p>
+            <p className="text-amber-800 font-bold text-sm">{t("connexion_requise")}</p>
+            <p className="text-amber-700 text-sm mt-0.5">{t("vous_devez_etre")}{" "}<Link to="/login" className="font-black underline">{t("connecte")}</Link>{" "}{t("pour_soumettre_votre_candidature")}</p>
           </div>
         </div>
       )}
@@ -256,35 +253,33 @@ function ApplicationForm({ user, onSuccess }) {
       <div>
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-black" style={{ background: C.light }}>1</div>
-          <h3 className="font-bold text-gray-900">Votre motivation</h3>
+          <h3 className="font-bold text-gray-900">{t("votre_motivation")}</h3>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className={labelCls}>
-              Pourquoi voulez-vous enseigner ? <span className="text-red-500">*</span>
-              <span className="text-gray-400 font-normal ml-1 text-xs">({form.motivation.length}/50 min)</span>
+            <label className={labelCls}>{t("pourquoi_voulez_vous_enseigner")}{" "}<span className="text-red-500">*</span>
+              <span className="text-gray-400 font-normal ml-1 text-xs">{t("50_min", { length: form.motivation.length })}</span>
             </label>
             <textarea
               value={form.motivation}
               onChange={e => set("motivation", e.target.value)}
               rows={4}
-              placeholder="Décrivez ce qui vous motive à partager vos connaissances. Quelle valeur unique apportez-vous ? Quel impact voulez-vous avoir sur les apprenants ?"
+              placeholder={t("decrivez_ce_qui_vous_motive_a")}
               className={inputCls("motivation") + " resize-none"}
             />
             {errors.motivation && <p className="mt-1 text-xs text-red-500 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.motivation}</p>}
           </div>
 
           <div>
-            <label className={labelCls}>
-              Votre parcours et expérience professionnelle <span className="text-red-500">*</span>
-              <span className="text-gray-400 font-normal ml-1 text-xs">({form.experience.length}/30 min)</span>
+            <label className={labelCls}>{t("votre_parcours_et_experience_professionnelle")}{" "}<span className="text-red-500">*</span>
+              <span className="text-gray-400 font-normal ml-1 text-xs">{t("30_min", { length: form.experience.length })}</span>
             </label>
             <textarea
               value={form.experience}
               onChange={e => set("experience", e.target.value)}
               rows={3}
-              placeholder="Décrivez votre parcours : entreprises, projets, technologies utilisées en production, certifications obtenues..."
+              placeholder={t("decrivez_votre_parcours_entreprises_projets_tech")}
               className={inputCls("experience") + " resize-none"}
             />
             {errors.experience && <p className="mt-1 text-xs text-red-500 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.experience}</p>}
@@ -296,21 +291,19 @@ function ApplicationForm({ user, onSuccess }) {
       <div>
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-black" style={{ background: C.light }}>2</div>
-          <h3 className="font-bold text-gray-900">Vos domaines d'expertise</h3>
+          <h3 className="font-bold text-gray-900">{t("vos_domaines_d_expertise")}</h3>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className={labelCls}>
-              Domaines maîtrisés <span className="text-red-500">*</span>
+            <label className={labelCls}>{t("domaines_maitrises")}{" "}<span className="text-red-500">*</span>
               {form.expertise_areas.length > 0 && (
-                <span className="ml-2 text-indigo-600 text-xs font-bold">
-                  {form.expertise_areas.length} sélectionné{form.expertise_areas.length > 1 ? "s" : ""}
+                <span className="ml-2 text-indigo-600 text-xs font-bold">{t("selectionne_p", { length: form.expertise_areas.length, s: form.expertise_areas.length > 1 ? "s" : "" })}
                 </span>
               )}
             </label>
             <div className="flex flex-wrap gap-2">
-              {EXPERTISE_OPTIONS.map(opt => (
+              {EXPERTISE_OPTIONS().map(opt => (
                 <button
                   key={opt} type="button"
                   onClick={() => toggleExpertise(opt)}
@@ -335,16 +328,16 @@ function ApplicationForm({ user, onSuccess }) {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Années d'expérience <span className="text-red-500">*</span></label>
+              <label className={labelCls}>{t("annees_d_experience")}{" "}<span className="text-red-500">*</span></label>
               <select
                 value={form.years_experience}
                 onChange={e => set("years_experience", e.target.value)}
                 className={inputCls("years_experience")}
               >
-                <option value="">Sélectionner...</option>
+                <option value="">{t("selectionner")}</option>
                 {[1,2,3,4,5,6,7,8,9,10].map(n => (
                   <option key={n} value={n}>
-                    {n < 10 ? `${n} an${n > 1 ? "s" : ""}` : "10 ans ou plus"}
+                    {n < 10 ? `${n} an${n > 1 ? "s" : ""}` : t("10_ans_ou_plus")}
                   </option>
                 ))}
               </select>
@@ -352,7 +345,7 @@ function ApplicationForm({ user, onSuccess }) {
             </div>
 
             <div>
-              <label className={labelCls}>Profil LinkedIn</label>
+              <label className={labelCls}>{t("profil_linkedin")}</label>
               <input
                 type="url"
                 value={form.linkedin_url}
@@ -365,12 +358,12 @@ function ApplicationForm({ user, onSuccess }) {
           </div>
 
           <div>
-            <label className={labelCls}>Portfolio / GitHub / Site personnel</label>
+            <label className={labelCls}>{t("portfolio_github_site_personnel")}</label>
             <input
               type="url"
               value={form.portfolio_url}
               onChange={e => set("portfolio_url", e.target.value)}
-              placeholder="https://github.com/votre-profil ou votre site"
+              placeholder={i18n.t("becomeInstructor:placeholder_portfolio")}
               className={inputCls("portfolio_url")}
             />
           </div>
@@ -381,31 +374,30 @@ function ApplicationForm({ user, onSuccess }) {
       <div>
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-black" style={{ background: C.light }}>3</div>
-          <h3 className="font-bold text-gray-900">Votre projet de cours</h3>
+          <h3 className="font-bold text-gray-900">{t("votre_projet_de_cours")}</h3>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className={labelCls}>
-              Titre du cours que vous souhaitez créer <span className="text-red-500">*</span>
+            <label className={labelCls}>{t("titre_du_cours_que_vous_souhaitez")}{" "}<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={form.proposed_course_title}
               onChange={e => set("proposed_course_title", e.target.value)}
-              placeholder="Ex: Kubernetes de zéro à la production"
+              placeholder={t("ex_kubernetes_de_zero_a_la")}
               className={inputCls("proposed_course_title")}
             />
             {errors.proposed_course_title && <p className="mt-1 text-xs text-red-500 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.proposed_course_title}</p>}
           </div>
 
           <div>
-            <label className={labelCls}>Description du cours et objectifs pédagogiques</label>
+            <label className={labelCls}>{t("description_du_cours_et_objectifs_pedagogiques")}</label>
             <textarea
               value={form.proposed_course_description}
               onChange={e => set("proposed_course_description", e.target.value)}
               rows={3}
-              placeholder="Quels concepts allez-vous aborder ? Quel niveau ? Quels seront les livrables pratiques (labs, projets, exercices) ?"
+              placeholder={t("quels_concepts_allez_vous_aborder_quel")}
               className={inputCls("proposed_course_description") + " resize-none"}
             />
           </div>
@@ -418,13 +410,12 @@ function ApplicationForm({ user, onSuccess }) {
         style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}
       >
         <p className="text-sm font-bold text-blue-700 flex items-center gap-1.5">
-          <Mail className="w-4 h-4" /> Ce qui se passe après l'envoi :
-        </p>
+          <Mail className="w-4 h-4" />{" "}{t("ce_qui_se_passe_apres_l")}</p>
         {[
-          "Vous recevez un email de confirmation immédiatement",
-          "Notre équipe examine votre dossier sous 3 à 5 jours ouvrés",
-          "Vous recevez un email de décision avec motif détaillé",
-          "Si accepté : votre compte passe en mode Instructeur instantanément",
+          i18n.t("becomeInstructor:vous_recevez_un_email_de_confirmation"),
+          i18n.t("becomeInstructor:notre_equipe_examine_votre_dossier_sous"),
+          i18n.t("becomeInstructor:vous_recevez_un_email_de_decision"),
+          i18n.t("becomeInstructor:si_accepte_votre_compte_passe_en"),
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2">
             <div
@@ -446,10 +437,10 @@ function ApplicationForm({ user, onSuccess }) {
         style={{ background: user ? `linear-gradient(135deg,${C.primary},${C.light})` : "#9ca3af" }}
       >
         {loading
-          ? <><Loader className="w-5 h-5 animate-spin" /> Envoi en cours...</>
+          ? <><Loader className="w-5 h-5 animate-spin" />{" "}{t("envoi_en_cours")}</>
           : !user
-          ? <><Lock className="w-5 h-5" /> Connectez-vous pour candidater</>
-          : <><Send className="w-5 h-5" /> Envoyer ma candidature</>
+          ? <><Lock className="w-5 h-5" />{" "}{t("connectez_vous_pour_candidater")}</>
+          : <><Send className="w-5 h-5" />{" "}{t("envoyer_ma_candidature")}</>
         }
       </button>
 
@@ -460,14 +451,9 @@ function ApplicationForm({ user, onSuccess }) {
             state={{ from: "/become-instructor" }}
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-bold transition hover:opacity-90"
             style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}
-          >
-            Se connecter <ArrowRight className="w-4 h-4" />
+          >{t("se_connecter")}{" "}<ArrowRight className="w-4 h-4" />
           </Link>
-          <p className="text-xs text-gray-400">
-            Pas de compte ?{" "}
-            <Link to="/register" className="font-bold hover:underline" style={{ color: C.light }}>
-              Créer un compte gratuit
-            </Link>
+          <p className="text-xs text-gray-400">{t("pas_de_compte")}{" "}<Link to="/register" className="font-bold hover:underline" style={{ color: C.light }}>{t("creer_un_compte_gratuit")}</Link>
           </p>
         </div>
       )}
@@ -477,6 +463,7 @@ function ApplicationForm({ user, onSuccess }) {
 
 // ── Écran succès ──────────────────────────────────────────────
 function SuccessState({ userEmail }) {
+  const { t } = useTranslation("becomeInstructor");
   return (
     <div className="text-center space-y-6 py-4">
       <div
@@ -488,22 +475,18 @@ function SuccessState({ userEmail }) {
 
       <div>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-3" style={{ background: "#d1fae5", color: "#065f46" }}>
-          <CheckCircle className="w-3.5 h-3.5" /> Candidature envoyée
-        </div>
-        <h3 className="text-2xl font-black text-gray-900">Merci pour votre candidature !</h3>
-        <p className="text-gray-500 text-sm mt-2 leading-relaxed max-w-sm mx-auto">
-          Votre dossier a bien été reçu. Notre équipe va l'examiner sous{" "}
-          <strong>3 à 5 jours ouvrés</strong> et vous répondra par email à{" "}
-          <strong className="text-indigo-700">{userEmail}</strong>.
+          <CheckCircle className="w-3.5 h-3.5" />{" "}{t("candidature_envoyee")}</div>
+        <h3 className="text-2xl font-black text-gray-900">{t("merci_pour_votre_candidature")}</h3>
+        <p className="text-gray-500 text-sm mt-2 leading-relaxed max-w-sm mx-auto">{t("votre_dossier_a_bien_ete_recu")}{" "}<strong>{t("3_a_5_jours_ouvres")}</strong>{" "}{t("et_vous_repondra_par_email_a")}{" "}<strong className="text-indigo-700">{userEmail}</strong>.
         </p>
       </div>
 
       <div className="rounded-2xl p-4 text-left space-y-2" style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}>
-        <p className="text-sm font-bold text-blue-700">📬 En attendant :</p>
+        <p className="text-sm font-bold text-blue-700">{t("en_attendant")}</p>
         {[
-          "Vérifiez vos spams — un email de confirmation vous a été envoyé",
-          "Continuez à apprendre sur la plateforme pour enrichir votre profil",
-          "Préparez votre plan de cours (modules, leçons, quiz, exercices)",
+          i18n.t("becomeInstructor:verifiez_vos_spams_un_email_de"),
+          i18n.t("becomeInstructor:continuez_a_apprendre_sur_la_plateforme"),
+          i18n.t("becomeInstructor:preparez_votre_plan_de_cours_modules"),
         ].map((item, i) => (
           <div key={i} className="flex items-start gap-2">
             <ChevronRight className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
@@ -518,14 +501,12 @@ function SuccessState({ userEmail }) {
           className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-bold text-sm transition hover:bg-gray-50"
           style={{ borderColor: "#e5e7eb", color: "#6b7280" }}
         >
-          <BookOpen className="w-4 h-4" /> Explorer les cours
-        </Link>
+          <BookOpen className="w-4 h-4" />{" "}{t("explorer_les_cours")}</Link>
         <Link
           to="/student"
           className="flex items-center justify-center gap-2 py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
           style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}
-        >
-          Mon tableau de bord <ArrowRight className="w-4 h-4" />
+        >{t("mon_tableau_de_bord")}{" "}<ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </div>
@@ -536,6 +517,7 @@ function SuccessState({ userEmail }) {
 // COMPOSANT PRINCIPAL
 // ══════════════════════════════════════════════════════════════
 export default function BecomeInstructor() {
+  const { t } = useTranslation("becomeInstructor");
   const { user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const formRef = useRef(null)
@@ -546,7 +528,7 @@ export default function BecomeInstructor() {
   const [showNewForm,     setShowNewForm]       = useState(false)
 
   useEffect(() => {
-    document.title = "Devenir instructeur — DevOpsAkademy"
+    document.title = t("devenir_instructeur_devopsakademy")
   }, [])
 
   // Charger la candidature existante si connecté
@@ -586,20 +568,13 @@ export default function BecomeInstructor() {
         <div className="relative max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold mb-8"
             style={{ background: "rgba(250,204,21,0.15)", border: "1px solid rgba(250,204,21,0.35)", color: C.accent }}>
-            <Star className="w-4 h-4 fill-current" />
-            Rejoignez nos instructeurs experts
-          </div>
+            <Star className="w-4 h-4 fill-current" />{t("rejoignez_nos_instructeurs_experts")}</div>
 
-          <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">
-            Partagez votre expertise.
-            <br />
-            <span style={{ color: C.accent }}>Impactez des carrières.</span>
+          <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">{t("partagez_votre_expertise")}<br />
+            <span style={{ color: C.accent }}>{t("impactez_des_carrieres")}</span>
           </h1>
 
-          <p className="text-xl text-white/75 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Vous êtes un praticien DevOps expérimenté ? Devenez instructeur sur DevOpsAkademy
-            et transmettez vos compétences à la prochaine génération d'ingénieurs.
-          </p>
+          <p className="text-xl text-white/75 max-w-2xl mx-auto mb-10 leading-relaxed">{t("vous_etes_un_praticien_devops_experimente")}</p>
 
           <div className="flex flex-wrap gap-4 justify-center">
             {isAuthenticated && existingApp && existingApp.status !== "rejected" ? (
@@ -607,29 +582,25 @@ export default function BecomeInstructor() {
                 onClick={scrollToForm}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-lg transition hover:-translate-y-1 shadow-lg"
                 style={{ background: C.accent, color: C.dark }}
-              >
-                Voir ma candidature <ArrowDown className="w-5 h-5" />
+              >{t("voir_ma_candidature")}{" "}<ArrowDown className="w-5 h-5" />
               </button>
             ) : (
               <button
                 onClick={scrollToForm}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-lg transition hover:-translate-y-1 shadow-lg"
                 style={{ background: C.accent, color: C.dark }}
-              >
-                Candidater maintenant <ArrowRight className="w-5 h-5" />
+              >{t("candidater_maintenant")}{" "}<ArrowRight className="w-5 h-5" />
               </button>
             )}
             <Link
               to="/courses"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-lg border-2 border-white/25 hover:border-white transition"
-            >
-              Explorer la plateforme
-            </Link>
+            >{t("explorer_la_plateforme")}</Link>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 mt-16 max-w-xl mx-auto">
-            {[["20+", "Apprenants actifs"],["30+", "Cours disponibles"],["95%", "Satisfaction"]].map(([v,l]) => (
+            {[["20+", i18n.t("becomeInstructor:apprenants_actifs")],["30+", i18n.t("becomeInstructor:cours_disponibles")],["95%", i18n.t("becomeInstructor:satisfaction")]].map(([v,l]) => (
               <div key={l} className="text-center">
                 <p className="text-3xl font-black" style={{ color: C.accent }}>{v}</p>
                 <p className="text-white/60 text-xs mt-1">{l}</p>
@@ -643,11 +614,11 @@ export default function BecomeInstructor() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
-            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: C.light }}>Pourquoi enseigner chez nous</span>
-            <h2 className="text-3xl font-black text-gray-900 mt-2">Tout pour réussir en tant que formateur</h2>
+            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: C.light }}>{t("pourquoi_enseigner_chez_nous")}</span>
+            <h2 className="text-3xl font-black text-gray-900 mt-2">{t("tout_pour_reussir_en_tant_que")}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {BENEFITS.map(({ icon: Icon, title, desc, color }) => (
+            {BENEFITS().map(({ icon: Icon, title, desc, color }) => (
               <div key={title}
                 className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center mb-4 shadow-md`}>
@@ -665,13 +636,13 @@ export default function BecomeInstructor() {
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-14">
-            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: C.light }}>Le processus</span>
-            <h2 className="text-3xl font-black text-gray-900 mt-2">De candidat à instructeur en 4 étapes</h2>
+            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: C.light }}>{t("le_processus")}</span>
+            <h2 className="text-3xl font-black text-gray-900 mt-2">{t("de_candidat_a_instructeur_en_4")}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {STEPS.map(({ n, icon: Icon, title, desc, color }, i) => (
+            {STEPS().map(({ n, icon: Icon, title, desc, color }, i) => (
               <div key={n} className="relative">
-                {i < STEPS.length - 1 && (
+                {i < STEPS().length - 1 && (
                   <div className="hidden lg:block absolute top-6 left-full w-full h-0.5 bg-gray-100 z-0" style={{ width: "100%" }} />
                 )}
                 <div className="relative z-10 text-center p-5 rounded-2xl bg-gray-50 border border-gray-100 hover:shadow-md transition">
@@ -695,12 +666,10 @@ export default function BecomeInstructor() {
       <section ref={formRef} className="py-20 bg-gray-50">
         <div className="max-w-2xl mx-auto px-6">
           <div className="text-center mb-10">
-            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: C.light }}>Candidature</span>
-            <h2 className="text-3xl font-black text-gray-900 mt-2">Rejoignez l'équipe des formateurs</h2>
+            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: C.light }}>{t("candidature")}</span>
+            <h2 className="text-3xl font-black text-gray-900 mt-2">{t("rejoignez_l_equipe_des_formateurs")}</h2>
             {!isAuthenticated && (
-              <p className="text-gray-500 text-sm mt-2">
-                Connectez-vous pour soumettre votre candidature
-              </p>
+              <p className="text-gray-500 text-sm mt-2">{t("connectez_vous_pour_soumettre_votre_candidature")}</p>
             )}
           </div>
 
@@ -734,9 +703,7 @@ export default function BecomeInstructor() {
                 {existingApp?.status === "rejected" && showNewForm && (
                   <div className="mb-6 flex items-start gap-3 rounded-xl px-4 py-3" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
                     <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-amber-700 text-sm">
-                      Vous soumettez une <strong>nouvelle candidature</strong>. Prenez le temps de renforcer votre dossier en répondant aux points soulevés lors du refus.
-                    </p>
+                    <p className="text-amber-700 text-sm">{t("vous_soumettez_une")}{" "}<strong>{t("nouvelle_candidature")}</strong>{t("prenez_le_temps_de_renforcer_votre")}</p>
                   </div>
                 )}
                 <ApplicationForm user={user} onSuccess={() => setSuccess(true)} />

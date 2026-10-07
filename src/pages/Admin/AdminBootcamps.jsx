@@ -1,5 +1,6 @@
 // src/pages/Admin/AdminBootcamps.jsx
 // Gestion complète des bootcamps & lives — DevOpsAkademy
+import FileUrlField from "../../components/Common/FileUrlField";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -9,15 +10,18 @@ import {
   ChevronRight, ArrowRight, Globe, Lock, Zap,
 } from "lucide-react";
 import api from "../../api/api";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 // ── Config statuts ──────────────────────────────────────────
-const STATUS = {
-  draft:     { label:"Brouillon",   color:"#9ca3af", bg:"#f9fafb", border:"#e5e7eb", emoji:"📝" },
-  scheduled: { label:"Planifié",    color:"#f59e0b", bg:"#fffbeb", border:"#fde68a", emoji:"📅" },
-  live:      { label:"🔴 En direct",color:"#ef4444", bg:"#fef2f2", border:"#fecaca", emoji:"🔴" },
-  ended:     { label:"Terminé",     color:"#10b981", bg:"#f0fdf4", border:"#a7f3d0", emoji:"✅" },
-  cancelled: { label:"Annulé",      color:"#6b7280", bg:"#f9fafb", border:"#e5e7eb", emoji:"❌" },
-};
+const STATUS = () => ({
+  draft:     { label:i18n.t("adminBootcamps:brouillon"),   color:"#9ca3af", bg:"#f9fafb", border:"#e5e7eb" },
+  scheduled: { label:i18n.t("adminBootcamps:planifie"),    color:"#f59e0b", bg:"#fffbeb", border:"#fde68a" },
+  live:      { label:i18n.t("adminBootcamps:en_direct"),color:"#ef4444", bg:"#fef2f2", border:"#fecaca" },
+  ended:     { label:i18n.t("adminBootcamps:termine"),     color:"#10b981", bg:"#f0fdf4", border:"#a7f3d0" },
+  cancelled: { label:i18n.t("adminBootcamps:annule"),      color:"#6b7280", bg:"#f9fafb", border:"#e5e7eb" },
+});
 
 // Workflow des statuts — dans quel ordre on passe
 const NEXT_STATUS = {
@@ -26,19 +30,19 @@ const NEXT_STATUS = {
   live:      "ended",
 };
 
-const NEXT_LABEL = {
-  draft:     "📅 Planifier",
-  scheduled: "🔴 Démarrer le live",
-  live:      "✅ Terminer le live",
-};
+const NEXT_LABEL = () => ({
+  draft:     i18n.t("adminBootcamps:planifier"),
+  scheduled: i18n.t("adminBootcamps:demarrer_le_live"),
+  live:      i18n.t("adminBootcamps:terminer_le_live"),
+});
 
-const fmt = (n) => Number(n || 0).toLocaleString("fr-FR");
+const fmt = (n) => Number(n || 0).toLocaleString(getLocale());
 
 const formatDate = (str) => {
   if (!str) return "—";
   const d = new Date(str);
   if (isNaN(d)) return "—";
-  return d.toLocaleDateString("fr-FR", {
+  return d.toLocaleDateString(getLocale(), {
     day:"numeric", month:"short", year:"numeric",
     hour:"2-digit", minute:"2-digit"
   });
@@ -46,6 +50,7 @@ const formatDate = (str) => {
 
 // ── Prévisualisation du stream ──────────────────────────────
 function StreamPreview({ url, onClose }) {
+  const { t } = useTranslation("adminBootcamps");
   const isYT = url?.includes("youtube") || url?.includes("youtu.be");
   const isMP4 = url?.match(/\.(mp4|webm|ogg)(\?|$)/i);
 
@@ -66,14 +71,11 @@ function StreamPreview({ url, onClose }) {
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:10, height:10, borderRadius:"50%",
               background:"#ef4444", animation:"pulse 1.5s infinite" }} />
-            <span style={{ color:"white", fontWeight:700, fontSize:14 }}>
-              TEST PREVIEW — Non visible par les étudiants
-            </span>
+            <span style={{ color:"white", fontWeight:700, fontSize:14 }}>{t("test_preview_non_visible_par_les")}</span>
           </div>
           <button onClick={onClose} style={{ color:"white", background:"none",
             border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-            <X size={18} /> Fermer
-          </button>
+            <X size={18} />{" "}{t("fermer")}</button>
         </div>
         <div style={{ aspectRatio:"16/9" }}>
           {isMP4 ? (
@@ -88,9 +90,7 @@ function StreamPreview({ url, onClose }) {
           )}
         </div>
         <div style={{ padding:"12px 18px", background:"#1a1a1a", textAlign:"center" }}>
-          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:12 }}>
-            URL : {url}
-          </p>
+          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:12 }}>{t("url", { url })}</p>
         </div>
       </div>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
@@ -100,6 +100,7 @@ function StreamPreview({ url, onClose }) {
 
 // ── Modal Créer/Éditer ──────────────────────────────────────
 function BootcampModal({ boot, onClose, onSaved }) {
+  const { t } = useTranslation("adminBootcamps");
   const isEdit = !!boot;
   const [form, setForm] = useState({
     title:            boot?.title            || "",
@@ -117,7 +118,16 @@ function BootcampModal({ boot, onClose, onSaved }) {
     stream_url:       boot?.stream_url       || "",
     replay_url:       boot?.replay_url       || "",
     language:         boot?.language         || "fr",
+    instructor_id:    boot?.instructor_id    || "",
+    course_id:        boot?.course_id        || "",
+    repeat_weeks:     1,
   });
+  const [hosts,   setHosts]   = useState([]);
+  const [courses, setCourses] = useState([]);
+  useEffect(() => {
+    api.get("/admin/instructor-management", { params: { status: "active", limit: 100 } }).then(r => setHosts(r.data?.data || [])).catch(() => {});
+    api.get("/admin/courses", { params: { limit: 200 } }).then(r => setCourses(r.data?.data || [])).catch(() => {});
+  }, []);
   const [saving,    setSaving]   = useState(false);
   const [error,     setError]    = useState("");
   const [preview,   setPreview]  = useState(false);
@@ -134,8 +144,8 @@ function BootcampModal({ boot, onClose, onSaved }) {
   };
 
   const handle = async () => {
-    if (!form.title?.trim()) { setError("Le titre est obligatoire."); return; }
-    if (!form.scheduled_at) { setError("La date et l'heure sont obligatoires."); return; }
+    if (!form.title?.trim()) { setError(t("le_titre_est_obligatoire")); return; }
+    if (!form.scheduled_at) { setError(t("la_date_et_l_heure_sont")); return; }
     setSaving(true); setError("");
     try {
       const payload = {
@@ -144,12 +154,15 @@ function BootcampModal({ boot, onClose, onSaved }) {
         price:            Number(form.price),
         duration_minutes: Number(form.duration_minutes),
         max_participants: form.max_participants ? Number(form.max_participants) : null,
+        instructor_id:    form.instructor_id ? Number(form.instructor_id) : undefined,
+        course_id:        form.course_id ? Number(form.course_id) : null,
+        repeat_weeks:     isEdit ? undefined : Math.min(26, Math.max(1, Number(form.repeat_weeks) || 1)),
       };
       if (isEdit) await api.patch(`/bootcamps/admin/${boot.id}`, payload);
       else        await api.post("/bootcamps/admin", payload);
       onSaved(); onClose();
     } catch (e) {
-      setError(e.response?.data?.message || "Erreur lors de la sauvegarde.");
+      setError(e.response?.data?.message || t("erreur_lors_de_la_sauvegarde"));
     } finally { setSaving(false); }
   };
 
@@ -170,10 +183,10 @@ function BootcampModal({ boot, onClose, onSaved }) {
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
                 <h2 style={{ color:"white", fontWeight:900, fontSize:18, margin:0 }}>
-                  {isEdit ? "✏️ Modifier le bootcamp" : "🎙️ Nouveau bootcamp"}
+                  {isEdit ? t("modifier_le_bootcamp") : t("nouveau_bootcamp")}
                 </h2>
                 <p style={{ color:"rgba(255,255,255,0.55)", fontSize:12, margin:"3px 0 0" }}>
-                  {isEdit ? "Modifiez les informations du bootcamp" : "Configurez votre prochain live"}
+                  {isEdit ? t("modifiez_les_informations_du_bootcamp") : t("configurez_votre_prochain_live")}
                 </p>
               </div>
               <button onClick={onClose} style={{ width:32, height:32, borderRadius:10,
@@ -187,7 +200,7 @@ function BootcampModal({ boot, onClose, onSaved }) {
           {/* Tabs indicator — processus */}
           <div style={{ padding:"12px 24px", background:"#f9fafb",
             borderBottom:"1px solid #f0f0f0", display:"flex", gap:4, alignItems:"center" }}>
-            {["📋 Infos", "🔗 Stream", "💰 Accès"].map((s, i) => (
+            {[i18n.t("adminBootcamps:infos"), i18n.t("adminBootcamps:stream"), i18n.t("adminBootcamps:acces")].map((s, i) => (
               <span key={s} style={{ display:"flex", alignItems:"center", gap:4 }}>
                 <span style={{ fontSize:11, fontWeight:700, color:"#5653e1" }}>{s}</span>
                 {i < 2 && <ChevronRight size={11} color="#d1d5db" />}
@@ -202,55 +215,80 @@ function BootcampModal({ boot, onClose, onSaved }) {
             {/* Section Infos */}
             <div style={{ background:"#f8f7ff", borderRadius:14, padding:16 }}>
               <p style={{ fontSize:11, fontWeight:800, color:"#5653e1",
-                textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>
-                📋 Informations générales
-              </p>
+                textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("informations_generales")}</p>
 
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                 <div>
-                  <S label="Titre du bootcamp *" />
+                  <S label={t("titre_du_bootcamp")} />
                   <input style={inp} value={form.title}
                     onChange={e => setForm(p => ({...p, title:e.target.value}))}
-                    placeholder="ex: Bootcamp Docker — Maîtrisez les conteneurs en 3 jours" />
+                    placeholder={t("ex_bootcamp_docker_maitrisez_les_conteneurs")} />
                 </div>
 
                 <div>
-                  <S label="Description" />
+                  <S label={t("description")} />
                   <textarea style={{...inp, minHeight:72, resize:"vertical"}}
                     value={form.description}
                     onChange={e => setForm(p => ({...p, description:e.target.value}))}
-                    placeholder="Ce que les participants vont apprendre, les prérequis..." />
+                    placeholder={t("ce_que_les_participants_vont_apprendre")} />
                 </div>
 
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))", gap:12 }}>
                   <div>
-                    <S label="📅 Date & heure *" />
+                    <S label={t("date_heure")} />
                     <input type="datetime-local" style={inp} value={form.scheduled_at}
                       onChange={e => setForm(p => ({...p, scheduled_at:e.target.value}))} />
                   </div>
                   <div>
-                    <S label="⏱ Durée (minutes)" />
+                    <S label={t("duree_minutes")} />
                     <input type="number" style={inp} value={form.duration_minutes}
                       onChange={e => setForm(p => ({...p, duration_minutes:e.target.value}))}
                       min={30} max={480} step={30} />
                   </div>
                 </div>
 
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))", gap:12 }}>
                   <div>
-                    <S label="Niveau" />
-                    <select style={inp} value={form.level}
-                      onChange={e => setForm(p => ({...p, level:e.target.value}))}>
-                      <option value="beginner">🟢 Débutant</option>
-                      <option value="intermediate">🟡 Intermédiaire</option>
-                      <option value="advanced">🔴 Avancé</option>
+                    <S label={t("animateur")} />
+                    <select style={inp} value={form.instructor_id}
+                      onChange={e => setForm(p => ({...p, instructor_id:e.target.value}))}>
+                      <option value="">{t("moi_meme")}</option>
+                      {hosts.map(h => <option key={h.id} value={h.id}>{h.first_name} {h.last_name}</option>)}
                     </select>
                   </div>
                   <div>
-                    <S label="Places max (vide = illimité)" />
+                    <S label={t("cours_rattache")} />
+                    <select style={inp} value={form.course_id}
+                      onChange={e => setForm(p => ({...p, course_id:e.target.value}))}>
+                      <option value="">{t("aucun_cours")}</option>
+                      {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                    </select>
+                  </div>
+                </div>
+                {!isEdit && (
+                  <div>
+                    <S label={t("repeter_hebdo")} />
+                    <input type="number" style={inp} min={1} max={26} value={form.repeat_weeks}
+                      onChange={e => setForm(p => ({...p, repeat_weeks:e.target.value}))} />
+                    <p style={{ fontSize:11, color:"#6b7280", margin:"5px 0 0" }}>{t("repeter_hebdo_aide")}</p>
+                  </div>
+                )}
+
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))", gap:12 }}>
+                  <div>
+                    <S label={t("niveau")} />
+                    <select style={inp} value={form.level}
+                      onChange={e => setForm(p => ({...p, level:e.target.value}))}>
+                      <option value="beginner">{t("debutant")}</option>
+                      <option value="intermediate">{t("intermediaire")}</option>
+                      <option value="advanced">{t("avance")}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <S label={t("places_max_vide_illimite")} />
                     <input type="number" style={inp} value={form.max_participants}
                       onChange={e => setForm(p => ({...p, max_participants:e.target.value}))}
-                      placeholder="ex: 200" min={1} />
+                      placeholder={t("ex_200")} min={1} />
                   </div>
                 </div>
               </div>
@@ -260,18 +298,16 @@ function BootcampModal({ boot, onClose, onSaved }) {
             <div style={{ background:"#f0fdf4", borderRadius:14, padding:16,
               border:"1px solid #a7f3d0" }}>
               <p style={{ fontSize:11, fontWeight:800, color:"#0f766e",
-                textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>
-                🔗 Configuration du stream
-              </p>
+                textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("configuration_du_stream")}</p>
 
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                 <div>
-                  <S label="URL du live (YouTube Live, Zoom, Loom, vidéo MP4...)" />
+                  <S label={t("url_du_live_youtube_live_zoom")} />
                   <div style={{ display:"flex", gap:8 }}>
                     <input style={{...inp, flex:1}}
                       value={form.stream_url}
                       onChange={e => { setForm(p => ({...p, stream_url:e.target.value})); setUrlTested(false); }}
-                      placeholder="https://youtube.com/live/xxx  ou  https://zoom.us/j/xxx" />
+                      placeholder={i18n.t("adminBootcamps:placeholder_live_url")} />
                     {form.stream_url && (
                       <button onClick={() => setPreview(true)}
                         style={{ padding:"9px 14px", borderRadius:10, border:"none",
@@ -279,22 +315,20 @@ function BootcampModal({ boot, onClose, onSaved }) {
                           color:"white", fontWeight:700, fontSize:12,
                           cursor:"pointer", display:"flex", alignItems:"center", gap:5,
                           whiteSpace:"nowrap", flexShrink:0 }}
-                        title="Tester le stream avant de lancer">
+                        title={t("tester_le_stream_avant_de_lancer")}>
                         <Play size={13} />
-                        {urlTested ? "✓ Testé" : "Tester"}
+                        {urlTested ? t("teste") : t("tester")}
                       </button>
                     )}
                   </div>
-                  <p style={{ fontSize:11, color:"#0f766e", margin:"5px 0 0" }}>
-                    💡 Cliquez "Tester" pour vérifier le stream avant de le lancer publiquement
-                  </p>
+                  <p style={{ fontSize:11, color:"#0f766e", margin:"5px 0 0" }}>{t("cliquez_tester_pour_verifier_le_stream")}</p>
                 </div>
 
                 <div>
-                  <S label="URL replay (après le live — YouTube, vidéo uploadée...)" />
-                  <input style={inp} value={form.replay_url}
-                    onChange={e => setForm(p => ({...p, replay_url:e.target.value}))}
-                    placeholder="https://youtu.be/xxx  (à remplir après le live)" />
+                  <S label={t("url_replay_apres_le_live_youtube")} />
+                  <FileUrlField kind="video" value={form.replay_url}
+                    onChange={v => setForm(p => ({...p, replay_url:v}))}
+                    placeholder={i18n.t("adminBootcamps:placeholder_replay_url")} />
                 </div>
               </div>
             </div>
@@ -303,14 +337,12 @@ function BootcampModal({ boot, onClose, onSaved }) {
             <div style={{ background:"#eff6ff", borderRadius:14, padding:16,
               border:"1px solid #bfdbfe" }}>
               <p style={{ fontSize:11, fontWeight:800, color:"#0369a1",
-                textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>
-                💰 Accès & tarification
-              </p>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("acces_tarification")}</p>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))", gap:12 }}>
                 <div>
-                  <S label="Type d'accès" />
+                  <S label={t("type_d_acces")} />
                   <div style={{ display:"flex", gap:8 }}>
-                    {[[1,"🎉 Gratuit"],[0,"💳 Payant"]].map(([val, label]) => (
+                    {[[1,i18n.t("adminBootcamps:gratuit")],[0,i18n.t("adminBootcamps:payant")]].map(([val, label]) => (
                       <button key={val} onClick={() => setForm(p => ({...p, is_free:Number(val)}))}
                         style={{ flex:1, padding:"9px", borderRadius:10, border:"2px solid",
                           borderColor: Number(form.is_free) === Number(val) ? "#0369a1" : "#e5e7eb",
@@ -324,10 +356,10 @@ function BootcampModal({ boot, onClose, onSaved }) {
                 </div>
                 {!form.is_free && (
                   <div>
-                    <S label="Prix (FCFA)" />
+                    <S label={t("prix_fcfa")} />
                     <input type="number" style={inp} value={form.price}
                       onChange={e => setForm(p => ({...p, price:e.target.value}))}
-                      min={0} placeholder="ex: 5000" />
+                      min={0} placeholder={t("ex_5000")} />
                   </div>
                 )}
               </div>
@@ -349,9 +381,7 @@ function BootcampModal({ boot, onClose, onSaved }) {
             <button onClick={onClose}
               style={{ flex:1, padding:"11px", border:"2px solid #e5e7eb",
                 borderRadius:14, fontWeight:700, fontSize:13, cursor:"pointer",
-                background:"white", color:"#374151" }}>
-              Annuler
-            </button>
+                background:"white", color:"#374151" }}>{t("annuler")}</button>
             <button onClick={handle} disabled={saving}
               style={{ flex:2, padding:"11px", borderRadius:14, border:"none",
                 fontWeight:900, fontSize:13, cursor:"pointer", color:"white",
@@ -359,8 +389,8 @@ function BootcampModal({ boot, onClose, onSaved }) {
                 opacity: saving ? 0.6 : 1, display:"flex",
                 alignItems:"center", justifyContent:"center", gap:8 }}>
               {saving
-                ? <><Loader size={15} style={{ animation:"spin 1s linear infinite" }} /> Sauvegarde...</>
-                : isEdit ? "✅ Enregistrer les modifications" : "🚀 Créer le bootcamp"}
+                ? <><Loader size={15} style={{ animation:"spin 1s linear infinite" }} />{" "}{t("sauvegarde")}</>
+                : isEdit ? t("enregistrer_les_modifications") : t("creer_le_bootcamp")}
             </button>
           </div>
         </div>
@@ -375,17 +405,18 @@ function BootcampModal({ boot, onClose, onSaved }) {
 
 // ── Panel statut live (sidebar droite quand un bootcamp est sélectionné) ──
 function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
+  const { t } = useTranslation("adminBootcamps");
   const [preview, setPreview] = useState(false);
-  const st = STATUS[boot.status] || STATUS.draft;
+  const st = STATUS()[boot.status] || STATUS().draft;
   const next = NEXT_STATUS[boot.status];
   const date = boot.scheduled_at ? new Date(boot.scheduled_at) : null;
   const isValidDate = date && !isNaN(date.getTime());
 
   const steps = [
-    { key:"draft",     label:"Brouillon créé",   done: true },
-    { key:"scheduled", label:"Planifié & annoncé", done: ["scheduled","live","ended"].includes(boot.status) },
-    { key:"live",      label:"Live démarré",      done: ["live","ended"].includes(boot.status) },
-    { key:"ended",     label:"Terminé + replay",  done: boot.status === "ended" },
+    { key:"draft",     label:t("brouillon_cree"),   done: true },
+    { key:"scheduled", label:t("planifie_annonce"), done: ["scheduled","live","ended"].includes(boot.status) },
+    { key:"live",      label:t("live_demarre"),      done: ["live","ended"].includes(boot.status) },
+    { key:"ended",     label:t("termine_replay"),  done: boot.status === "ended" },
   ];
 
   return (
@@ -402,7 +433,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
               padding:"4px 10px", borderRadius:20,
               background:st.bg, border:`1px solid ${st.border}`,
               fontSize:12, fontWeight:800, color:st.color, marginBottom:8 }}>
-              {st.emoji} {st.label}
+              {st.label}
             </div>
             <h3 style={{ fontWeight:900, fontSize:16, color:"#111",
               margin:0, lineHeight:1.3 }}>{boot.title}</h3>
@@ -416,9 +447,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
         {/* Timeline processus */}
         <div style={{ background:"#f8f7ff", borderRadius:14, padding:14 }}>
           <p style={{ fontSize:11, fontWeight:800, color:"#5653e1",
-            textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>
-            Processus
-          </p>
+            textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("processus")}</p>
           {steps.map((step, i) => (
             <div key={step.key} style={{ display:"flex", gap:10, alignItems:"flex-start",
               marginBottom: i < steps.length - 1 ? 8 : 0 }}>
@@ -441,13 +470,13 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
         {/* Infos clés */}
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {[
-            [Calendar, "Date", isValidDate
-              ? date.toLocaleDateString("fr-FR", {day:"numeric",month:"short",year:"numeric"})
-                + " à " + date.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})
-              : "Non définie"],
-            [Clock,    "Durée",    `${boot.duration_minutes} min`],
-            [Users,    "Inscrits", `${fmt(boot.registered_count || 0)}${boot.max_participants ? " / " + fmt(boot.max_participants) : ""}`],
-            [boot.is_free ? Globe : Lock, "Accès", boot.is_free ? "Gratuit 🎉" : `${fmt(boot.price)} FCFA`],
+            [Calendar, i18n.t("adminBootcamps:date"), isValidDate
+              ? date.toLocaleDateString(getLocale(), {day:"numeric",month:"short",year:"numeric"})
+                + " à " + date.toLocaleTimeString(getLocale(),{hour:"2-digit",minute:"2-digit"})
+              : i18n.t("adminBootcamps:non_definie")],
+            [Clock,    i18n.t("adminBootcamps:duree"),    `${boot.duration_minutes} min`],
+            [Users,    i18n.t("adminBootcamps:inscrits"), `${fmt(boot.registered_count || 0)}${boot.max_participants ? " / " + fmt(boot.max_participants) : ""}`],
+            [boot.is_free ? Globe : Lock, i18n.t("adminBootcamps:acces"), boot.is_free ? i18n.t("adminBootcamps:gratuit") : (Number(boot.price) > 0 ? `${fmt(boot.price)} FCFA` : i18n.t("adminBootcamps:payant"))],
           ].map(([Icon, label, val]) => (
             <div key={label} style={{ display:"flex", justifyContent:"space-between",
               alignItems:"center", fontSize:12, padding:"6px 0",
@@ -465,7 +494,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
           <div style={{ background:"#ecfdf5", borderRadius:12, padding:12,
             border:"1px solid #a7f3d0" }}>
             <p style={{ fontSize:11, fontWeight:800, color:"#065f46",
-              margin:"0 0 8px" }}>🧪 Tester avant de lancer</p>
+              margin:"0 0 8px" }}>{t("tester_avant_de_lancer")}</p>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               {boot.stream_url && (
                 <button onClick={() => setPreview(true)}
@@ -473,8 +502,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
                     background:"#2d287f", color:"white", fontWeight:700,
                     fontSize:12, cursor:"pointer", display:"flex",
                     alignItems:"center", justifyContent:"center", gap:5 }}>
-                  <Play size={12} /> Tester le stream
-                </button>
+                  <Play size={12} />{" "}{t("tester_le_stream")}</button>
               )}
               {boot.replay_url && boot.status === "ended" && (
                 <button onClick={() => setPreview(true)}
@@ -482,8 +510,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
                     background:"#0f766e", color:"white", fontWeight:700,
                     fontSize:12, cursor:"pointer", display:"flex",
                     alignItems:"center", justifyContent:"center", gap:5 }}>
-                  <Play size={12} /> Tester le replay
-                </button>
+                  <Play size={12} />{" "}{t("tester_le_replay")}</button>
               )}
               <a href={`/bootcamps`} target="_blank" rel="noreferrer"
                 style={{ flex:1, padding:"8px", borderRadius:10,
@@ -491,8 +518,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
                   color:"#065f46", fontWeight:700, fontSize:12,
                   display:"flex", alignItems:"center", justifyContent:"center",
                   gap:5, textDecoration:"none" }}>
-                <ExternalLink size={12} /> Voir public
-              </a>
+                <ExternalLink size={12} />{" "}{t("voir_public")}</a>
             </div>
           </div>
         )}
@@ -504,8 +530,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
               background:"#f0efff", color:"#2d287f", fontWeight:700,
               fontSize:13, cursor:"pointer", display:"flex",
               alignItems:"center", justifyContent:"center", gap:6 }}>
-            <Pencil size={14} /> Modifier les infos
-          </button>
+            <Pencil size={14} />{" "}{t("modifier_les_infos")}</button>
 
           {next && (
             <button onClick={() => onStatusChange(boot, next)}
@@ -518,32 +543,25 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
                 color:"white", fontWeight:900, fontSize:14, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                 boxShadow: next === "live" ? "0 4px 16px rgba(239,68,68,0.4)" : "none" }}>
-              {NEXT_LABEL[boot.status]} <ArrowRight size={16} />
+              {NEXT_LABEL()[boot.status]} <ArrowRight size={16} />
             </button>
           )}
 
           {boot.status === "scheduled" && (
             <div style={{ background:"#fffbeb", borderRadius:10, padding:"10px 12px",
               border:"1px solid #fde68a" }}>
-              <p style={{ fontSize:11, color:"#92400e", fontWeight:700, margin:"0 0 4px" }}>
-                📅 Bootcamp planifié
-              </p>
-              <p style={{ fontSize:11, color:"#b45309", margin:0 }}>
-                Les étudiants voient ce bootcamp et peuvent s'inscrire.
-                Quand le live démarre, cliquez "Démarrer le live" pour ouvrir l'accès.
-              </p>
+              <p style={{ fontSize:11, color:"#92400e", fontWeight:700, margin:"0 0 4px" }}>{t("bootcamp_planifie")}</p>
+              <p style={{ fontSize:11, color:"#b45309", margin:0 }}>{t("les_etudiants_voient_ce_bootcamp_et")}</p>
             </div>
           )}
           {boot.status === "live" && (
             <div style={{ background:"#fef2f2", borderRadius:10, padding:"10px 12px",
               border:"1px solid #fecaca" }}>
-              <p style={{ fontSize:11, color:"#991b1b", fontWeight:700, margin:"0 0 4px" }}>
-                🔴 Live en cours — {boot.registered_count || 0} inscrit(s) ont accès
-              </p>
+              <p style={{ fontSize:11, color:"#991b1b", fontWeight:700, margin:"0 0 4px" }}>{t("live_en_cours")}{" "}{boot.registered_count || 0}{" "}{t("inscrit_s_ont_acces")}</p>
               <p style={{ fontSize:11, color:"#dc2626", margin:0 }}>
                 {boot.stream_url
-                  ? "Les étudiants voient le bouton \"Rejoindre le live\" qui ouvre votre URL de stream."
-                  : "⚠️ Aucune URL de stream configurée ! Les étudiants ne peuvent pas rejoindre. Modifiez le bootcamp pour ajouter l'URL."}
+                  ? t("les_etudiants_voient_le_bouton_rejoindre")
+                  : t("aucune_url_de_stream_configuree_les")}
               </p>
             </div>
           )}
@@ -557,6 +575,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
 // COMPOSANT PRINCIPAL
 // ══════════════════════════════════════════════════════════════
 export default function AdminBootcamps() {
+  const { t } = useTranslation("adminBootcamps");
   const navigate     = useNavigate();
   const [boots,      setBoots]     = useState([]);
   const [loading,    setLoading]   = useState(true);
@@ -583,10 +602,10 @@ export default function AdminBootcamps() {
       if (selected?.id === boot.id) setSelected(prev => ({...prev, status}));
       // Si on passe en LIVE → afficher un message
       if (status === 'live') {
-        alert('🔴 Le bootcamp est maintenant EN DIRECT ! Les étudiants inscrits peuvent y accéder.');
+        alert(t("le_bootcamp_est_maintenant_en_direct"));
       }
     } catch (e) {
-      alert('Erreur lors du changement de statut : ' + (e.response?.data?.message || e.message));
+      alert(i18n.t("adminBootcamps:erreur_lors_du_changement_de_statut") + (e.response?.data?.message || e.message));
     }
   };
 
@@ -618,40 +637,33 @@ export default function AdminBootcamps() {
         <div>
           <h1 style={{ fontWeight:900, fontSize:22, color:"#111",
             display:"flex", alignItems:"center", gap:8, margin:0 }}>
-            <Radio size={24} color="#5653e1" /> Bootcamps & Lives
-          </h1>
-          <p style={{ fontSize:13, color:"#9ca3af", margin:"2px 0 0" }}>
-            {boots.length} bootcamp{boots.length !== 1 ? "s" : ""} ·{" "}
-            {counts.live > 0 && <span style={{ color:"#ef4444", fontWeight:700 }}>
-              🔴 {counts.live} en direct
-            </span>}
+            <Radio size={24} color="#5653e1" />{" "}{t("bootcamps_lives")}</h1>
+          <p style={{ fontSize:13, color:"#9ca3af", margin:"2px 0 0" }}>{i18n.t("adminBootcamps:bootcamp", { length: boots.length, s: boots.length !== 1 ? "s" : "" })}{" "}{counts.live > 0 && <span style={{ color:"#ef4444", fontWeight:700 }}>{t("en_direct_2", { live: counts.live })}</span>}
           </p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6,
             padding:"9px 14px", borderRadius:12, border:"2px solid #e5e7eb",
             background:"white", fontWeight:600, fontSize:13, cursor:"pointer" }}>
-            <RefreshCw size={14} /> Actualiser
-          </button>
+            <RefreshCw size={14} />{" "}{t("actualiser")}</button>
           <button onClick={() => { setModal("create"); setSelected(null); }}
             style={{ display:"flex", alignItems:"center", gap:6,
               padding:"9px 18px", borderRadius:12, border:"none",
               background:"linear-gradient(135deg,#2d287f,#5653e1)",
               color:"white", fontWeight:800, fontSize:13, cursor:"pointer",
               boxShadow:"0 4px 14px rgba(45,40,127,0.3)" }}>
-            <Plus size={16} /> Nouveau bootcamp
-          </button>
+            <Plus size={16} />{" "}{t("nouveau_bootcamp")}</button>
         </div>
       </div>
 
       {/* Stats rapides */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))", gap:10 }}>
         {[
-          ["all",       "Total",        counts.all,       "#5653e1", "#f0efff"],
-          ["live",      "En direct",    counts.live,      "#ef4444", "#fef2f2"],
-          ["scheduled", "Planifiés",    counts.scheduled, "#f59e0b", "#fffbeb"],
-          ["ended",     "Terminés",     counts.ended,     "#10b981", "#f0fdf4"],
-          ["draft",     "Brouillons",   counts.draft,     "#9ca3af", "#f9fafb"],
+          ["all",       i18n.t("adminBootcamps:total"),        counts.all,       "#5653e1", "#f0efff"],
+          ["live",      i18n.t("adminBootcamps:en_direct"),    counts.live,      "#ef4444", "#fef2f2"],
+          ["scheduled", i18n.t("adminBootcamps:planifies"),    counts.scheduled, "#f59e0b", "#fffbeb"],
+          ["ended",     i18n.t("adminBootcamps:termines"),     counts.ended,     "#10b981", "#f0fdf4"],
+          ["draft",     i18n.t("adminBootcamps:brouillons"),   counts.draft,     "#9ca3af", "#f9fafb"],
         ].map(([key, label, count, color, bg]) => (
           <button key={key} onClick={() => setFilterSt(key)}
             style={{ padding:"12px 10px", borderRadius:14, border:"2px solid",
@@ -666,9 +678,7 @@ export default function AdminBootcamps() {
       </div>
 
       {/* Layout : liste + panel */}
-      <div style={{ display:"grid",
-        gridTemplateColumns: selected ? "1fr 320px" : "1fr",
-        gap:16, alignItems:"start" }}>
+      <div className={`grid grid-cols-1 gap-4 items-start ${selected ? "xl:grid-cols-[minmax(0,1fr)_320px]" : ""}`}>
 
         {/* Liste */}
         <div style={{ background:"white", borderRadius:20,
@@ -680,37 +690,36 @@ export default function AdminBootcamps() {
               <div style={{ width:32, height:32, border:"3px solid #5653e1",
                 borderTopColor:"transparent", borderRadius:"50%",
                 animation:"spin 1s linear infinite", margin:"0 auto 12px" }} />
-              <p style={{ color:"#9ca3af" }}>Chargement...</p>
+              <p style={{ color:"#9ca3af" }}>{t("chargement")}</p>
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
             </div>
           ) : filtered.length === 0 ? (
             <div style={{ padding:"60px", textAlign:"center" }}>
               <Radio size={40} color="#d1d5db" style={{ margin:"0 auto 12px", display:"block" }} />
               <p style={{ color:"#9ca3af", fontWeight:600 }}>
-                {filterSt !== "all" ? `Aucun bootcamp "${STATUS[filterSt]?.label}"` : "Aucun bootcamp créé"}
+                {filterSt !== "all" ? i18n.t("adminBootcamps:aucun_bootcamp_2", { label: STATUS()[filterSt]?.label }) : t("aucun_bootcamp_cree")}
               </p>
               <button onClick={() => setModal("create")}
                 style={{ marginTop:12, padding:"10px 20px", borderRadius:12,
                   border:"none", background:"linear-gradient(135deg,#2d287f,#5653e1)",
-                  color:"white", fontWeight:800, cursor:"pointer" }}>
-                Créer le premier bootcamp
-              </button>
+                  color:"white", fontWeight:800, cursor:"pointer" }}>{t("creer_le_premier_bootcamp")}</button>
             </div>
           ) : (
-            <>
+            <div style={{ overflowX:"auto" }}>
+              <div style={{ minWidth:780 }}>
               {/* En-tête */}
               <div style={{ display:"grid",
                 gridTemplateColumns:"2fr 130px 120px 80px 70px 100px",
                 gap:8, padding:"11px 18px",
                 background:"#f9fafb", borderBottom:"1px solid #f0f0f0" }}>
-                {["Bootcamp","Date/Heure","Statut","Inscrits","Accès","Actions"].map(h => (
+                {[i18n.t("adminBootcamps:bootcamp_2"),i18n.t("adminBootcamps:date_heure_2"),i18n.t("adminBootcamps:statut"),i18n.t("adminBootcamps:inscrits"),i18n.t("adminBootcamps:acces"),i18n.t("adminBootcamps:actions")].map(h => (
                   <span key={h} style={{ fontSize:10, fontWeight:800, color:"#9ca3af",
                     textTransform:"uppercase", letterSpacing:"0.08em" }}>{h}</span>
                 ))}
               </div>
 
               {filtered.map(b => {
-                const st = STATUS[b.status] || STATUS.draft;
+                const st = STATUS()[b.status] || STATUS().draft;
                 const isSelected = selected?.id === b.id;
                 const d = b.scheduled_at ? new Date(b.scheduled_at) : null;
                 const validD = d && !isNaN(d.getTime());
@@ -738,7 +747,7 @@ export default function AdminBootcamps() {
                         )}
                         <p style={{ fontWeight:800, fontSize:13, color:"#111", margin:0,
                           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                          {b.title || <em style={{ color:"#9ca3af" }}>Sans titre</em>}
+                          {b.title || <em style={{ color:"#9ca3af" }}>{t("sans_titre")}</em>}
                         </p>
                       </div>
                       <p style={{ fontSize:11, color:"#9ca3af", margin:"2px 0 0" }}>
@@ -749,10 +758,10 @@ export default function AdminBootcamps() {
                     {/* Date */}
                     <div>
                       <p style={{ fontSize:11, fontWeight:600, color:"#374151", margin:0 }}>
-                        {validD ? d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}) : "—"}
+                        {validD ? d.toLocaleDateString(getLocale(),{day:"numeric",month:"short"}) : "—"}
                       </p>
                       <p style={{ fontSize:10, color:"#9ca3af", margin:"2px 0 0" }}>
-                        {validD ? d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : ""}
+                        {validD ? d.toLocaleTimeString(getLocale(),{hour:"2-digit",minute:"2-digit"}) : ""}
                       </p>
                     </div>
 
@@ -761,7 +770,7 @@ export default function AdminBootcamps() {
                       <span style={{ padding:"3px 10px", borderRadius:20, fontSize:11,
                         fontWeight:800, background:st.bg, color:st.color,
                         border:`1px solid ${st.border}` }}>
-                        {st.emoji} {st.label}
+                        {st.label}
                       </span>
                     </div>
 
@@ -776,20 +785,20 @@ export default function AdminBootcamps() {
                     {/* Prix */}
                     <span style={{ fontSize:11, fontWeight:700,
                       color: b.is_free ? "#10b981" : "#2d287f" }}>
-                      {b.is_free ? "Gratuit" : `${fmt(b.price)}F`}
+                      {b.is_free ? t("gratuit") : (Number(b.price) > 0 ? `${fmt(b.price)} F` : t("payant"))}
                     </span>
 
                     {/* Actions rapides */}
                     <div style={{ display:"flex", gap:5 }}
                       onClick={e => e.stopPropagation()}>
                       <button onClick={() => setModal(b)}
-                        title="Modifier" style={{ width:28, height:28, borderRadius:8,
+                        title={t("modifier")} style={{ width:28, height:28, borderRadius:8,
                           border:"none", background:"#f5f3ff", cursor:"pointer",
                           display:"flex", alignItems:"center", justifyContent:"center" }}>
                         <Pencil size={13} color="#7c3aed" />
                       </button>
                       <button onClick={() => setDelConf(b)}
-                        title="Supprimer" style={{ width:28, height:28, borderRadius:8,
+                        title={t("supprimer")} style={{ width:28, height:28, borderRadius:8,
                           border:"none", background:"#fef2f2", cursor:"pointer",
                           display:"flex", alignItems:"center", justifyContent:"center" }}>
                         <Trash2 size={13} color="#ef4444" />
@@ -799,7 +808,8 @@ export default function AdminBootcamps() {
                 );
               })}
               <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
-            </>
+              </div>
+            </div>
           )}
         </div>
 
@@ -833,26 +843,18 @@ export default function AdminBootcamps() {
               margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center" }}>
               <Trash2 size={22} color="#ef4444" />
             </div>
-            <h3 style={{ fontWeight:900, fontSize:16, color:"#111", margin:"0 0 6px" }}>
-              Supprimer ce bootcamp ?
-            </h3>
+            <h3 style={{ fontWeight:900, fontSize:16, color:"#111", margin:"0 0 6px" }}>{t("supprimer_ce_bootcamp")}</h3>
             <p style={{ fontSize:13, color:"#6b7280", margin:"0 0 20px" }}>
-              <strong>"{delConf.title}"</strong> et toutes ses données (inscriptions, messages)
-              seront supprimés définitivement.
-            </p>
+              <strong>"{delConf.title}"</strong>{" "}{t("et_toutes_ses_donnees_inscriptions_messages")}</p>
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={() => setDelConf(null)}
                 style={{ flex:1, padding:11, border:"2px solid #e5e7eb",
                   borderRadius:12, fontWeight:700, cursor:"pointer",
-                  background:"white", color:"#374151" }}>
-                Annuler
-              </button>
+                  background:"white", color:"#374151" }}>{t("annuler")}</button>
               <button onClick={() => handleDelete(delConf)}
                 style={{ flex:1, padding:11, borderRadius:12, border:"none",
                   background:"linear-gradient(135deg,#dc2626,#ef4444)",
-                  color:"white", fontWeight:900, cursor:"pointer" }}>
-                Supprimer
-              </button>
+                  color:"white", fontWeight:900, cursor:"pointer" }}>{t("supprimer")}</button>
             </div>
           </div>
         </div>

@@ -1,8 +1,8 @@
 // src/pages/Auth/Register.jsx — DevOpsAkademy v4.0
-// ✅ Design existant conservé à l'identique
-// ✅ Étudiant : flux inchangé
-// ✅ Instructeur : après création compte → formulaire candidature 3 étapes
-// ✅ Admin reçoit email récapitulatif complet
+// Design existant conservé à l'identique
+// Étudiant : flux inchangé
+// Instructeur : après création compte → formulaire candidature 3 étapes
+// Admin reçoit email récapitulatif complet
 
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -14,6 +14,7 @@ import {
   Trophy, Award, Users, Terminal, BarChart2, Zap,
   ChevronRight, ChevronLeft, Send, Linkedin, Globe, Video
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15", dark: "#1f1b5a" }
 
@@ -25,55 +26,22 @@ const EXPERTISE_OPTIONS = [
   "GitOps & ArgoCD", "Microservices & Cloud Native",
 ]
 
-const ROLE_CONTENT = {
-  student: {
-    title: "Lancez votre carrière DevOps",
-    subtitle: "Rejoignez +2 000 ingénieurs formés par des praticiens.",
-    icon: GraduationCap,
-    features: [
-      { icon: Terminal,  text: "Labs interactifs Kubernetes & Docker" },
-      { icon: Award,     text: "Certificats numériques vérifiables" },
-      { icon: BarChart2, text: "Suivi de progression personnalisé" },
-      { icon: Users,     text: "Communauté et forum actif" },
-      { icon: Trophy,    text: "Classement gamifié & points XP" },
-      { icon: Zap,       text: "Accès immédiat aux cours gratuits" },
-    ],
-    testimonial: {
-      text: "J'ai décroché ma première mission Cloud en 3 mois grâce à DevOpsAkademy.",
-      author: "Jean D.", role: "DevOps Engineer · Dakar", initials: "JD",
-      color: "from-violet-500 to-indigo-600",
-    }
-  },
-  instructor: {
-    title: "Partagez votre expertise",
-    subtitle: "Vos revenus augmentent à chaque inscription sur vos cours.",
-    icon: BookOpen,
-    features: [
-      { icon: Users,     text: "Revenus basés sur vos apprenants" },
-      { icon: BarChart2, text: "Commission configurable par cours" },
-      { icon: Award,     text: "Certification instructeur officielle" },
-      { icon: Terminal,  text: "Outils de création complets" },
-      { icon: Trophy,    text: "Support dédié de notre équipe" },
-      { icon: Zap,       text: "Validation sous 3–5 jours ouvrés" },
-    ],
-    testimonial: {
-      text: "Mes revenus augmentent à chaque nouvelle inscription. La plateforme gère tout.",
-      author: "Amina T.", role: "SRE Senior · Instructrice certifiée", initials: "AT",
-      color: "from-amber-500 to-orange-600",
-    }
-  }
+const ROLE_ICONS = {
+  student: { icon: GraduationCap, features: [Terminal, Award, BarChart2, Users, Trophy, Zap] },
+  instructor: { icon: BookOpen, features: [Users, BarChart2, Award, Terminal, Trophy, Zap] },
 }
 
 // ── Barre de force mot de passe ───────────────────────────────
 function PwdStrength({ pwd }) {
+  const { t } = useTranslation("register")
   if (!pwd) return null
   const checks = { length: pwd.length >= 8, upper: /[A-Z]/.test(pwd), number: /[0-9]/.test(pwd), special: /[^a-zA-Z0-9]/.test(pwd) }
   const score = Object.values(checks).filter(Boolean).length
   const levels = [
-    { label: "Trop court", color: "#ef4444", w: "20%" },
-    { label: "Faible",     color: "#f97316", w: "45%" },
-    { label: "Moyen",      color: "#eab308", w: "70%" },
-    { label: "Fort",       color: "#22c55e", w: "100%" },
+    { label: t("strength.veryWeak"), color: "#ef4444", w: "20%" },
+    { label: t("strength.weak"),     color: "#f97316", w: "45%" },
+    { label: t("strength.medium"),      color: "#eab308", w: "70%" },
+    { label: t("strength.strong"),       color: "#22c55e", w: "100%" },
   ]
   const lv = levels[score - 1] || levels[0]
   return (
@@ -84,7 +52,7 @@ function PwdStrength({ pwd }) {
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold" style={{ color: lv.color }}>{lv.label}</span>
         <div className="flex gap-1">
-          {[["length", "8+"], ["upper", "Maj"], ["number", "123"], ["special", "#@"]].map(([k, l]) => (
+          {[["length", "8+"], ["upper", "A-Z"], ["number", "0-9"], ["special", "#@"]].map(([k, l]) => (
             <span key={k} className={`text-[9px] px-1 py-0.5 rounded font-medium ${checks[k] ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
               {checks[k] ? "✓" : "·"}{l}
             </span>
@@ -97,8 +65,10 @@ function PwdStrength({ pwd }) {
 
 // ── Colonne gauche (design existant) ─────────────────────────
 function LeftPanel({ role }) {
-  const content = ROLE_CONTENT[role]
+  const { t } = useTranslation("register")
+  const content = ROLE_ICONS[role]
   const Icon = content.icon
+  const features = t(`panel.${role}.features`, { returnObjects: true })
   return (
     <div className="hidden lg:flex flex-col justify-between p-10 text-white relative overflow-hidden h-full"
       style={{ background: `linear-gradient(135deg,${C.dark} 0%,${C.primary} 60%,${C.light} 100%)` }}>
@@ -121,34 +91,25 @@ function LeftPanel({ role }) {
             style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)" }}>
             <Icon className="w-7 h-7 text-white" />
           </div>
-          <h2 className="text-3xl font-black leading-tight mb-3">{content.title}</h2>
-          <p className="text-white/65 text-sm leading-relaxed">{content.subtitle}</p>
+          <h2 className="text-3xl font-black leading-tight mb-3">{t(`panel.${role}.title`)}</h2>
+          <p className="text-white/65 text-sm leading-relaxed">{t(`panel.${role}.subtitle`)}</p>
         </div>
         <div className="space-y-3">
-          {content.features.map(({ icon: FIcon, text }, i) => (
+          {content.features.map((FIcon, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.12)" }}>
                 <FIcon className="w-3.5 h-3.5 text-white/80" />
               </div>
-              <span className="text-white/80 text-sm">{text}</span>
+              <span className="text-white/80 text-sm">{features[i]}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="relative z-10 rounded-2xl p-5"
+      <div className="relative z-10 rounded-2xl p-5 flex items-start gap-3"
         style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
-        <div className="flex gap-0.5 mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />)}</div>
-        <p className="text-white/80 text-sm italic leading-relaxed mb-4">"{content.testimonial.text}"</p>
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${content.testimonial.color} flex items-center justify-center text-white text-xs font-black flex-shrink-0`}>
-            {content.testimonial.initials}
-          </div>
-          <div>
-            <p className="text-white text-sm font-bold">{content.testimonial.author}</p>
-            <p className="text-white/50 text-xs">{content.testimonial.role}</p>
-          </div>
-        </div>
+        <ShieldCheck className="w-5 h-5 text-white/80 flex-shrink-0 mt-0.5" />
+        <p className="text-white/80 text-sm leading-relaxed">{t(`panel.${role}.note`)}</p>
       </div>
     </div>
   )
@@ -156,14 +117,15 @@ function LeftPanel({ role }) {
 
 // ── Écran succès étudiant (design existant) ──────────────────
 function SuccessScreen({ email, emailSent, role, onResend, resending, resendOk }) {
+  const { t } = useTranslation("register")
   const navigate = useNavigate()
   const [left, setLeft] = useState(10)
   useEffect(() => {
-    const t = setInterval(() => setLeft(p => {
-      if (p <= 1) { clearInterval(t); navigate("/login", { state: { message: "✅ Compte créé ! Vérifiez votre email puis connectez-vous.", email } }); return 0 }
+    const timer = setInterval(() => setLeft(p => {
+      if (p <= 1) { clearInterval(timer); navigate("/login", { state: { notice: "accountCreated", email } }); return 0 }
       return p - 1
     }), 1000)
-    return () => clearInterval(t)
+    return () => clearInterval(timer)
   }, [navigate, email])
 
   return (
@@ -179,17 +141,17 @@ function SuccessScreen({ email, emailSent, role, onResend, resending, resendOk }
           </div>
         </div>
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Compte créé ! 🎉</h2>
+          <h2 className="text-2xl font-black text-gray-900">{t("success.title")}</h2>
           <p className="text-gray-500 text-sm mt-2 leading-relaxed">
             {emailSent
-              ? <>Email d'activation envoyé à <strong className="text-indigo-700 break-all">{email}</strong></>
-              : <>Compte créé pour <strong className="text-indigo-700">{email}</strong></>}
+              ? <>{t("success.sentTo")} <strong className="text-indigo-700 break-all">{email}</strong></>
+              : <>{t("success.createdFor")} <strong className="text-indigo-700">{email}</strong></>}
           </p>
         </div>
         {emailSent ? (
           <div className="rounded-xl p-4 text-left space-y-2.5" style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}>
-            <p className="text-xs font-bold text-blue-700">📬 Pour activer votre compte :</p>
-            {["Ouvrez votre boîte email (et vos spams)", "Cliquez sur « Activer mon compte »", "Votre compte est activé instantanément"].map((s, i) => (
+            <p className="text-xs font-bold text-blue-700">{t("success.toActivate")}</p>
+            {t("success.steps", { returnObjects: true }).map((s, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-black flex-shrink-0" style={{ background: "#0ea5e9" }}>{i + 1}</div>
                 <p className="text-blue-700 text-xs">{s}</p>
@@ -199,25 +161,25 @@ function SuccessScreen({ email, emailSent, role, onResend, resending, resendOk }
         ) : (
           <div className="rounded-xl p-3 text-left flex items-start gap-2" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
             <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-            <p className="text-amber-700 text-xs leading-relaxed">L'envoi automatique a échoué. Cliquez sur <strong>Renvoyer</strong>.</p>
+            <p className="text-amber-700 text-xs leading-relaxed">{t("success.sendFailed1")} <strong>{t("success.sendFailedBold")}</strong>.</p>
           </div>
         )}
         {resendOk
-          ? <p className="text-emerald-600 text-xs font-medium flex items-center justify-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Email renvoyé ! Vérifiez vos spams.</p>
+          ? <p className="text-emerald-600 text-xs font-medium flex items-center justify-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> {t("success.resent")}</p>
           : <button onClick={onResend} disabled={resending}
               className="w-full py-2.5 rounded-xl text-sm font-bold border-2 transition hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ borderColor: C.light, color: C.light }}>
-              {resending ? <><Loader className="w-3.5 h-3.5 animate-spin" />Envoi...</> : <><RefreshCw className="w-3.5 h-3.5" />Renvoyer l'email</>}
+              {resending ? <><Loader className="w-3.5 h-3.5 animate-spin" />{t("success.sending")}</> : <><RefreshCw className="w-3.5 h-3.5" />{t("success.resend")}</>}
             </button>
         }
-        <Link to="/login" state={{ message: "✅ Vérifiez votre email pour activer votre compte.", email }}
+        <Link to="/login" state={{ notice: "verifyEmail", email }}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-black text-white hover:opacity-90 transition"
           style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
-          <ArrowRight className="w-4 h-4" /> Se connecter maintenant
+          <ArrowRight className="w-4 h-4" /> {t("success.loginNow")}
         </Link>
         <div className="flex items-center justify-center gap-1 text-gray-400 text-xs">
           <Clock className="w-3 h-3" />
-          Redirection dans <span className="font-black text-indigo-600 tabular-nums mx-1">{left}s</span>
+          {t("success.redirectIn")} <span className="font-black text-indigo-600 tabular-nums mx-1">{left}s</span>
         </div>
       </div>
     </div>
@@ -226,14 +188,15 @@ function SuccessScreen({ email, emailSent, role, onResend, resending, resendOk }
 
 // ── Succès candidature instructeur ───────────────────────────
 function InstructorSuccessScreen({ email, firstName }) {
+  const { t } = useTranslation("register")
   const navigate = useNavigate()
   const [left, setLeft] = useState(12)
   useEffect(() => {
-    const t = setInterval(() => setLeft(p => {
-      if (p <= 1) { clearInterval(t); navigate("/login", { state: { message: "✅ Candidature envoyée ! Activez votre compte via l'email reçu.", email } }); return 0 }
+    const timer = setInterval(() => setLeft(p => {
+      if (p <= 1) { clearInterval(timer); navigate("/login", { state: { notice: "applicationSent", email } }); return 0 }
       return p - 1
     }), 1000)
-    return () => clearInterval(t)
+    return () => clearInterval(timer)
   }, [navigate, email])
 
   return (
@@ -244,18 +207,16 @@ function InstructorSuccessScreen({ email, firstName }) {
           <Send className="w-10 h-10 text-emerald-500" />
         </div>
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Candidature envoyée ! 🎉</h2>
+          <h2 className="text-2xl font-black text-gray-900">{t("instructorSuccess.title")}</h2>
           <p className="text-gray-500 text-sm mt-2 leading-relaxed">
-            Bonjour <strong>{firstName}</strong>, votre dossier a été transmis à notre équipe.
+            {t("instructorSuccess.hello")} <strong>{firstName}</strong>{t("instructorSuccess.transmitted")}
           </p>
         </div>
         <div className="rounded-xl p-4 text-left space-y-2.5" style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}>
-          <p className="text-xs font-bold text-blue-700">📋 Prochaines étapes :</p>
+          <p className="text-xs font-bold text-blue-700">{t("instructorSuccess.next")}</p>
           {[
-            "Email de confirmation envoyé à " + email,
-            "Activez votre compte via l'email d'activation",
-            "Examen du dossier sous 3 à 5 jours ouvrés",
-            "Décision par email avec motif détaillé",
+            t("instructorSuccess.confirmSentTo", { email }),
+            ...t("instructorSuccess.steps", { returnObjects: true }),
           ].map((s, i) => (
             <div key={i} className="flex items-start gap-2">
               <div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-black flex-shrink-0 mt-0.5" style={{ background: "#0ea5e9" }}>{i + 1}</div>
@@ -266,17 +227,17 @@ function InstructorSuccessScreen({ email, firstName }) {
         <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <p className="text-amber-700 text-xs leading-relaxed">
-            Vérifiez vos <strong>spams</strong>. Pensez à activer votre compte via l'email reçu avant de vous connecter.
+            {t("instructorSuccess.spamNote1")} <strong>{t("instructorSuccess.spamBold")}</strong>{t("instructorSuccess.spamNote2")}
           </p>
         </div>
-        <Link to="/login" state={{ message: "✅ Candidature envoyée ! Activez votre compte via l'email reçu.", email }}
+        <Link to="/login" state={{ notice: "applicationSent", email }}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-black text-white hover:opacity-90 transition"
           style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
-          <ArrowRight className="w-4 h-4" /> Aller à la connexion
+          <ArrowRight className="w-4 h-4" /> {t("instructorSuccess.goLogin")}
         </Link>
         <div className="flex items-center justify-center gap-1 text-gray-400 text-xs">
           <Clock className="w-3 h-3" />
-          Redirection dans <span className="font-black text-indigo-600 tabular-nums mx-1">{left}s</span>
+          {t("instructorSuccess.redirectIn")} <span className="font-black text-indigo-600 tabular-nums mx-1">{left}s</span>
         </div>
       </div>
     </div>
@@ -285,6 +246,8 @@ function InstructorSuccessScreen({ email, firstName }) {
 
 // ── Formulaire candidature instructeur 3 étapes ──────────────
 function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
+  const { t, i18n } = useTranslation("register")
+  const lang = (i18n.resolvedLanguage || "fr").slice(0, 2)
   const [step, setStep] = useState(1)
   const [sending, setSending] = useState(false)
   const [errors, setErrors] = useState({})
@@ -310,17 +273,17 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
   const validateStep = (s) => {
     const e = {}
     if (s === 1) {
-      if (!app.motivation.trim() || app.motivation.trim().length < 50) e.motivation = "Minimum 50 caractères requis"
-      if (!app.experience.trim() || app.experience.trim().length < 30) e.experience = "Minimum 30 caractères requis"
-      if (!app.years_experience) e.years_experience = "Requis"
+      if (!app.motivation.trim() || app.motivation.trim().length < 50) e.motivation = t("app.errors.min50")
+      if (!app.experience.trim() || app.experience.trim().length < 30) e.experience = t("app.errors.min30")
+      if (!app.years_experience) e.years_experience = t("app.errors.required")
     }
     if (s === 2) {
-      if (app.expertise_areas.length === 0) e.expertise_areas = "Sélectionnez au moins un domaine"
-      if (!app.sample_course_topic.trim() || app.sample_course_topic.trim().length < 3) e.sample_course_topic = "Minimum 3 caractères"
-      if (!app.weekly_hours) e.weekly_hours = "Requis"
+      if (app.expertise_areas.length === 0) e.expertise_areas = t("app.errors.pickDomain")
+      if (!app.sample_course_topic.trim() || app.sample_course_topic.trim().length < 3) e.sample_course_topic = t("app.errors.min3")
+      if (!app.weekly_hours) e.weekly_hours = t("app.errors.required")
     }
     if (s === 3) {
-      if (!app.charter_accepted) e.charter_accepted = "Vous devez accepter la charte"
+      if (!app.charter_accepted) e.charter_accepted = t("app.errors.charter")
     }
     setErrors(e)
     return Object.keys(e).length === 0
@@ -336,13 +299,14 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
       // ou le token de session si déjà connecté
       const authToken = tempToken || localStorage.getItem("token")
       if (!authToken) {
-        setGlobalErr("Session expirée. Veuillez vous reconnecter.")
+        setGlobalErr(t("app.sessionExpired"))
         return
       }
       const res = await fetch("/api/instructor-applications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept-Language": lang,
           "Authorization": `Bearer ${authToken}`,
         },
         credentials: "include",
@@ -371,23 +335,23 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
           if (data.errors.motivation)            mapped.motivation = data.errors.motivation
           if (data.errors.experience)            mapped.experience = data.errors.experience
           if (data.errors.years_experience)      mapped.years_experience = data.errors.years_experience
-          if (data.errors.proposed_course_title) mapped.sample_course_topic = "Titre trop court (minimum 3 caractères)"
+          if (data.errors.proposed_course_title) mapped.sample_course_topic = t("app.titleTooShort")
           if (data.errors.linkedin_url)          mapped.linkedin_url = data.errors.linkedin_url
           if (Object.keys(mapped).length > 0) {
             setErrors(mapped)
             // Retourner à l'étape qui contient l'erreur
             if (mapped.motivation || mapped.experience || mapped.years_experience) setStep(1)
             else if (mapped.sample_course_topic || mapped.linkedin_url) setStep(2)
-            setGlobalErr("Corrigez les champs signalés ci-dessous.")
+            setGlobalErr(t("app.fixFields"))
           } else {
-            setGlobalErr(data.message || "Une erreur est survenue.")
+            setGlobalErr(data.message || t("app.generic"))
           }
         } else {
-          setGlobalErr(data.message || "Une erreur est survenue. Réessayez.")
+          setGlobalErr(data.message || t("app.generic"))
         }
       }
     } catch {
-      setGlobalErr("Erreur de connexion au serveur. Vérifiez votre connexion.")
+      setGlobalErr(t("app.network"))
     } finally {
       setSending(false)
     }
@@ -397,7 +361,8 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
   const taCls = (k) => `w-full px-4 py-2.5 rounded-xl border-2 focus:outline-none transition text-sm text-gray-900 placeholder-gray-400 resize-none ${errors[k] ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400 bg-white"}`
   const errMsg = (k) => errors[k] && <p className="mt-0.5 text-[10px] text-red-500 flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5" />{errors[k]}</p>
 
-  const stepLabels = ["Parcours", "Expertise", "Confirmation"]
+  const stepLabels = t("app.stepLabels", { returnObjects: true })
+  const expertiseLabels = t("expertise", { returnObjects: true })
 
   return (
     <div className="flex-1 flex flex-col px-8 py-6 lg:px-12 overflow-y-auto">
@@ -407,10 +372,10 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
         <div className="mb-5">
           <div className="flex items-center gap-2 mb-1">
             <BookOpen className="w-5 h-5" style={{ color: C.primary }} />
-            <h1 className="text-xl font-black text-gray-900">Dossier instructeur</h1>
+            <h1 className="text-xl font-black text-gray-900">{t("app.title")}</h1>
           </div>
           <p className="text-gray-500 text-xs">
-            Bonjour <strong>{baseData.first_name}</strong> — complétez votre candidature ({step}/3)
+            {t("app.hello")} <strong>{baseData.first_name}</strong>, {t("app.complete")} ({step}/3)
           </p>
         </div>
 
@@ -451,52 +416,52 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                Motivation <span className="text-red-500">*</span>
-                <span className="text-gray-400 font-normal ml-1">({app.motivation.length} car. / 50 min)</span>
+                {t("app.motivation")} <span className="text-red-500">*</span>
+                <span className="text-gray-400 font-normal ml-1">{t("app.motivationCount", { count: app.motivation.length })}</span>
               </label>
               <textarea rows={3} value={app.motivation} onChange={e => setF("motivation", e.target.value)}
-                placeholder="Pourquoi voulez-vous enseigner sur DevOpsAkademy ? Quelle valeur unique apportez-vous aux apprenants ?"
+                placeholder={t("app.motivationPlaceholder")}
                 className={taCls("motivation")} />
               {errMsg("motivation")}
             </div>
 
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                Parcours professionnel <span className="text-red-500">*</span>
-                <span className="text-gray-400 font-normal ml-1">({app.experience.length} car. / 30 min)</span>
+                {t("app.experience")} <span className="text-red-500">*</span>
+                <span className="text-gray-400 font-normal ml-1">{t("app.experienceCount", { count: app.experience.length })}</span>
               </label>
               <textarea rows={3} value={app.experience} onChange={e => setF("experience", e.target.value)}
-                placeholder="Entreprises, postes occupés, projets DevOps en production, certifications..."
+                placeholder={t("app.experiencePlaceholder")}
                 className={taCls("experience")} />
               {errMsg("experience")}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Années d'expérience <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.years")} <span className="text-red-500">*</span></label>
                 <select value={app.years_experience} onChange={e => setF("years_experience", e.target.value)} className={inpCls("years_experience")}>
-                  <option value="">Sélectionner...</option>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => <option key={n} value={n}>{n} an{n > 1 ? "s" : ""}</option>)}
-                  <option value="10">10 ans ou +</option>
+                  <option value="">{t("app.select")}</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => <option key={n} value={n}>{t("app.year", { count: n })}</option>)}
+                  <option value="10">{t("app.tenPlus")}</option>
                 </select>
                 {errMsg("years_experience")}
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">LinkedIn</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.linkedin")}</label>
                 <div className="flex items-center rounded-xl border-2 border-gray-200 focus-within:border-indigo-400 transition bg-white">
                   <div className="pl-3"><Linkedin className="w-3.5 h-3.5 text-gray-400" /></div>
                   <input type="url" value={app.linkedin_url} onChange={e => setF("linkedin_url", e.target.value)}
-                    placeholder="linkedin.com/in/..." className="flex-1 px-2.5 py-2.5 bg-transparent focus:outline-none text-sm placeholder-gray-400" />
+                    placeholder={t("app.linkedinPlaceholder")} className="flex-1 px-2.5 py-2.5 bg-transparent focus:outline-none text-sm placeholder-gray-400" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">GitHub / Portfolio</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.portfolio")}</label>
               <div className="flex items-center rounded-xl border-2 border-gray-200 focus-within:border-indigo-400 transition bg-white">
                 <div className="pl-3"><Globe className="w-3.5 h-3.5 text-gray-400" /></div>
                 <input type="url" value={app.portfolio_url} onChange={e => setF("portfolio_url", e.target.value)}
-                  placeholder="github.com/votre-profil ou votre site" className="flex-1 px-2.5 py-2.5 bg-transparent focus:outline-none text-sm placeholder-gray-400" />
+                  placeholder={t("app.portfolioPlaceholder")} className="flex-1 px-2.5 py-2.5 bg-transparent focus:outline-none text-sm placeholder-gray-400" />
               </div>
             </div>
           </div>
@@ -507,20 +472,20 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                Domaines d'expertise <span className="text-red-500">*</span>
+                {t("app.expertise")} <span className="text-red-500">*</span>
                 {app.expertise_areas.length > 0 && (
-                  <span className="ml-2 font-bold" style={{ color: C.light }}>{app.expertise_areas.length} sélectionné{app.expertise_areas.length > 1 ? "s" : ""}</span>
+                  <span className="ml-2 font-bold" style={{ color: C.light }}>{t("app.selected", { count: app.expertise_areas.length })}</span>
                 )}
               </label>
               <div className="flex flex-wrap gap-1.5 p-3 rounded-xl border-2 max-h-36 overflow-y-auto"
                 style={{ borderColor: errors.expertise_areas ? "#fca5a5" : "#e5e7eb" }}>
-                {EXPERTISE_OPTIONS.map(opt => (
+                {EXPERTISE_OPTIONS.map((opt, idx) => (
                   <button key={opt} type="button" onClick={() => toggleExpertise(opt)}
                     className="px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all"
                     style={app.expertise_areas.includes(opt)
                       ? { background: `linear-gradient(135deg,${C.primary},${C.light})`, borderColor: C.primary, color: "#fff" }
                       : { background: "#fff", borderColor: "#e5e7eb", color: "#6b7280" }}>
-                    {opt}
+                    {expertiseLabels[idx] || opt}
                   </button>
                 ))}
               </div>
@@ -528,40 +493,40 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Certifications obtenues</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.certifications")}</label>
               <input type="text" value={app.certifications} onChange={e => setF("certifications", e.target.value)}
-                placeholder="Ex : AWS SAA, CKA, Terraform Associate, Azure AZ-400..." className={inpCls("certifications")} />
+                placeholder={t("app.certificationsPlaceholder")} className={inpCls("certifications")} />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Titre du cours proposé <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.courseTitle")} <span className="text-red-500">*</span></label>
               <input type="text" value={app.sample_course_topic} onChange={e => setF("sample_course_topic", e.target.value)}
-                placeholder="Ex : Kubernetes de zéro à la production" className={inpCls("sample_course_topic")} />
+                placeholder={t("app.courseTitlePlaceholder")} className={inpCls("sample_course_topic")} />
               {errMsg("sample_course_topic")}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Description du cours</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.courseDescription")}</label>
               <textarea rows={2} value={app.proposed_course_description} onChange={e => setF("proposed_course_description", e.target.value)}
-                placeholder="Public cible, objectifs pédagogiques, contenu prévu, niveau requis..."
+                placeholder={t("app.courseDescriptionPlaceholder")}
                 className={taCls("proposed_course_description")} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Vidéo de présentation</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.video")}</label>
                 <div className="flex items-center rounded-xl border-2 border-gray-200 focus-within:border-indigo-400 transition bg-white">
                   <div className="pl-3"><Video className="w-3.5 h-3.5 text-gray-400" /></div>
                   <input type="url" value={app.video_url} onChange={e => setF("video_url", e.target.value)}
-                    placeholder="Loom / YouTube..." className="flex-1 px-2 py-2.5 bg-transparent focus:outline-none text-sm placeholder-gray-400" />
+                    placeholder={t("app.videoPlaceholder")} className="flex-1 px-2 py-2.5 bg-transparent focus:outline-none text-sm placeholder-gray-400" />
                 </div>
-                <p className="text-[9px] text-gray-400 mt-0.5">3–5 min · fortement recommandée</p>
+                <p className="text-[9px] text-gray-400 mt-0.5">{t("app.videoHint")}</p>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Heures/semaine dispo <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t("app.weeklyHours")} <span className="text-red-500">*</span></label>
                 <select value={app.weekly_hours} onChange={e => setF("weekly_hours", e.target.value)} className={inpCls("weekly_hours")}>
-                  <option value="">Sélectionner...</option>
-                  {[2, 3, 5, 8, 10, 15, 20].map(n => <option key={n} value={n}>{n}h / semaine</option>)}
+                  <option value="">{t("app.select")}</option>
+                  {[2, 3, 5, 8, 10, 15, 20].map(n => <option key={n} value={n}>{t("app.hoursPerWeek", { count: n })}</option>)}
                 </select>
                 {errMsg("weekly_hours")}
               </div>
@@ -574,14 +539,14 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
           <div className="space-y-4">
             {/* Récap */}
             <div className="rounded-xl p-4 space-y-2" style={{ background: "#f8f7ff", border: "1px solid #e0e7ff" }}>
-              <p className="text-xs font-black text-indigo-700 mb-2">📋 Votre dossier en résumé</p>
+              <p className="text-xs font-black text-indigo-700 mb-2">{t("app.summary")}</p>
               {[
-                ["Candidat", `${baseData.first_name} ${baseData.last_name}`],
-                ["Email", baseData.email],
-                ["Expérience", `${app.years_experience} an${parseInt(app.years_experience) > 1 ? "s" : ""}`],
-                ["Domaines", app.expertise_areas.slice(0, 3).join(", ") + (app.expertise_areas.length > 3 ? ` +${app.expertise_areas.length - 3} autres` : "")],
-                ["Cours proposé", app.sample_course_topic || "—"],
-                ["Disponibilité", app.weekly_hours ? `${app.weekly_hours}h / semaine` : "—"],
+                [t("app.candidate"), `${baseData.first_name} ${baseData.last_name}`],
+                [t("app.email"), baseData.email],
+                [t("app.experienceLabel"), t("app.year", { count: parseInt(app.years_experience) || 0 })],
+                [t("app.domains"), app.expertise_areas.slice(0, 3).map(v => expertiseLabels[EXPERTISE_OPTIONS.indexOf(v)] || v).join(", ") + (app.expertise_areas.length > 3 ? ` ${t("app.moreDomains", { count: app.expertise_areas.length - 3 })}` : "")],
+                [t("app.proposedCourse"), app.sample_course_topic || "—"],
+                [t("app.availability"), app.weekly_hours ? t("app.hoursPerWeek", { count: app.weekly_hours }) : "—"],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start gap-2">
                   <span className="text-[10px] font-bold text-gray-500 w-22 flex-shrink-0">{label} :</span>
@@ -594,20 +559,15 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
             <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}>
               <Mail className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
               <p className="text-blue-700 text-xs leading-relaxed">
-                Notre administrateur recevra votre dossier complet par email et vous contactera sous <strong>3 à 5 jours ouvrés</strong>.
+                {t("app.processInfo1")} <strong>{t("app.processInfoBold")}</strong>.
               </p>
             </div>
 
             {/* Charte */}
             <div className="rounded-xl p-4" style={{ background: "#fafafa", border: "1px solid #e5e7eb" }}>
-              <p className="text-[11px] font-black text-gray-700 mb-2">📜 Charte instructeur DevOpsAkademy</p>
+              <p className="text-[11px] font-black text-gray-700 mb-2">{t("app.charterTitle")}</p>
               <div className="text-[10px] text-gray-500 space-y-1.5 max-h-24 overflow-y-auto leading-relaxed pr-1">
-                <p>• Vos revenus proviennent des inscriptions de vos apprenants — DevOpsAkademy ne vous paie pas directement.</p>
-                <p>• Un pourcentage configurable par l'administrateur est déduit de chaque vente de votre cours.</p>
-                <p>• Si un instructeur secondaire est ajouté à votre cours, un % lui sera attribué (configurable par vous ou l'admin).</p>
-                <p>• Vous êtes responsable de la qualité, de l'exactitude et de la mise à jour du contenu de vos cours.</p>
-                <p>• DevOpsAkademy se réserve le droit de retirer tout cours ne respectant pas les standards de qualité.</p>
-                <p>• Vous accordez à DevOpsAkademy une licence d'exploitation de votre contenu sur la plateforme.</p>
+                {t("app.charter", { returnObjects: true }).map((line, i) => <p key={i}>• {line}</p>)}
               </div>
             </div>
 
@@ -620,7 +580,7 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
                 {app.charter_accepted && <CheckCircle className="w-3.5 h-3.5 text-white" />}
               </div>
               <span className="text-xs text-gray-600 leading-relaxed">
-                J'ai lu et j'accepte la <strong>charte instructeur</strong> et le modèle de rémunération par commission sur les ventes de mes cours. <span className="text-red-500">*</span>
+                {t("app.charterAccept1")} <strong>{t("app.charterAcceptBold")}</strong> {t("app.charterAccept2")} <span className="text-red-500">*</span>
               </span>
             </label>
             {errMsg("charter_accepted")}
@@ -633,7 +593,7 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
             <button onClick={() => setStep(s => s - 1)}
               className="flex items-center gap-1.5 px-4 py-3 rounded-xl border-2 font-bold text-sm transition hover:bg-gray-50"
               style={{ borderColor: "#e5e7eb", color: "#6b7280" }}>
-              <ChevronLeft className="w-4 h-4" /> Retour
+              <ChevronLeft className="w-4 h-4" /> {t("app.back")}
             </button>
           )}
           <button
@@ -642,16 +602,16 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
             className="flex-1 py-3 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
             style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
             {sending
-              ? <><Loader className="w-4 h-4 animate-spin" />Envoi en cours...</>
+              ? <><Loader className="w-4 h-4 animate-spin" />{t("app.sending")}</>
               : step < 3
-                ? <>Étape suivante <ChevronRight className="w-4 h-4" /></>
-                : <><Send className="w-4 h-4" />Envoyer ma candidature</>}
+                ? <>{t("app.next")} <ChevronRight className="w-4 h-4" /></>
+                : <><Send className="w-4 h-4" />{t("app.submit")}</>}
           </button>
         </div>
 
         <p className="text-center text-xs text-gray-500 mt-4">
-          Déjà un compte ?{" "}
-          <Link to="/login" className="font-black hover:underline" style={{ color: C.light }}>Se connecter</Link>
+          {t("app.haveAccount")}{" "}
+          <Link to="/login" className="font-black hover:underline" style={{ color: C.light }}>{t("app.login")}</Link>
         </p>
       </div>
     </div>
@@ -662,6 +622,8 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
 // COMPOSANT PRINCIPAL
 // ══════════════════════════════════════════════════════════════
 export default function Register() {
+  const { t, i18n } = useTranslation("register")
+  const lang = (i18n.resolvedLanguage || "fr").slice(0, 2)
   const { user, register } = useAuth()
   const navigate = useNavigate()
 
@@ -686,17 +648,19 @@ export default function Register() {
     navigate(r === "admin" || r === "superadmin" ? "/admin" : r === "instructor" ? "/instructor" : "/student", { replace: true })
   }, [user, navigate])
 
+  useEffect(() => { document.title = t("meta") }, [t, i18n.language])
+
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: "" })); setGlobalErr("") }
   const changeRole = (r) => { setRole(r); setErrors({}); setGlobalErr("") }
 
   const validate = () => {
     const e = {}
-    if (!form.first_name.trim() || form.first_name.trim().length < 2) e.first_name = "Minimum 2 caractères"
-    if (!form.last_name.trim() || form.last_name.trim().length < 2)   e.last_name  = "Minimum 2 caractères"
-    if (!form.email || !form.email.includes("@"))                      e.email      = "Email invalide"
-    if (!form.password || form.password.length < 8)                    e.password   = "Minimum 8 caractères"
-    if (!form.confirm)                                                  e.confirm    = "Confirmez votre mot de passe"
-    else if (form.password !== form.confirm)                           e.confirm    = "Les mots de passe ne correspondent pas"
+    if (!form.first_name.trim() || form.first_name.trim().length < 2) e.first_name = t("form.errors.min2")
+    if (!form.last_name.trim() || form.last_name.trim().length < 2)   e.last_name  = t("form.errors.min2")
+    if (!form.email || !form.email.includes("@"))                      e.email      = t("form.errors.email")
+    if (!form.password || form.password.length < 8)                    e.password   = t("form.errors.min8")
+    if (!form.confirm)                                                  e.confirm    = t("form.errors.confirm")
+    else if (form.password !== form.confirm)                           e.confirm    = t("form.errors.mismatch")
     setErrors(e); return Object.keys(e).length === 0
   }
 
@@ -705,7 +669,7 @@ export default function Register() {
     setLoading(true); setGlobalErr("")
     try {
       const { confirm, ...payload } = form
-      const res = await register({ ...payload, role })
+      const res = await register({ ...payload, role, language: lang })
       if (res?.success) {
         setEmailSent(res.email_sent !== false)
         // Sauvegarder le token temporaire pour la candidature instructeur
@@ -713,20 +677,20 @@ export default function Register() {
         // Instructeur → formulaire candidature / Étudiant → succès
         setPhase(role === "instructor" ? "instructor_form" : "success_student")
       } else {
-        const msg = res?.message || "Une erreur est survenue"
-        if (msg.toLowerCase().includes("exist") || msg.toLowerCase().includes("déjà"))
-          setErrors(p => ({ ...p, email: "Cet email est déjà utilisé. Connectez-vous ?" }))
+        const msg = res?.message || t("form.errors.generic")
+        if (msg.toLowerCase().includes("exist") || msg.toLowerCase().includes("déjà") || msg.toLowerCase().includes("already"))
+          setErrors(p => ({ ...p, email: t("form.errors.exists") }))
         else if (msg.toLowerCase().includes("email")) setErrors(p => ({ ...p, email: msg }))
         else setGlobalErr(msg)
       }
-    } catch (err) { setGlobalErr(err?.message || "Erreur de connexion au serveur") }
+    } catch (err) { setGlobalErr(err?.message || t("form.errors.network")) }
     finally { setLoading(false) }
   }
 
   const handleResend = async () => {
     setResending(true); setResendOk(false)
     try {
-      await fetch("/api/auth/resend-verification", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.email }) })
+      await fetch("/api/auth/resend-verification", { method: "POST", headers: { "Content-Type": "application/json", "Accept-Language": lang }, body: JSON.stringify({ email: form.email, language: lang }) })
       setResendOk(true)
     } catch { } finally { setResending(false) }
   }
@@ -780,15 +744,15 @@ export default function Register() {
 
               <div className="max-w-md w-full mx-auto">
                 <div className="mb-6">
-                  <h1 className="text-2xl font-black text-gray-900">Créer un compte</h1>
-                  <p className="text-gray-500 text-sm mt-1">Rejoignez la communauté DevOps francophone</p>
+                  <h1 className="text-2xl font-black text-gray-900">{t("form.title")}</h1>
+                  <p className="text-gray-500 text-sm mt-1">{t("form.subtitle")}</p>
                 </div>
 
                 {/* ONGLETS */}
                 <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-2xl bg-gray-100">
                   {[
-                    { value: "student",    icon: GraduationCap, label: "Apprenant",  sub: "Je veux apprendre" },
-                    { value: "instructor", icon: BookOpen,       label: "Formateur",  sub: "Je veux enseigner" },
+                    { value: "student",    icon: GraduationCap, label: t("form.student"),  sub: t("form.studentSub") },
+                    { value: "instructor", icon: BookOpen,       label: t("form.instructor"),  sub: t("form.instructorSub") },
                   ].map(({ value, icon: Icon, label, sub }) => (
                     <button key={value} type="button" onClick={() => changeRole(value)}
                       className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all text-center"
@@ -807,9 +771,9 @@ export default function Register() {
                   <div className="mb-5 flex items-start gap-2.5 rounded-xl px-4 py-3" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
                     <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-amber-800 font-bold text-xs">Processus en 2 temps</p>
+                      <p className="text-amber-800 font-bold text-xs">{t("form.twoSteps")}</p>
                       <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
-                        Créez votre compte → complétez votre dossier de candidature → notre équipe examine sous 3–5 jours.
+                        {t("form.twoStepsText")}
                       </p>
                     </div>
                   </div>
@@ -827,13 +791,13 @@ export default function Register() {
                     <div>
                       <div className={fw("first_name")}>
                         <div className="pl-3"><User className="w-3.5 h-3.5 text-gray-400" /></div>
-                        <input value={form.first_name} onChange={e => set("first_name", e.target.value)} className={inp} placeholder="Prénom" autoComplete="given-name" autoFocus />
+                        <input value={form.first_name} onChange={e => set("first_name", e.target.value)} className={inp} placeholder={t("form.firstName")} autoComplete="given-name" autoFocus />
                       </div>
                       {errors.first_name && <p className="mt-0.5 text-[10px] text-red-500 flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5" />{errors.first_name}</p>}
                     </div>
                     <div>
                       <div className={fw("last_name")}>
-                        <input value={form.last_name} onChange={e => set("last_name", e.target.value)} className={inp} placeholder="Nom" autoComplete="family-name" />
+                        <input value={form.last_name} onChange={e => set("last_name", e.target.value)} className={inp} placeholder={t("form.lastName")} autoComplete="family-name" />
                       </div>
                       {errors.last_name && <p className="mt-0.5 text-[10px] text-red-500 flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5" />{errors.last_name}</p>}
                     </div>
@@ -842,7 +806,7 @@ export default function Register() {
                   <div>
                     <div className={fw("email")}>
                       <div className="pl-3"><Mail className="w-3.5 h-3.5 text-gray-400" /></div>
-                      <input type="email" value={form.email} onChange={e => set("email", e.target.value)} className={inp} placeholder="vous@exemple.com" autoComplete="email" />
+                      <input type="email" value={form.email} onChange={e => set("email", e.target.value)} className={inp} placeholder={t("form.emailPlaceholder")} autoComplete="email" />
                     </div>
                     {errors.email && <p className="mt-0.5 text-[10px] text-red-500 flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5" />{errors.email}</p>}
                   </div>
@@ -850,8 +814,8 @@ export default function Register() {
                   <div>
                     <div className={fw("password")}>
                       <div className="pl-3"><Lock className="w-3.5 h-3.5 text-gray-400" /></div>
-                      <input type={showPwd ? "text" : "password"} value={form.password} onChange={e => set("password", e.target.value)} className={inp} placeholder="Minimum 8 caractères" autoComplete="new-password" />
-                      <button type="button" onClick={() => setShowPwd(s => !s)} className="pr-3 text-gray-400 hover:text-gray-600 transition">
+                      <input type={showPwd ? "text" : "password"} value={form.password} onChange={e => set("password", e.target.value)} className={inp} placeholder={t("form.passwordPlaceholder")} autoComplete="new-password" />
+                      <button type="button" onClick={() => setShowPwd(s => !s)} aria-label={showPwd ? t("form.hidePassword") : t("form.showPassword")} className="pr-3 text-gray-400 hover:text-gray-600 transition">
                         {showPwd ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                       </button>
                     </div>
@@ -863,14 +827,14 @@ export default function Register() {
                       <div className="pl-3">
                         {form.confirm && form.confirm === form.password ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <ShieldCheck className="w-3.5 h-3.5 text-gray-400" />}
                       </div>
-                      <input type={showConf ? "text" : "password"} value={form.confirm} onChange={e => set("confirm", e.target.value)} className={inp} placeholder="Confirmer le mot de passe" autoComplete="new-password" />
+                      <input type={showConf ? "text" : "password"} value={form.confirm} onChange={e => set("confirm", e.target.value)} className={inp} placeholder={t("form.confirmPlaceholder")} autoComplete="new-password" />
                       <button type="button" onClick={() => setShowConf(s => !s)} className="pr-3 text-gray-400 hover:text-gray-600 transition">
                         {showConf ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                     {errors.confirm && <p className="mt-0.5 text-[10px] text-red-500 flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5" />{errors.confirm}</p>}
                     {form.confirm && form.confirm === form.password && !errors.confirm && (
-                      <p className="mt-0.5 text-[10px] text-emerald-600 flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" />Mots de passe identiques</p>
+                      <p className="mt-0.5 text-[10px] text-emerald-600 flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" />{t("form.match")}</p>
                     )}
                   </div>
 
@@ -878,21 +842,21 @@ export default function Register() {
                     className="w-full py-3.5 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
                     style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
                     {loading
-                      ? <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Création...</>
+                      ? <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />{t("form.creating")}</>
                       : role === "instructor"
-                        ? <>Créer mon compte <ChevronRight className="w-4 h-4" /></>
-                        : <>Créer mon compte <ArrowRight className="w-4 h-4" /></>}
+                        ? <>{t("form.create")} <ChevronRight className="w-4 h-4" /></>
+                        : <>{t("form.create")} <ArrowRight className="w-4 h-4" /></>}
                   </button>
 
                   <p className="text-center text-[11px] text-gray-400 flex items-center justify-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-indigo-400" />
-                    {role === "instructor" ? "Compte créé → dossier candidature à l'étape suivante" : "Un email d'activation sera envoyé à votre adresse"}
+                    {role === "instructor" ? t("form.hintInstructor") : t("form.hintStudent")}
                   </p>
                 </form>
 
                 <p className="text-center text-sm text-gray-500 mt-5">
-                  Déjà un compte ?{" "}
-                  <Link to="/login" className="font-black hover:underline" style={{ color: C.light }}>Se connecter</Link>
+                  {t("form.haveAccount")}{" "}
+                  <Link to="/login" className="font-black hover:underline" style={{ color: C.light }}>{t("form.login")}</Link>
                 </p>
               </div>
             </div>

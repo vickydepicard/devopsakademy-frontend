@@ -1,0 +1,76 @@
+{
+  "faq_title": "Frequently asked questions",
+  "faq_intro": "Answers to the most common questions about the platform.",
+  "faq": [
+    [
+      "How do I enroll in a course?",
+      "Open the course page, click “Enroll”, then follow the payment instructions (Mobile Money, bank transfer). Access opens as soon as the administration validates your proof of payment."
+    ],
+    [
+      "How long does payment validation take?",
+      "Usually less than one business day. You receive a notification as soon as access is confirmed."
+    ],
+    [
+      "Can I download course resources?",
+      "Yes. Each lesson can include downloadable files, available from the course player once you are enrolled."
+    ],
+    [
+      "How do I get a certificate?",
+      "Complete all lessons and pass the course assessments. The certificate is then issued and can be publicly verified with its number."
+    ],
+    [
+      "How do I become an instructor?",
+      "Submit an application from the “Become an instructor” page. Once approved you can create courses; they are published after review by the administration."
+    ],
+    [
+      "How do I attend a live bootcamp?",
+      "Lives are announced in the Bootcamps section. Register, then join the room at the scheduled time."
+    ]
+  ],
+  "privacy_title": "Privacy policy",
+  "terms_title": "Terms of use",
+  "updated": "Last updated",
+  "privacy": [
+    [
+      "Data we collect",
+      "We collect the information needed to run the service: identity, email address, learning progress, payment proofs and support exchanges."
+    ],
+    [
+      "How we use it",
+      "This data is used to manage your account, validate enrollments, issue certificates and improve the platform. It is never sold."
+    ],
+    [
+      "Retention and security",
+      "Data is kept for the lifetime of your account, protected by restricted access and hashed passwords."
+    ],
+    [
+      "Your rights",
+      "You can request access, correction or deletion of your data by writing to contact@devopsakademy.cloud."
+    ]
+  ],
+  "terms": [
+    [
+      "Purpose",
+      "DevOps Akademy provides online courses, live bootcamps and certificates. Registering implies acceptance of these terms."
+    ],
+    [
+      "Account",
+      "You are responsible for keeping your credentials confidential and for activity carried out from your account."
+    ],
+    [
+      "Content",
+      "Courses belong to the school. Reproducing, distributing or reselling them without permission is prohibited; access is personal."
+    ],
+    [
+      "Payments",
+      "Prices are displayed before enrollment. Access opens after the administration validates the payment."
+    ],
+    [
+      "Contact",
+      "For any question: contact@devopsakademy.cloud."
+    ]
+  ],
+  "nf_title": "Page not found",
+  "nf_text": "The page you requested does not exist or has been moved.",
+  "nf_home": "Back to home"
+}

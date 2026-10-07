@@ -1,0 +1,22 @@
+{
+  "impossible_de_charger_le_forum": "Unable to load the forum.",
+  "forum_communautaire": "Community forum",
+  "posez_vos_questions_partagez_vos_experiences": "Ask your questions and share your DevOps experience.",
+  "rechercher_un_sujet": "Search for a topic…",
+  "categories": "Categories",
+  "tous_les_sujets": "All topics",
+  "nouveau_sujet": "New topic",
+  "chargement": "Loading…",
+  "connectez_vous_pour_participer": "Log in to take part →",
+  "aucun_sujet_trouve": "No topics found",
+  "soyez_le_premier_a_lancer_une": "Be the first to start a discussion!",
+  "creer_un_sujet": "Create a topic",
+  "epingle": "Pinned",
+  "voir_plus_de_sujets": "Show more topics",
+  "a_l_instant": "just now",
+  "filterAll": "All",
+  "filterUnanswered": "Unanswered",
+  "filterResolved": "Resolved",
+  "filterMine": "My topics",
+  "resolved": "Resolved"
+}

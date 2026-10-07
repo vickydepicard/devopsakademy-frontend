@@ -6,8 +6,11 @@ import {
   BookOpen, Calendar, ExternalLink, ArrowRight
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
 
 export default function CertificateVerify() {
+  const { t } = useTranslation("certificateVerify");
   const { number } = useParams();
   const navigate = useNavigate();
 
@@ -44,34 +47,28 @@ export default function CertificateVerify() {
           <div className="w-16 h-16 bg-accent/20 border border-accent/40 rounded-2xl flex items-center justify-center mx-auto mb-5">
             <Award className="w-8 h-8 text-accent" />
           </div>
-          <h1 className="text-3xl lg:text-4xl font-extrabold mb-3">
-            Vérification de certificat
-          </h1>
-          <p className="text-white/75 text-lg mb-8">
-            Entrez le numéro de certificat pour confirmer son authenticité.
-          </p>
+          <h1 className="text-3xl lg:text-4xl font-extrabold mb-3">{t("verification_de_certificat")}</h1>
+          <p className="text-white/75 text-lg mb-8">{t("entrez_le_numero_de_certificat_pour")}</p>
 
           {/* Formulaire de recherche */}
-          <form onSubmit={handleSearch} className="flex gap-2 max-w-lg mx-auto">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 max-w-lg mx-auto">
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ex : DAK-1717000000-abc123"
-              className="flex-1 px-4 py-3 rounded-full bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-accent focus:bg-white/20 transition text-sm"
+              placeholder={t("ex_dak_1717000000_abc123")}
+              className="flex-1 min-w-0 px-4 py-3 rounded-full bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-accent focus:bg-white/20 transition text-sm"
             />
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-accent hover:bg-yellow-300 text-primary font-bold rounded-full transition flex items-center gap-2 shadow-md disabled:opacity-60"
+              className="px-6 py-3 bg-accent hover:bg-yellow-300 text-primary font-bold rounded-full transition flex items-center justify-center gap-2 shadow-md disabled:opacity-60"
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
               ) : (
                 <Search className="w-4 h-4" />
-              )}
-              Vérifier
-            </button>
+              )}{t("verifier")}</button>
           </form>
         </div>
       </div>
@@ -86,8 +83,8 @@ export default function CertificateVerify() {
             <div className="bg-emerald-500 text-white px-6 py-4 flex items-center gap-3">
               <CheckCircle className="w-6 h-6" />
               <div>
-                <p className="font-bold text-lg">Certificat authentique</p>
-                <p className="text-emerald-100 text-sm">Ce certificat est valide et a été émis par DevOpsAkademy</p>
+                <p className="font-bold text-lg">{t("certificat_authentique")}</p>
+                <p className="text-emerald-100 text-sm">{t("ce_certificat_est_valide_et_a")}</p>
               </div>
             </div>
 
@@ -101,7 +98,7 @@ export default function CertificateVerify() {
                   <h2 className="text-xl font-bold text-gray-900">
                     {result.cert.first_name} {result.cert.last_name}
                   </h2>
-                  <p className="text-gray-500 text-sm">a complété avec succès</p>
+                  <p className="text-gray-500 text-sm">{t("a_complete_avec_succes")}</p>
                 </div>
               </div>
 
@@ -109,16 +106,16 @@ export default function CertificateVerify() {
                 <div className="flex items-center gap-3 text-gray-700">
                   <BookOpen className="w-5 h-5 text-primary shrink-0" />
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Formation</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">{t("formation")}</p>
                     <p className="font-semibold">{result.cert.course_title}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-gray-700">
                   <Calendar className="w-5 h-5 text-primary shrink-0" />
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Délivré le</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">{t("delivre_le")}</p>
                     <p className="font-semibold">
-                      {new Date(result.cert.issued_at).toLocaleDateString("fr-FR", {
+                      {new Date(result.cert.issued_at).toLocaleDateString(getLocale(), {
                         day: "numeric", month: "long", year: "numeric"
                       })}
                     </p>
@@ -127,7 +124,7 @@ export default function CertificateVerify() {
                 <div className="flex items-center gap-3 text-gray-700">
                   <Award className="w-5 h-5 text-primary shrink-0" />
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Numéro de certificat</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">{t("numero_de_certificat")}</p>
                     <p className="font-mono font-semibold text-primary">{result.cert.certificate_number}</p>
                   </div>
                 </div>
@@ -135,9 +132,8 @@ export default function CertificateVerify() {
             </div>
 
             <div className="border-t px-6 py-4 flex items-center justify-between bg-gray-50">
-              <p className="text-xs text-gray-400">Émis par DevOpsAkademy — Plateforme de formation DevOps</p>
-              <Link to="/courses" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">
-                Voir nos cours <ArrowRight className="w-3 h-3" />
+              <p className="text-xs text-gray-400">{t("emis_par_devopsakademy_plateforme_de_formation")}</p>
+              <Link to="/courses" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">{t("voir_nos_cours")}{" "}<ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </div>
@@ -149,20 +145,14 @@ export default function CertificateVerify() {
             <div className="bg-red-500 text-white px-6 py-4 flex items-center gap-3">
               <XCircle className="w-6 h-6" />
               <div>
-                <p className="font-bold text-lg">Certificat introuvable</p>
-                <p className="text-red-100 text-sm">Ce numéro ne correspond à aucun certificat valide</p>
+                <p className="font-bold text-lg">{t("certificat_introuvable")}</p>
+                <p className="text-red-100 text-sm">{t("ce_numero_ne_correspond_a_aucun")}</p>
               </div>
             </div>
             <div className="p-6 text-center">
-              <p className="text-gray-600 mb-4">
-                Vérifiez que le numéro est correct et complet. Les certificats sont au format{" "}
-                <code className="bg-gray-100 px-2 py-0.5 rounded text-sm font-mono">DAK-XXXXXXXXXX-XXXXXX</code>.
+              <p className="text-gray-600 mb-4">{t("verifiez_que_le_numero_est_correct")}{" "}<code className="bg-gray-100 px-2 py-0.5 rounded text-sm font-mono">DAK-XXXXXXXXXX-XXXXXX</code>.
               </p>
-              <p className="text-sm text-gray-400">
-                Un problème ?{" "}
-                <Link to="/contact" className="text-primary font-medium hover:underline">
-                  Contactez notre support
-                </Link>
+              <p className="text-sm text-gray-400">{t("un_probleme")}{" "}<Link to="/contact" className="text-primary font-medium hover:underline">{t("contactez_notre_support")}</Link>
               </p>
             </div>
           </div>
@@ -171,7 +161,7 @@ export default function CertificateVerify() {
         {/* État initial */}
         {!result && !loading && (
           <div className="text-center text-white/50 text-sm mt-4">
-            <p>Entrez un numéro de certificat pour commencer la vérification.</p>
+            <p>{t("entrez_un_numero_de_certificat_pour")}</p>
           </div>
         )}
       </div>

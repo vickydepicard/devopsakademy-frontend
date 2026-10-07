@@ -1,8 +1,8 @@
 // src/pages/Admin/AdminInstructorApplications.jsx — DevOpsAkademy FINAL
-// ✅ Interface complète : voir, approuver, rejeter, filtrer, stats
-// ✅ Modal détail complet avec tous les champs
-// ✅ Refus avec motif (min 3 chars)
-// ✅ Gestion statuts : pending / under_review / accepted / rejected
+// Interface complète : voir, approuver, rejeter, filtrer, stats
+// Modal détail complet avec tous les champs
+// Refus avec motif (min 3 chars)
+// Gestion statuts : pending / under_review / accepted / rejected
 
 import { useEffect, useState, useCallback } from "react";
 import api from "../../api/api";
@@ -12,18 +12,21 @@ import {
   X, Loader, RefreshCw, AlertCircle, Filter, ChevronDown,
   Calendar, Star, Video, Timer
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" };
 
-const STATUS = {
-  pending:      { label: "En attente",  cls: "bg-amber-100 text-amber-700 border-amber-200",   dot: "bg-amber-500",   icon: Clock },
-  under_review: { label: "En révision", cls: "bg-blue-100 text-blue-700 border-blue-200",      dot: "bg-blue-500",    icon: Eye },
-  accepted:     { label: "Approuvée",   cls: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", icon: CheckCircle },
-  rejected:     { label: "Rejetée",     cls: "bg-red-100 text-red-600 border-red-200",          dot: "bg-red-500",     icon: XCircle },
-};
+const STATUS = () => ({
+  pending:      { label: i18n.t("adminInstructorApplications:en_attente"),  cls: "bg-amber-100 text-amber-700 border-amber-200",   dot: "bg-amber-500",   icon: Clock },
+  under_review: { label: i18n.t("adminInstructorApplications:en_revision"), cls: "bg-blue-100 text-blue-700 border-blue-200",      dot: "bg-blue-500",    icon: Eye },
+  accepted:     { label: i18n.t("adminInstructorApplications:approuvee"),   cls: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", icon: CheckCircle },
+  rejected:     { label: i18n.t("adminInstructorApplications:rejetee"),     cls: "bg-red-100 text-red-600 border-red-200",          dot: "bg-red-500",     icon: XCircle },
+});
 
 function Badge({ status }) {
-  const cfg = STATUS[status] || STATUS.pending;
+  const cfg = STATUS()[status] || STATUS().pending;
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.cls}`}>
@@ -44,6 +47,7 @@ function StatBox({ label, value, color }) {
 
 // ── Modal détail candidature ──────────────────────────────────
 function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
+  const { t } = useTranslation("adminInstructorApplications");
   const [reason, setReason]       = useState("");
   const [showReject, setShowReject] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -52,15 +56,15 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
   const handleApprove = async () => {
     setProcessing(true); setErr("");
     try { await onApprove(app.id); onClose(); }
-    catch (e) { setErr(e?.response?.data?.message || "Erreur lors de l'approbation"); }
+    catch (e) { setErr(e?.response?.data?.message || t("erreur_lors_de_l_approbation")); }
     finally { setProcessing(false); }
   };
 
   const handleReject = async () => {
-    if (!reason.trim() || reason.trim().length < 3) { setErr("Motif requis (min 3 caractères)"); return; }
+    if (!reason.trim() || reason.trim().length < 3) { setErr(t("motif_requis_min_3_caracteres")); return; }
     setProcessing(true); setErr("");
     try { await onReject(app.id, reason.trim()); onClose(); }
-    catch (e) { setErr(e?.response?.data?.message || "Erreur lors du rejet"); }
+    catch (e) { setErr(e?.response?.data?.message || t("erreur_lors_du_rejet")); }
     finally { setProcessing(false); }
   };
 
@@ -120,10 +124,10 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
           {/* Infos rapides */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { icon: Briefcase, label: "Expérience",    value: app.years_experience ? `${app.years_experience} an(s)` : "—" },
-              { icon: Timer,     label: "Heures/sem",    value: app.weekly_hours     ? `${app.weekly_hours}h`            : "—" },
-              { icon: Calendar,  label: "Soumis le",     value: app.submitted_at ? new Date(app.submitted_at).toLocaleDateString("fr-FR") : "—" },
-              { icon: BookOpen,  label: "Cours proposé", value: app.sample_course_topic || "—" },
+              { icon: Briefcase, label: t("experience"),    value: app.years_experience ? `${app.years_experience} an(s)` : "—" },
+              { icon: Timer,     label: t("heures_sem"),    value: app.weekly_hours     ? `${app.weekly_hours}h`            : "—" },
+              { icon: Calendar,  label: t("soumis_le"),     value: app.submitted_at ? new Date(app.submitted_at).toLocaleDateString(getLocale()) : "—" },
+              { icon: BookOpen,  label: t("cours_propose"), value: app.sample_course_topic || "—" },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="bg-gray-50 rounded-xl p-3">
                 <div className="flex items-center gap-1.5 mb-1">
@@ -138,7 +142,7 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
           {/* Domaines */}
           {domains.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Domaines d'expertise</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t("domaines_d_expertise")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {domains.map((d, i) => (
                   <span key={i} className="px-2.5 py-1 rounded-full text-xs font-semibold border"
@@ -150,7 +154,7 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
 
           {/* Motivation */}
           <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Motivation</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t("motivation")}</p>
             <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{app.motivation || "—"}</p>
             </div>
@@ -158,7 +162,7 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
 
           {/* Expérience */}
           <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Parcours professionnel</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t("parcours_professionnel")}</p>
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{app.experience || "—"}</p>
             </div>
@@ -177,22 +181,20 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
               <a href={app.cv_url} target="_blank" rel="noreferrer"
                 className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium hover:bg-gray-50 transition"
                 style={{ borderColor: "#e5e7eb", color: C.light }}>
-                <Globe className="w-4 h-4" /> Portfolio
-              </a>
+                <Globe className="w-4 h-4" />{" "}{t("portfolio")}</a>
             )}
             {app.video_url && (
               <a href={app.video_url} target="_blank" rel="noreferrer"
                 className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium hover:bg-gray-50 transition col-span-2"
                 style={{ borderColor: "#e5e7eb", color: C.light }}>
-                <Video className="w-4 h-4" /> Vidéo de présentation
-              </a>
+                <Video className="w-4 h-4" />{" "}{t("video_de_presentation")}</a>
             )}
           </div>
 
           {/* Note de révision si rejeté */}
           {isRejected && app.review_note && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-xs font-bold text-red-700 mb-1">Motif du refus :</p>
+              <p className="text-xs font-bold text-red-700 mb-1">{t("motif_du_refus")}</p>
               <p className="text-sm text-red-600">{app.review_note}</p>
             </div>
           )}
@@ -200,13 +202,13 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
           {/* Zone rejet */}
           {isPending && showReject && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
-              <p className="text-sm font-bold text-red-700">Motif du refus <span className="text-red-500">*</span></p>
+              <p className="text-sm font-bold text-red-700">{t("motif_du_refus_2")}{" "}<span className="text-red-500">*</span></p>
               <textarea
                 value={reason} onChange={e => { setReason(e.target.value); setErr(""); }}
-                rows={3} placeholder="Expliquez pourquoi cette candidature est refusée..."
+                rows={3} placeholder={t("expliquez_pourquoi_cette_candidature_est_refusee")}
                 className="w-full px-3 py-2.5 border border-red-200 rounded-xl text-sm focus:outline-none focus:border-red-400 bg-white resize-none"
               />
-              <p className="text-xs text-gray-400">{reason.length} car. (min 3)</p>
+              <p className="text-xs text-gray-400">{t("car_min_3", { length: reason.length })}</p>
             </div>
           )}
         </div>
@@ -219,8 +221,7 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
               <button onClick={handleReview} disabled={processing}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition hover:bg-blue-50 disabled:opacity-60"
                 style={{ borderColor: "#bfdbfe", color: "#2563eb" }}>
-                <Eye className="w-4 h-4" /> Mettre en révision
-              </button>
+                <Eye className="w-4 h-4" />{" "}{t("mettre_en_revision")}</button>
             )}
 
             <div className="flex gap-2 ml-auto">
@@ -228,20 +229,15 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
                 <button onClick={() => setShowReject(true)}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition hover:bg-red-50"
                   style={{ borderColor: "#fecaca", color: "#dc2626" }}>
-                  <XCircle className="w-4 h-4" /> Refuser
-                </button>
+                  <XCircle className="w-4 h-4" />{" "}{t("refuser")}</button>
               ) : (
                 <>
                   <button onClick={() => { setShowReject(false); setReason(""); setErr(""); }}
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-100 transition">
-                    Annuler
-                  </button>
+                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-100 transition">{t("annuler")}</button>
                   <button onClick={handleReject} disabled={processing || reason.trim().length < 3}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-60"
                     style={{ background: "#dc2626" }}>
-                    {processing ? <Loader className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                    Confirmer le refus
-                  </button>
+                    {processing ? <Loader className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}{t("confirmer_le_refus")}</button>
                 </>
               )}
 
@@ -249,9 +245,7 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
                 <button onClick={handleApprove} disabled={processing}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60"
                   style={{ background: `linear-gradient(135deg,#059669,#10b981)` }}>
-                  {processing ? <Loader className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                  Approuver
-                </button>
+                  {processing ? <Loader className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}{t("approuver")}</button>
               )}
             </div>
           </div>
@@ -265,6 +259,7 @@ function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
 // COMPOSANT PRINCIPAL
 // ══════════════════════════════════════════════════════════════
 export default function AdminInstructorApplications() {
+  const { t } = useTranslation("adminInstructorApplications");
   const [apps,     setApps]     = useState([]);
   const [stats,    setStats]    = useState({});
   const [loading,  setLoading]  = useState(true);
@@ -290,14 +285,14 @@ export default function AdminInstructorApplications() {
       };
       setStats(Object.keys(apiStats).length > 0 ? apiStats : localStats);
     } catch (e) {
-      setError(e?.response?.data?.message || "Erreur de chargement");
+      setError(e?.response?.data?.message || t("erreur_de_chargement"));
     } finally {
       setLoading(false);
     }
   }, [filter]);
 
   useEffect(() => {
-    document.title = "Candidatures instructeurs — Admin DevOpsAkademy";
+    document.title = t("candidatures_instructeurs_admin_devopsakademy");
     load();
   }, [load]);
 
@@ -324,11 +319,11 @@ export default function AdminInstructorApplications() {
   );
 
   const FILTERS = [
-    { key: "all",          label: "Toutes",       count: Object.values(stats).reduce((acc, v) => acc + (Number(v) || 0), 0) },
-    { key: "pending",      label: "En attente",   count: stats.pending || 0 },
-    { key: "under_review", label: "En révision",  count: stats.under_review || 0 },
-    { key: "accepted",     label: "Approuvées",   count: stats.accepted || 0 },
-    { key: "rejected",     label: "Rejetées",     count: stats.rejected || 0 },
+    { key: "all",          label: t("toutes"),       count: Object.values(stats).reduce((acc, v) => acc + (Number(v) || 0), 0) },
+    { key: "pending",      label: t("en_attente"),   count: stats.pending || 0 },
+    { key: "under_review", label: t("en_revision"),  count: stats.under_review || 0 },
+    { key: "accepted",     label: t("approuvees"),   count: stats.accepted || 0 },
+    { key: "rejected",     label: t("rejetees"),     count: stats.rejected || 0 },
   ];
 
   return (
@@ -338,21 +333,19 @@ export default function AdminInstructorApplications() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <Award className="w-6 h-6" style={{ color: C.light }} /> Candidatures instructeurs
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">Examinez et validez les dossiers des futurs instructeurs</p>
+            <Award className="w-6 h-6" style={{ color: C.light }} />{" "}{t("candidatures_instructeurs")}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t("examinez_et_validez_les_dossiers_des")}</p>
         </div>
         <button onClick={load} className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-bold text-gray-600 hover:bg-gray-50 transition">
-          <RefreshCw className="w-4 h-4" /> Actualiser
-        </button>
+          <RefreshCw className="w-4 h-4" />{" "}{t("actualiser")}</button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatBox label="En attente"  value={stats.pending || 0}      color="#f59e0b" />
-        <StatBox label="En révision" value={stats.under_review || 0} color="#3b82f6" />
-        <StatBox label="Approuvées"  value={stats.accepted || 0}     color="#10b981" />
-        <StatBox label="Rejetées"    value={stats.rejected || 0}     color="#ef4444" />
+        <StatBox label={t("en_attente")}  value={stats.pending || 0}      color="#f59e0b" />
+        <StatBox label={t("en_revision")} value={stats.under_review || 0} color="#3b82f6" />
+        <StatBox label={t("approuvees")}  value={stats.accepted || 0}     color="#10b981" />
+        <StatBox label={t("rejetees")}    value={stats.rejected || 0}     color="#ef4444" />
       </div>
 
       {/* Barre filtres + recherche */}
@@ -372,7 +365,7 @@ export default function AdminInstructorApplications() {
         <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 min-w-48">
           <Search className="w-3.5 h-3.5 text-gray-400" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Nom, email, cours..." className="bg-transparent text-sm focus:outline-none text-gray-700 w-full placeholder-gray-400" />
+            placeholder={t("nom_email_cours")} className="bg-transparent text-sm focus:outline-none text-gray-700 w-full placeholder-gray-400" />
         </div>
       </div>
 
@@ -389,24 +382,24 @@ export default function AdminInstructorApplications() {
         <div className="flex items-center justify-center py-24">
           <div className="text-center">
             <Loader className="w-8 h-8 animate-spin mx-auto mb-3" style={{ color: C.light }} />
-            <p className="text-gray-400 text-sm">Chargement des candidatures...</p>
+            <p className="text-gray-400 text-sm">{t("chargement_des_candidatures")}</p>
           </div>
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl p-16 text-center shadow-sm">
           <Award className="w-12 h-12 mx-auto mb-3 text-gray-200" />
-          <p className="font-bold text-gray-500">Aucune candidature{filter !== "all" ? " dans cette catégorie" : ""}</p>
+          <p className="font-bold text-gray-500">{t("aucune_candidature")}{filter !== "all" ? t("dans_cette_categorie") : ""}</p>
         </div>
       ) : (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Candidat</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Cours proposé</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">Exp.</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Statut</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">Date</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{t("candidat")}</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide hidden sm:table-cell">{t("cours_propose")}</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">{t("exp")}</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{t("statut")}</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">{t("date")}</th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
@@ -429,14 +422,14 @@ export default function AdminInstructorApplications() {
                     <p className="text-sm text-gray-700 font-medium max-w-48 truncate">{app.sample_course_topic || "—"}</p>
                   </td>
                   <td className="px-5 py-4 hidden md:table-cell">
-                    <span className="text-sm text-gray-600">{app.years_experience ? `${app.years_experience} an(s)` : "—"}</span>
+                    <span className="text-sm text-gray-600">{app.years_experience ? t("an_s", { years_experience: app.years_experience }) : "—"}</span>
                   </td>
                   <td className="px-5 py-4">
                     <Badge status={app.status} />
                   </td>
                   <td className="px-5 py-4 hidden md:table-cell">
                     <p className="text-xs text-gray-400">
-                      {app.submitted_at ? new Date(app.submitted_at).toLocaleDateString("fr-FR") : "—"}
+                      {app.submitted_at ? new Date(app.submitted_at).toLocaleDateString(getLocale()) : "—"}
                     </p>
                   </td>
                   <td className="px-5 py-4">
@@ -445,12 +438,12 @@ export default function AdminInstructorApplications() {
                       {(app.status === "pending" || app.status === "under_review") && (
                         <>
                           <button onClick={() => { setSelected(app); }}
-                            title="Voir le dossier"
+                            title={t("voir_le_dossier")}
                             className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
                             <Eye className="w-4 h-4" />
                           </button>
                           <button onClick={async () => { await handleApprove(app.id); }}
-                            title="Approuver"
+                            title={t("approuver")}
                             className="p-2 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition">
                             <CheckCircle className="w-4 h-4" />
                           </button>

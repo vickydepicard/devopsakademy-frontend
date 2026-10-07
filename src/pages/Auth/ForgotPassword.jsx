@@ -1,28 +1,32 @@
 // src/pages/Auth/ForgotPassword.jsx — DevOpsAkademy
 // Design compact — tout visible sans scroll — cohérent avec Login/Register
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import api from "../../api/api"
 import { Mail, ArrowLeft, CheckCircle, Loader, ShieldCheck } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" }
 
 export default function ForgotPassword() {
+  const { t, i18n } = useTranslation("auth")
   const [email,   setEmail]   = useState("")
   const [loading, setLoading] = useState(false)
   const [sent,    setSent]    = useState(false)
   const [error,   setError]   = useState("")
 
+  useEffect(() => { document.title = t("forgot.title") + " — DevOpsAkademy" }, [t, i18n.language])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!email || !email.includes("@")) { setError("Adresse email invalide"); return }
+    if (!email || !email.includes("@")) { setError(t("forgot.invalidEmail")); return }
     setLoading(true); setError("")
     try {
       await api.post("/auth/forgot-password", { email })
       setSent(true)
     } catch {
-      setError("Une erreur est survenue. Veuillez réessayer.")
+      setError(t("forgot.error"))
     } finally {
       setLoading(false)
     }
@@ -57,19 +61,19 @@ export default function ForgotPassword() {
                   <CheckCircle className="w-8 h-8 text-emerald-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-gray-900">Email envoyé !</h2>
+                  <h2 className="text-xl font-black text-gray-900">{t("forgot.sentTitle")}</h2>
                   <p className="text-gray-500 text-sm mt-2 leading-relaxed">
-                    Si un compte existe pour <strong className="text-indigo-700">{email}</strong>,
-                    vous recevrez un lien de réinitialisation.
+                    {t("forgot.sentPre")} <strong className="text-indigo-700">{email}</strong>
+                    {t("forgot.sentPost")}
                   </p>
                   <p className="text-gray-400 text-xs mt-2 flex items-center justify-center gap-1">
-                    📬 Pensez à vérifier vos spams
+                    {t("forgot.checkSpam")}
                   </p>
                 </div>
                 <Link to="/login"
                   className="block w-full py-3 rounded-xl font-black text-white text-sm text-center hover:opacity-90 transition"
                   style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
-                  → Retour à la connexion
+                  {t("forgot.backToLogin")}
                 </Link>
               </div>
 
@@ -82,9 +86,9 @@ export default function ForgotPassword() {
                     style={{ background: "linear-gradient(135deg,#ede9fe,#ddd6fe)" }}>
                     <Mail className="w-6 h-6" style={{ color: C.primary }} />
                   </div>
-                  <h1 className="text-xl font-black text-gray-900">Mot de passe oublié ?</h1>
+                  <h1 className="text-xl font-black text-gray-900">{t("forgot.title")}</h1>
                   <p className="text-gray-500 text-xs mt-1.5 leading-relaxed">
-                    Entrez votre email. Nous vous envoyons un lien<br />de réinitialisation valable 30 minutes.
+                    {t("forgot.intro")}
                   </p>
                 </div>
 
@@ -92,7 +96,7 @@ export default function ForgotPassword() {
                 {error && (
                   <div className="mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5"
                     style={{ background: "#fef2f2", border: "1px solid #fecaca" }}>
-                    <span className="text-red-500 text-xs flex-shrink-0">⚠</span>
+                    
                     <p className="text-red-600 text-xs">{error}</p>
                   </div>
                 )}
@@ -105,7 +109,7 @@ export default function ForgotPassword() {
                       type="email"
                       value={email}
                       onChange={e => { setEmail(e.target.value); setError("") }}
-                      placeholder="votremail@exemple.com"
+                      placeholder={t("forgot.emailPlaceholder")}
                       autoFocus
                       className="flex-1 px-3.5 py-3 bg-transparent focus:outline-none text-gray-900 text-sm placeholder-gray-400"
                       autoComplete="email"
@@ -116,15 +120,15 @@ export default function ForgotPassword() {
                     className="w-full py-3 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
                     style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
                     {loading
-                      ? <><Loader className="w-4 h-4 animate-spin" /> Envoi en cours...</>
-                      : "Envoyer le lien de réinitialisation"
+                      ? <><Loader className="w-4 h-4 animate-spin" /> {t("forgot.sending")}</>
+                      : t("forgot.submit")
                     }
                   </button>
                 </form>
 
                 <p className="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-indigo-400" />
-                  Lien sécurisé, expire dans 30 minutes
+                  {t("forgot.secure")}
                 </p>
               </>
             )}
@@ -136,7 +140,7 @@ export default function ForgotPassword() {
           <div className="text-center mt-4">
             <Link to="/login"
               className="inline-flex items-center gap-1.5 text-indigo-300/70 hover:text-white text-sm transition font-medium">
-              <ArrowLeft className="w-3.5 h-3.5" /> Retour à la connexion
+              <ArrowLeft className="w-3.5 h-3.5" /> {t("forgot.backToLogin")}
             </Link>
           </div>
         )}

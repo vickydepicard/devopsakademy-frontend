@@ -7,8 +7,10 @@ import {
   Mail, Lock, Eye, EyeOff, AlertCircle,
   Loader, CheckCircle, RefreshCw, Shield
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 export default function Login() {
+  const { t, i18n } = useTranslation("auth")
   const { user, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -16,7 +18,8 @@ export default function Login() {
   const [form,        setForm]        = useState({ email: "", password: "" })
   const [showPwd,     setShowPwd]     = useState(false)
   const [err,         setErr]         = useState("")
-  const [notice,      setNotice]      = useState("")
+  const [noticeKey,   setNoticeKey]   = useState("")
+  const [noticeText,  setNoticeText]  = useState("")
   const [loading,     setLoading]     = useState(false)
   const [unverified,  setUnverified]  = useState(false)
   const [resendEmail, setResendEmail] = useState("")
@@ -28,9 +31,12 @@ export default function Login() {
     const st = location.state
     if (st?.email)    setForm(p => ({ ...p, email: st.email }))
     if (st?.password) setForm(p => ({ ...p, password: st.password }))
-    if (st?.message)  setNotice(st.message)
+    if (st?.notice)   setNoticeKey(st.notice)
+    else if (st?.message) setNoticeText(st.message)
     window.history.replaceState({}, "")
   }, [])
+
+  useEffect(() => { document.title = t("login.meta") }, [t, i18n.language])
 
   // Déjà connecté
   useEffect(() => {
@@ -43,9 +49,9 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.email)    { setErr("L'adresse email est requise"); return }
-    if (!form.email.includes("@")) { setErr("Adresse email invalide"); return }
-    if (!form.password) { setErr("Le mot de passe est requis"); return }
+    if (!form.email)    { setErr(t("login.emailRequired")); return }
+    if (!form.email.includes("@")) { setErr(t("login.emailInvalid")); return }
+    if (!form.password) { setErr(t("login.passwordRequired")); return }
 
     setLoading(true); setErr(""); setUnverified(false); setResendOk(false)
     try {
@@ -58,10 +64,10 @@ export default function Login() {
         setResendEmail(res?.email || form.email)
       } else {
         // Message d'erreur précis depuis l'API
-        setErr(res?.message || "Email ou mot de passe incorrect")
+        setErr(res?.message || t("login.wrongCredentials"))
       }
     } catch (e) {
-      setErr("Erreur de connexion au serveur. Vérifiez que l'API est démarrée.")
+      setErr(t("login.serverError"))
     } finally {
       setLoading(false)
     }
@@ -72,12 +78,14 @@ export default function Login() {
     try {
       await fetch("/api/auth/resend-verification", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: resendEmail }),
+        headers: { "Content-Type": "application/json", "Accept-Language": (i18n.resolvedLanguage || "fr").slice(0, 2) },
+        body: JSON.stringify({ email: resendEmail, language: (i18n.resolvedLanguage || "fr").slice(0, 2) }),
       })
       setResendOk(true)
     } catch { } finally { setResending(false) }
   }
+
+  const notice = noticeKey ? t(`notices.${noticeKey}`) : noticeText
 
   const inp = "flex-1 px-3.5 py-3 bg-transparent focus:outline-none text-gray-900 text-sm placeholder-gray-400"
 
@@ -97,8 +105,8 @@ export default function Login() {
 
             {/* Titre */}
             <div className="text-center">
-              <h1 className="text-xl font-black text-gray-900">Connexion</h1>
-              <p className="text-gray-500 text-xs mt-0.5">Accédez à votre espace DevOps</p>
+              <h1 className="text-xl font-black text-gray-900">{t("login.title")}</h1>
+              <p className="text-gray-500 text-xs mt-0.5">{t("login.subtitle")}</p>
             </div>
 
             {/* Notice succès */}
@@ -115,23 +123,23 @@ export default function Login() {
               <div className="rounded-xl overflow-hidden border" style={{ borderColor: "#fde68a" }}>
                 <div className="px-3 py-2.5" style={{ background: "#fffbeb" }}>
                   <p className="text-amber-800 text-xs font-black mb-1 flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5" /> Email non vérifié
+                    <Mail className="w-3.5 h-3.5" /> {t("login.unverifiedTitle")}
                   </p>
                   <p className="text-amber-700 text-xs leading-relaxed">
-                    Vérifiez votre boîte email (et spams) pour activer votre compte : <strong>{resendEmail}</strong>
+                    {t("login.unverifiedText")} <strong>{resendEmail}</strong>
                   </p>
                 </div>
                 <div className="px-3 py-2" style={{ background: "#fef9e7", borderTop: "1px solid #fde68a" }}>
                   {resendOk ? (
                     <p className="text-emerald-700 text-xs font-medium flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Email renvoyé ! Vérifiez vos spams.
+                      <CheckCircle className="w-3 h-3" /> {t("login.resent")}
                     </p>
                   ) : (
                     <button onClick={handleResend} disabled={resending}
                       className="text-xs font-bold flex items-center gap-1.5 disabled:opacity-50"
                       style={{ color: "#5653e1" }}>
-                      {resending ? <><Loader className="w-3 h-3 animate-spin" /> Envoi...</>
-                        : <><RefreshCw className="w-3 h-3" /> Renvoyer l'email d'activation</>}
+                      {resending ? <><Loader className="w-3 h-3 animate-spin" /> {t("login.resending")}</>
+                        : <><RefreshCw className="w-3 h-3" /> {t("login.resend")}</>}
                     </button>
                   )}
                 </div>
@@ -152,11 +160,11 @@ export default function Login() {
 
               {/* Email */}
               <div className="flex items-center rounded-xl border-2 border-gray-200 focus-within:border-indigo-400 transition bg-white"
-                style={err && !err.includes("mot de passe") ? { borderColor: "#fca5a5" } : {}}>
+                style={err && err !== t("login.passwordRequired") ? { borderColor: "#fca5a5" } : {}}>
                 <div className="pl-3.5"><Mail className="w-4 h-4 text-gray-400" /></div>
                 <input type="email" value={form.email}
                   onChange={e => change("email", e.target.value)}
-                  className={inp} placeholder="votremail@exemple.com"
+                  className={inp} placeholder={t("login.emailPlaceholder")}
                   autoComplete="email" autoFocus />
               </div>
 
@@ -169,6 +177,7 @@ export default function Login() {
                     className={inp} placeholder="••••••••"
                     autoComplete="current-password" />
                   <button type="button" onClick={() => setShowPwd(s => !s)}
+                    aria-label={showPwd ? t("login.hidePassword") : t("login.showPassword")}
                     className="pr-3.5 text-gray-400 hover:text-gray-600 transition">
                     {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -176,7 +185,7 @@ export default function Login() {
                 <div className="flex justify-end mt-1">
                   <Link to="/forgot-password" className="text-xs font-semibold hover:underline"
                     style={{ color: "#5653e1" }}>
-                    Mot de passe oublié ?
+                    {t("login.forgot")}
                   </Link>
                 </div>
               </div>
@@ -186,16 +195,16 @@ export default function Login() {
                 className="w-full py-3 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
                 style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
                 {loading
-                  ? <><Loader className="w-4 h-4 animate-spin" /> Connexion en cours...</>
-                  : "Se connecter →"}
+                  ? <><Loader className="w-4 h-4 animate-spin" /> {t("login.signingIn")}</>
+                  : t("login.submit")}
               </button>
             </form>
 
             {/* Lien inscription */}
             <p className="text-center text-xs text-gray-500">
-              Pas encore de compte ?{" "}
+              {t("login.noAccount")}{" "}
               <Link to="/register" className="font-black hover:underline" style={{ color: "#5653e1" }}>
-                Créer un compte gratuit
+                {t("login.createAccount")}
               </Link>
             </p>
 
@@ -204,7 +213,7 @@ export default function Login() {
 
         {/* Sécurité */}
         <p className="text-center text-indigo-300/50 text-xs mt-4 flex items-center justify-center gap-1.5">
-          <Shield className="w-3 h-3" /> Connexion sécurisée SSL
+          <Shield className="w-3 h-3" /> {t("login.secure")}
         </p>
 
       </div>

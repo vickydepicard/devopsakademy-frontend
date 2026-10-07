@@ -7,9 +7,12 @@ import {
 } from "lucide-react";
 import api from "../../api/api";
 import CourseImage from "../../components/UI/CourseImage";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
+import i18n from "../../i18n";
 
-const fmt = (n) => Number(n || 0).toLocaleString("fr-FR");
-const levelLabel = { beginner:"Débutant", intermediate:"Intermédiaire", advanced:"Avancé" };
+const fmt = (n) => Number(n || 0).toLocaleString(getLocale());
+const levelLabel = () => ({ beginner:i18n.t("instructorProfile:debutant"), intermediate:i18n.t("instructorProfile:intermediaire"), advanced:i18n.t("instructorProfile:avance") });
 const levelColor = { beginner:"#10b981", intermediate:"#f59e0b", advanced:"#ef4444" };
 
 function Avatar({ src, name = "", size = 96 }) {
@@ -31,6 +34,7 @@ function Avatar({ src, name = "", size = 96 }) {
 }
 
 function CourseCard({ course }) {
+  const { t } = useTranslation("instructorProfile");
   return (
     <Link to={`/courses/${course.id}`} style={{ textDecoration:"none" }}>
       <div style={{ background:"white", borderRadius:14, border:"1.5px solid #f0f0f0",
@@ -43,7 +47,7 @@ function CourseCard({ course }) {
         <div style={{ padding:"10px 12px" }}>
           <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase",
             color: levelColor[course.level] || "#6b7280" }}>
-            {levelLabel[course.level] || course.level}
+            {levelLabel()[course.level] || course.level}
           </span>
           <p style={{ fontWeight:800, fontSize:12, color:"#111", margin:"3px 0 6px",
             display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
@@ -52,7 +56,7 @@ function CourseCard({ course }) {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <span style={{ fontWeight:900, fontSize:13,
               color: course.is_free ? "#10b981" : "#2d287f" }}>
-              {course.is_free ? "Gratuit" : `${fmt(course.price)} FCFA`}
+              {course.is_free ? t("gratuit") : `${fmt(course.price)} FCFA`}
             </span>
             <span style={{ fontSize:10, color:"#9ca3af", display:"flex", alignItems:"center", gap:3 }}>
               <Users size={9} />{fmt(course.enrollment_count)}
@@ -65,6 +69,7 @@ function CourseCard({ course }) {
 }
 
 export default function InstructorProfile() {
+  const { t } = useTranslation("instructorProfile");
   const { id } = useParams();
   const [inst,    setInst]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -73,7 +78,7 @@ export default function InstructorProfile() {
   useEffect(() => {
     api.get(`/users/instructors/${id}`)
       .then(r => { setInst(r.data?.data || r.data); })
-      .catch(() => setError("Instructeur introuvable."))
+      .catch(() => setError(t("instructeur_introuvable")))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -88,9 +93,9 @@ export default function InstructorProfile() {
   if (error || !inst) return (
     <div style={{ minHeight:"60vh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", gap:12 }}>
-      <p style={{ color:"#ef4444", fontWeight:600 }}>⚠️ {error || "Instructeur introuvable"}</p>
+      <p style={{ color:"#ef4444", fontWeight:600 }}>{error || t("instructeur_introuvable_2")}</p>
       <Link to="/instructors" style={{ color:"#5653e1", fontWeight:700, textDecoration:"none",
-        fontSize:14 }}>← Retour aux instructeurs</Link>
+        fontSize:14 }}>{t("retour_aux_instructeurs")}</Link>
     </div>
   );
 
@@ -112,8 +117,7 @@ export default function InstructorProfile() {
           <Link to="/instructors" style={{ display:"inline-flex", alignItems:"center", gap:6,
             color:"rgba(255,255,255,0.65)", fontSize:13, fontWeight:600, textDecoration:"none" }}
             className="hover:text-white">
-            <ArrowLeft size={13} /> Tous les instructeurs
-          </Link>
+            <ArrowLeft size={13} />{" "}{t("tous_les_instructeurs")}</Link>
         </div>
       </div>
 
@@ -141,11 +145,10 @@ export default function InstructorProfile() {
                 )}
                 {inst.years_experience && (
                   <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:12, color:"#6b7280" }}>
-                    <Briefcase size={12} />{inst.years_experience} ans d'expérience
-                  </span>
+                    <Briefcase size={12} />{t("ans_d_experience", { years_experience: inst.years_experience })}</span>
                 )}
                 <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:12, color:"#6b7280" }}>
-                  <Calendar size={12} />Depuis {new Date(inst.created_at).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}
+                  <Calendar size={12} />{t("depuis")}{" "}{new Date(inst.created_at).toLocaleDateString(getLocale(),{month:"long",year:"numeric"})}
                 </span>
               </div>
 
@@ -167,9 +170,9 @@ export default function InstructorProfile() {
             {/* Stats */}
             <div style={{ display:"flex", gap:12 }}>
               {[
-                { Icon:BookOpen, val:inst.course_count,  label:"Cours",     c:"#5653e1", bg:"#f0efff" },
-                { Icon:Users,    val:inst.student_count, label:"Étudiants", c:"#0369a1", bg:"#eff6ff" },
-                inst.avg_rating && { Icon:Award, val:inst.avg_rating.toFixed(1), label:"Note", c:"#f59e0b", bg:"#fffbeb" },
+                { Icon:BookOpen, val:inst.course_count,  label:t("cours"),     c:"#5653e1", bg:"#f0efff" },
+                { Icon:Users,    val:inst.student_count, label:t("etudiants"), c:"#0369a1", bg:"#eff6ff" },
+                inst.avg_rating && { Icon:Award, val:inst.avg_rating.toFixed(1), label:t("note"), c:"#f59e0b", bg:"#fffbeb" },
               ].filter(Boolean).map(({ Icon, val, label, c, bg }) => (
                 <div key={label} style={{ background:bg, borderRadius:14, padding:"12px 16px",
                   textAlign:"center", minWidth:72 }}>
@@ -209,7 +212,7 @@ export default function InstructorProfile() {
             {inst.bio && (
               <div style={{ background:"white", borderRadius:20, padding:20,
                 border:"1.5px solid #f0f0f0" }}>
-                <h2 style={{ fontWeight:900, fontSize:16, color:"#111", marginBottom:12 }}>À propos</h2>
+                <h2 style={{ fontWeight:900, fontSize:16, color:"#111", marginBottom:12 }}>{t("a_propos")}</h2>
                 <p style={{ color:"#374151", lineHeight:1.8, fontSize:14, margin:0,
                   whiteSpace:"pre-wrap" }}>{inst.bio}</p>
               </div>
@@ -219,9 +222,7 @@ export default function InstructorProfile() {
             {skills.length > 0 && (
               <div style={{ background:"white", borderRadius:20, padding:20,
                 border:"1.5px solid #f0f0f0" }}>
-                <h2 style={{ fontWeight:900, fontSize:16, color:"#111", marginBottom:12 }}>
-                  Compétences
-                </h2>
+                <h2 style={{ fontWeight:900, fontSize:16, color:"#111", marginBottom:12 }}>{t("competences")}</h2>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                   {skills.map(s => (
                     <span key={s} style={{ padding:"5px 12px", borderRadius:20, fontSize:12,
@@ -236,9 +237,7 @@ export default function InstructorProfile() {
             {inst.courses?.length > 0 && (
               <div style={{ background:"white", borderRadius:20, padding:20,
                 border:"1.5px solid #f0f0f0" }}>
-                <h2 style={{ fontWeight:900, fontSize:16, color:"#111", marginBottom:14 }}>
-                  Cours ({inst.courses.length})
-                </h2>
+                <h2 style={{ fontWeight:900, fontSize:16, color:"#111", marginBottom:14 }}>{t("cours_2", { length: inst.courses.length })}</h2>
                 <div style={{ display:"grid",
                   gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:12 }}>
                   {inst.courses.map(c => <CourseCard key={c.id} course={c} />)}
@@ -255,30 +254,22 @@ export default function InstructorProfile() {
               borderRadius:20, padding:20, textAlign:"center" }}>
               <BookOpen size={24} color="rgba(255,255,255,0.8)"
                 style={{ margin:"0 auto 8px", display:"block" }} />
-              <p style={{ color:"white", fontWeight:900, fontSize:15, margin:"0 0 4px" }}>
-                Prêt à apprendre ?
-              </p>
-              <p style={{ color:"rgba(255,255,255,0.6)", fontSize:12, margin:"0 0 12px" }}>
-                {inst.course_count} cours disponibles
-              </p>
+              <p style={{ color:"white", fontWeight:900, fontSize:15, margin:"0 0 4px" }}>{t("pret_a_apprendre")}</p>
+              <p style={{ color:"rgba(255,255,255,0.6)", fontSize:12, margin:"0 0 12px" }}>{t("cours_disponibles", { course_count: inst.course_count })}</p>
               <Link to="/courses" style={{ display:"block", padding:"10px",
                 borderRadius:12, background:"#facc15", color:"#1e1b4b",
-                fontWeight:900, fontSize:13, textDecoration:"none" }}>
-                Explorer les cours →
-              </Link>
+                fontWeight:900, fontSize:13, textDecoration:"none" }}>{t("explorer_les_cours")}</Link>
             </div>
 
             {/* Infos rapides */}
             <div style={{ background:"white", borderRadius:20, padding:16,
               border:"1.5px solid #f0f0f0" }}>
-              <h3 style={{ fontWeight:800, fontSize:14, color:"#111", marginBottom:12 }}>
-                Informations
-              </h3>
+              <h3 style={{ fontWeight:800, fontSize:14, color:"#111", marginBottom:12 }}>{t("informations")}</h3>
               {[
-                [BookOpen, "Cours publiés",    inst.course_count],
-                [Users,    "Apprenants",       fmt(inst.student_count)],
-                [Calendar, "Membre depuis",    new Date(inst.created_at).toLocaleDateString("fr-FR",{month:"short",year:"numeric"})],
-                inst.years_experience && [Briefcase, "Expérience", `${inst.years_experience} ans`],
+                [BookOpen, i18n.t("instructorProfile:cours_publies"),    inst.course_count],
+                [Users,    i18n.t("instructorProfile:apprenants"),       fmt(inst.student_count)],
+                [Calendar, i18n.t("instructorProfile:membre_depuis"),    new Date(inst.created_at).toLocaleDateString(getLocale(),{month:"short",year:"numeric"})],
+                inst.years_experience && [Briefcase, i18n.t("instructorProfile:experience"), `${inst.years_experience} ans`],
               ].filter(Boolean).map(([Icon, label, val]) => (
                 <div key={label} style={{ display:"flex", justifyContent:"space-between",
                   alignItems:"center", fontSize:12, paddingBottom:8, marginBottom:8,

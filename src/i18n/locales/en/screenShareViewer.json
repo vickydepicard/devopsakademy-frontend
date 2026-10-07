@@ -1,0 +1,22 @@
+{
+  "l_instructeur_ne_repond_pas_reessayez": "The instructor is not responding. Please try again in a few seconds.",
+  "connexion_interrompue_avec_l_instructeur": "Connection to the instructor was interrupted",
+  "probleme_reseau_webrtc": "WebRTC network problem",
+  "en_attente_du_live": "Waiting for the live…",
+  "l_instructeur_n_a_pas_encore": "The instructor has not started yet. This page updates automatically.",
+  "connexion_surveillee": "Connection monitored",
+  "en_attente_de_l_instructeur": "Waiting for the instructor…",
+  "votre_connexion_est_prete_l_instructeur": "Your connection is ready. The instructor will send you the stream shortly.",
+  "acces_reserve_aux_inscrits": "Access reserved for enrolled learners",
+  "inscrivez_vous_gratuitement_pour_acceder_au": "Sign up for free to access the live session.",
+  "inscrivez_vous_pour_fcfa": "Sign up for {{fmtPrice}} XAF.",
+  "s_inscrire_gratuitement": "Sign up for free",
+  "s_inscrire_fcfa": "Sign up — {{fmtPrice}} XAF",
+  "live_termine": "Live ended",
+  "merci_pour_votre_participation_le_replay": "Thank you for taking part! The replay will be available soon.",
+  "probleme_de_connexion": "Connection problem",
+  "reessayer": "Try again",
+  "en_direct": "LIVE",
+  "erreur_initialisation": "Initialization error:",
+  "erreur": "Error:"
+}

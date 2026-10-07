@@ -1,0 +1,17 @@
+{
+  "titre": "Mes lives",
+  "sous_titre": "Les sessions en direct qui vous sont attribuées par l'administration.",
+  "aucun": "Aucun live ne vous est attribué pour le moment.",
+  "cours_lie": "Cours",
+  "ouvrir_la_salle": "Ouvrir la salle",
+  "lancer_le_live": "Lancer le live",
+  "rejoindre": "Revoir",
+  "erreur": "Impossible de charger les lives.",
+  "statut_live": "En direct",
+  "statut_scheduled": "Planifié",
+  "statut_ended": "Terminé",
+  "statut_draft": "Brouillon",
+  "participants": "{{count}} inscrit(s)",
+  "a_venir": "À venir",
+  "passes": "Passés"
+}

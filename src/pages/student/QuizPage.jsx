@@ -6,8 +6,11 @@ import {
   Clock, CheckCircle, XCircle, AlertCircle,
   ArrowLeft, ArrowRight, Send, Award, BookOpen, RefreshCw
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 export default function QuizPage() {
+  const { t } = useTranslation("quizPage");
   const { courseId, quizId } = useParams();
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -23,7 +26,7 @@ export default function QuizPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    document.title = "Quiz — DevOpsAkademy";
+    document.title = t("quiz_devopsakademy");
     fetchQuiz();
     return () => clearInterval(timerRef.current);
   }, []);
@@ -38,7 +41,7 @@ export default function QuizPage() {
         startTimer(data.time_limit_minutes * 60);
       }
     } catch (err) {
-      setError("Impossible de charger ce quiz.");
+      setError(t("impossible_de_charger_ce_quiz"));
     } finally {
       setLoading(false);
     }
@@ -72,7 +75,7 @@ export default function QuizPage() {
     if (!auto) {
       const unanswered = quiz?.questions?.filter((q) => !answers[q.id]).length;
       if (unanswered > 0) {
-        const ok = window.confirm(`Vous n'avez pas répondu à ${unanswered} question(s). Soumettre quand même ?`);
+        const ok = window.confirm(t("vous_n_avez_pas_repondu_a", { unanswered }));
         if (!ok) return;
       }
     }
@@ -87,7 +90,7 @@ export default function QuizPage() {
       const res = await api.post(`/quizzes/${quizId}/submit`, payload);
       setResult(res.data?.data);
     } catch (err) {
-      setError("Erreur lors de la soumission. Veuillez réessayer.");
+      setError(t("erreur_lors_de_la_soumission_veuillez"));
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +102,7 @@ export default function QuizPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Chargement du quiz…</p>
+          <p className="text-gray-500">{t("chargement_du_quiz")}</p>
         </div>
       </div>
     );
@@ -111,11 +114,10 @@ export default function QuizPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-soft p-10 max-w-md w-full text-center">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Quiz introuvable</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t("quiz_introuvable")}</h2>
           <p className="text-gray-500 text-sm mb-6">{error}</p>
           <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 bg-primary text-white py-2.5 px-6 rounded-full font-semibold text-sm">
-            <ArrowLeft className="w-4 h-4" /> Retour
-          </button>
+            <ArrowLeft className="w-4 h-4" />{" "}{t("retour")}</button>
         </div>
       </div>
     );
@@ -137,10 +139,10 @@ export default function QuizPage() {
               }
             </div>
             <h2 className="text-2xl font-bold mb-1">
-              {passed ? "Félicitations !" : "Quiz échoué"}
+              {passed ? t("felicitations") : t("quiz_echoue")}
             </h2>
             <p className="text-white/80 text-sm">
-              {passed ? "Vous avez réussi ce quiz !" : "Vous pouvez recommencer."}
+              {passed ? t("vous_avez_reussi_ce_quiz") : t("vous_pouvez_recommencer")}
             </p>
           </div>
 
@@ -148,15 +150,15 @@ export default function QuizPage() {
           <div className="px-8 py-6">
             <div className="text-center mb-6">
               <div className="text-6xl font-bold text-gray-900 mb-1">{pct}%</div>
-              <p className="text-gray-500 text-sm">Score obtenu (seuil : {quiz?.passing_score || 70}%)</p>
+              <p className="text-gray-500 text-sm">{t("score_obtenu_seuil")}{" "}{quiz?.passing_score || 70}%)</p>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               {[
-                { label: "Correctes", value: result.correct_answers, color: "text-emerald-600" },
-                { label: "Incorrectes", value: result.wrong_answers, color: "text-red-500" },
-                { label: "Points", value: `+${result.earned_points || 0}`, color: "text-primary" },
+                { label: t("correctes"), value: result.correct_answers, color: "text-emerald-600" },
+                { label: t("incorrectes"), value: result.wrong_answers, color: "text-red-500" },
+                { label: t("points"), value: `+${result.earned_points || 0}`, color: "text-primary" },
               ].map(({ label, value, color }) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-4 text-center">
                   <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -169,7 +171,7 @@ export default function QuizPage() {
             <div className="mb-6">
               <div className="flex justify-between text-xs text-gray-400 mb-1.5">
                 <span>0%</span>
-                <span className="text-primary font-semibold">Seuil {quiz?.passing_score || 70}%</span>
+                <span className="text-primary font-semibold">{t("seuil")}{" "}{quiz?.passing_score || 70}%</span>
                 <span>100%</span>
               </div>
               <div className="h-3 bg-gray-100 rounded-full relative overflow-hidden">
@@ -191,23 +193,20 @@ export default function QuizPage() {
                   onClick={() => { setResult(null); setAnswers({}); setCurrent(0); fetchQuiz(); }}
                   className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-primary to-primary-light text-white font-bold rounded-xl hover:shadow-md transition"
                 >
-                  <RefreshCw className="w-4 h-4" /> Recommencer
-                </button>
+                  <RefreshCw className="w-4 h-4" />{" "}{t("recommencer")}</button>
               )}
               {passed && (
                 <Link
                   to={`/courses/${courseId}/learn`}
                   className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-primary to-primary-light text-white font-bold rounded-xl hover:shadow-md transition"
                 >
-                  <BookOpen className="w-4 h-4" /> Continuer le cours
-                </Link>
+                  <BookOpen className="w-4 h-4" />{" "}{t("continuer_le_cours")}</Link>
               )}
               <button
                 onClick={() => navigate(`/courses/${courseId}/learn`)}
                 className="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition text-sm"
               >
-                <ArrowLeft className="w-4 h-4" /> Retour au cours
-              </button>
+                <ArrowLeft className="w-4 h-4" />{" "}{t("retour_au_cours")}</button>
             </div>
           </div>
         </div>
@@ -229,8 +228,7 @@ export default function QuizPage() {
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
             <Link to={`/courses/${courseId}/learn`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-1">
-              <ArrowLeft className="w-4 h-4" /> Retour au cours
-            </Link>
+              <ArrowLeft className="w-4 h-4" />{" "}{t("retour_au_cours")}</Link>
             <h1 className="text-xl font-bold text-gray-900">{quiz?.title}</h1>
           </div>
 
@@ -248,8 +246,8 @@ export default function QuizPage() {
         {/* Barre de progression globale */}
         <div className="mb-6">
           <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-            <span>Question {current + 1} / {total}</span>
-            <span>{answered} répondu{answered > 1 ? "s" : ""}</span>
+            <span>{t("question")}{" "}{current + 1} / {total}</span>
+            <span>{t("repondu_p", { answered, s: answered > 1 ? "s" : "" })}</span>
           </div>
           <div className="h-2 bg-gray-200 rounded-full">
             <div
@@ -264,10 +262,9 @@ export default function QuizPage() {
           <div className="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 lg:p-8 mb-6">
             {/* Numéro + points */}
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">
-                Question {current + 1}
+              <span className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">{t("question")}{" "}{current + 1}
               </span>
-              <span className="text-xs text-gray-400">{q.points || 1} point{(q.points || 1) > 1 ? "s" : ""}</span>
+              <span className="text-xs text-gray-400">{q.points || 1}{" "}{i18n.t("quizPage:point", { s: (q.points || 1) > 1 ? "s" : "" })}</span>
             </div>
 
             {/* Texte question */}
@@ -309,8 +306,7 @@ export default function QuizPage() {
             disabled={current === 0}
             className="flex items-center gap-2 py-2.5 px-5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium"
           >
-            <ArrowLeft className="w-4 h-4" /> Précédent
-          </button>
+            <ArrowLeft className="w-4 h-4" />{" "}{t("precedent")}</button>
 
           {/* Dots navigation */}
           <div className="flex gap-1.5 flex-wrap justify-center">
@@ -333,8 +329,7 @@ export default function QuizPage() {
             <button
               onClick={() => setCurrent((p) => p + 1)}
               className="flex items-center gap-2 py-2.5 px-5 bg-primary text-white rounded-xl hover:bg-primary-light transition text-sm font-semibold"
-            >
-              Suivant <ArrowRight className="w-4 h-4" />
+            >{t("suivant")}{" "}<ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
@@ -346,7 +341,7 @@ export default function QuizPage() {
                 ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                 : <Send className="w-4 h-4" />
               }
-              {submitting ? "Envoi…" : "Soumettre"}
+              {submitting ? t("envoi") : t("soumettre")}
             </button>
           )}
         </div>
@@ -355,15 +350,13 @@ export default function QuizPage() {
         <div className="mt-6 bg-white rounded-xl border border-gray-100 p-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500">
-              <span className="font-semibold text-gray-900">{answered}</span> / {total} questions répondues
-            </span>
+              <span className="font-semibold text-gray-900">{answered}</span>{" "}{i18n.t("quizPage:questions_repondues", { total })}</span>
             {answered === total && (
               <button
                 onClick={() => handleSubmit()}
                 className="flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline text-sm"
               >
-                <Send className="w-3.5 h-3.5" /> Soumettre maintenant
-              </button>
+                <Send className="w-3.5 h-3.5" />{" "}{t("soumettre_maintenant")}</button>
             )}
           </div>
           <div className="mt-2 flex gap-1 flex-wrap">
@@ -371,7 +364,7 @@ export default function QuizPage() {
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
-                title={`Question ${i + 1}`}
+                title={t("question_2", { v: i + 1 })}
                 className={`w-7 h-7 rounded-lg text-xs font-bold transition ${
                   answers[q2.id]
                     ? "bg-primary text-white"

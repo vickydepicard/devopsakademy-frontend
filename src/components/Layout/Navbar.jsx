@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { initialsAvatar, coverPlaceholder, onAvatarError } from "../../utils/avatar";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useProfile } from "../../contexts/ProfileContext";
@@ -12,7 +13,7 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // ✅ Fermer le menu utilisateur si on clique ailleurs
+  // Fermer le menu utilisateur si on clique ailleurs
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -23,13 +24,13 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Style des liens actifs
+  // Style des liens actifs
   const navLinkClass = ({ isActive }) =>
     isActive
       ? "text-accent font-semibold"
       : "text-white hover:text-accent transition duration-300";
 
-  // ✅ Redirection selon rôle
+  // Redirection selon rôle
   const dashboardLink = () => {
     if (!user) return "/login";
     switch (user.role) {
@@ -42,7 +43,7 @@ const Navbar = () => {
     }
   };
 
-  // ✅ Déconnexion
+  // Déconnexion
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -71,7 +72,8 @@ const Navbar = () => {
                   className="focus:outline-none"
                 >
                   <img
-                    src={profile?.avatar_url || "/default-avatar.png"}
+                    src={profile?.avatar_url || initialsAvatar(`${profile?.first_name || ""} ${profile?.last_name || ""}`)}
+                    onError={onAvatarError(`${profile?.first_name || ""} ${profile?.last_name || ""}`)}
                     alt="Avatar"
                     className="w-10 h-10 rounded-full border-2 border-accent cursor-pointer hover:scale-105 transition"
                   />
@@ -84,20 +86,20 @@ const Navbar = () => {
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      👤 Mon profil
+                      Mon profil
                     </Link>
                     <Link
                       to={dashboardLink()}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      📊 Dashboard
+                      Dashboard
                     </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-100 hover:text-red-600 transition"
                     >
-                      🚪 Déconnexion
+                      Déconnexion
                     </button>
                   </div>
                 )}

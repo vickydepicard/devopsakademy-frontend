@@ -9,8 +9,11 @@ import {
   Bell, LogOut, Menu, X, ChevronLeft, ChevronRight,
   Flame, Award, Clock, GraduationCap, Star
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 export default function StudentLayout() {
+  const { t } = useTranslation("studentLayout");
   const { user, logout } = useAuth();
   const navigate    = useNavigate();
   const location    = useLocation();
@@ -39,24 +42,24 @@ export default function StudentLayout() {
   };
 
   const handleLogout = () => { logout(); navigate("/login"); };
-  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Étudiant";
+  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || i18n.t("studentLayout:etudiant");
   const initials = [user?.first_name?.[0], user?.last_name?.[0]].filter(Boolean).join("").toUpperCase() || "?";
 
   const NAV = [
-    { group: "Formation", items: [
-      { to:"/student",            end:true,  label:"Vue d'ensemble",  Icon:LayoutDashboard },
-      { to:"/student/active",     end:false, label:"En cours",        Icon:Flame,    badge: counts.active    || null, badgeCls:"bg-orange-100 text-orange-600" },
-      { to:"/student/completed",  end:false, label:"Terminés",        Icon:Trophy,   badge: counts.completed || null, badgeCls:"bg-violet-100 text-violet-700" },
-      { to:"/student/pending",    end:false, label:"En attente",      Icon:Clock,    badge: counts.pending   || null, badgeCls:"bg-amber-100  text-amber-700"  },
+    { group: i18n.t("studentLayout:formation"), items: [
+      { to:"/student",            end:true,  label:t("vue_d_ensemble"),  Icon:LayoutDashboard },
+      { to:"/student/active",     end:false, label:t("en_cours"),        Icon:Flame,    badge: counts.active    || null, badgeCls:"bg-orange-100 text-orange-600" },
+      { to:"/student/completed",  end:false, label:t("termines"),        Icon:Trophy,   badge: counts.completed || null, badgeCls:"bg-violet-100 text-violet-700" },
+      { to:"/student/pending",    end:false, label:t("en_attente"),      Icon:Clock,    badge: counts.pending   || null, badgeCls:"bg-amber-100  text-amber-700"  },
     ]},
-    { group: "Mon espace", items: [
-      { to:"/student/profile",      end:false, label:"Mon profil",      Icon:User },
-      { to:"/student/certificates", end:false, label:"Mes certificats", Icon:Award },
-      { to:"/student/payments",     end:false, label:"Paiements",       Icon:CreditCard },
-      { to:"/leaderboard",          end:false, label:"Classement",      Icon:Star },
+    { group: i18n.t("studentLayout:mon_espace"), items: [
+      { to:"/student/profile",      end:false, label:t("mon_profil"),      Icon:User },
+      { to:"/student/certificates", end:false, label:t("mes_certificats"), Icon:Award },
+      { to:"/student/payments",     end:false, label:t("paiements"),       Icon:CreditCard },
+      { to:"/leaderboard",          end:false, label:t("classement"),      Icon:Star },
     ]},
-    { group: "Catalogue", items: [
-      { to:"/courses", end:true, label:"Explorer les cours", Icon:BookOpen },
+    { group: i18n.t("studentLayout:catalogue"), items: [
+      { to:"/courses", end:true, label:t("explorer_les_cours"), Icon:BookOpen },
     ]},
   ];
 
@@ -72,8 +75,7 @@ export default function StudentLayout() {
           <GraduationCap className="w-4 h-4" style={{ color:"#2d287f" }} />
         </div>
         {!collapsed && (
-          <span className="font-black text-sm" style={{ color:"#2d287f" }}>
-            DevOps <span style={{ color:"#5653e1" }}>Akademy</span>
+          <span className="font-black text-sm" style={{ color:"#2d287f" }}>{t("devops")}{" "}<span style={{ color:"#5653e1" }}>{t("akademy")}</span>
           </span>
         )}
       </Link>
@@ -91,7 +93,7 @@ export default function StudentLayout() {
               <p className="text-sm font-semibold truncate leading-none" style={{ color:"#2d287f" }}>{fullName}</p>
               <div className="flex items-center gap-1 mt-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <p className="text-xs text-emerald-600 font-medium">Étudiant</p>
+                <p className="text-xs text-emerald-600 font-medium">{t("etudiant")}</p>
               </div>
             </div>
           </div>
@@ -163,16 +165,16 @@ export default function StudentLayout() {
             ${collapsed ? "justify-center p-2.5" : "px-3 py-2"}
             ${isActive ? "bg-slate-100 text-slate-800" : ""}`
           }
-          title={collapsed ? "Notifications" : undefined}>
+          title={collapsed ? t("notifications") : undefined}>
           <Bell className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Notifications</span>}
+          {!collapsed && <span>{t("notifications")}</span>}
         </NavLink>
         <button onClick={handleLogout}
           className={`w-full flex items-center gap-2.5 rounded-xl text-sm text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all
             ${collapsed ? "justify-center p-2.5" : "px-3 py-2"}`}
-          title={collapsed ? "Déconnexion" : undefined}>
+          title={collapsed ? t("deconnexion") : undefined}>
           <LogOut className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Déconnexion</span>}
+          {!collapsed && <span>{t("deconnexion")}</span>}
         </button>
       </div>
     </div>
@@ -222,7 +224,7 @@ export default function StudentLayout() {
             <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background:"#facc15" }}>
               <GraduationCap className="w-3.5 h-3.5" style={{ color:"#2d287f" }} />
             </div>
-            <span className="font-black text-sm" style={{ color:"#2d287f" }}>DevOps <span style={{ color:"#5653e1" }}>Akademy</span></span>
+            <span className="font-black text-sm" style={{ color:"#2d287f" }}>{t("devops")}{" "}<span style={{ color:"#5653e1" }}>{t("akademy")}</span></span>
           </Link>
           <Link to="/notifications" className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400">
             <Bell className="w-5 h-5" />

@@ -1,0 +1,17 @@
+{
+  "title": "Nouveau sujet",
+  "subtitle": "Posez une question claire ou partagez une expérience : la communauté et les instructeurs vous répondront.",
+  "back": "Retour au forum",
+  "category": "Catégorie",
+  "subject": "Sujet",
+  "subjectPlaceholder": "Ex. : Pourquoi mon conteneur Docker s'arrête-t-il immédiatement ?",
+  "message": "Message",
+  "messagePlaceholder": "Décrivez votre contexte, ce que vous avez essayé et le résultat obtenu…",
+  "rules": "Soyez respectueux et précis. Évitez de publier des mots de passe ou des clés secrètes.",
+  "publish": "Publier",
+  "sending": "Publication…",
+  "titleShort": "Le sujet doit contenir au moins 5 caractères.",
+  "contentRequired": "Le message est obligatoire.",
+  "loadError": "Impossible de charger les catégories.",
+  "sendError": "Impossible de publier le sujet."
+}

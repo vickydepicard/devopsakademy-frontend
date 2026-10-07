@@ -15,7 +15,7 @@ export default function FeaturesSection() {
     {
       icon: <FaUsers className="text-accent text-5xl mb-6 mx-auto" />,
       title: "Communauté active",
-      desc: "Rejoins une communauté de passionnés pour échanger et collaborer sur tes projets."
+      desc: "Rejoignez une communauté de professionnels pour échanger et collaborer sur vos projets."
     },
   ];
 

@@ -4,15 +4,20 @@
 //   Intégrer dans CourseDetails.jsx et CourseProgress.jsx
 
 import { useState, useEffect, useCallback } from "react";
+import { askConfirm, askPrompt } from "../../utils/dialog";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Star, Edit3, Trash2, Send, CheckCircle,
   ChevronDown, Loader, MessageSquare, Award
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocale } from "../../i18n";
+import i18n from "../../i18n";
 
 // ─── Étoiles interactives ──────────────────────────────────
 function StarRating({ value, onChange, readonly = false, size = "md" }) {
+  const { t } = useTranslation("courseReviews");
   const [hovered, setHovered] = useState(0);
   const active = hovered || value;
   const sz = size === "lg" ? "w-8 h-8" : size === "sm" ? "w-4 h-4" : "w-6 h-6";
@@ -27,7 +32,7 @@ function StarRating({ value, onChange, readonly = false, size = "md" }) {
           onClick={() => onChange?.(n)}
           onMouseEnter={() => !readonly && setHovered(n)}
           className={`transition-all duration-150 ${readonly ? "cursor-default" : "cursor-pointer hover:scale-110"}`}
-          aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+          aria-label={t("etoile", { n, v: n > 1 ? "s" : "" })}
         >
           <Star
             className={`${sz} transition-colors duration-150 ${
@@ -62,10 +67,11 @@ function RatingBar({ count, total, label }) {
 
 // ─── Carte d'un avis ──────────────────────────────────────
 function ReviewCard({ review, isOwn, onEdit, onDelete }) {
+  const { t } = useTranslation("courseReviews");
   const initials = [review.first_name?.[0], review.last_name?.[0]]
     .filter(Boolean).join("").toUpperCase() || "?";
-  const fullName = [review.first_name, review.last_name].filter(Boolean).join(" ") || "Anonyme";
-  const date = new Date(review.created_at).toLocaleDateString("fr-FR", {
+  const fullName = [review.first_name, review.last_name].filter(Boolean).join(" ") || i18n.t("courseReviews:anonyme");
+  const date = new Date(review.created_at).toLocaleDateString(getLocale(), {
     day: "numeric", month: "long", year: "numeric",
   });
 
@@ -92,9 +98,7 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
             <p className="font-semibold text-gray-800 text-sm">
               {fullName}
               {isOwn && (
-                <span className="ml-2 text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
-                  Mon avis
-                </span>
+                <span className="ml-2 text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">{t("mon_avis")}</span>
               )}
             </p>
             <p className="text-xs text-gray-400">{date}</p>
@@ -108,14 +112,14 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
               <button
                 onClick={onEdit}
                 className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                title="Modifier"
+                title={t("modifier")}
               >
                 <Edit3 className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={onDelete}
                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                title="Supprimer"
+                title={t("supprimer")}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -133,15 +137,16 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
 
 // ─── Formulaire d'avis ────────────────────────────────────
 function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
+  const { t } = useTranslation("courseReviews");
   const [rating,    setRating]    = useState(existing?.rating || 0);
   const [comment,   setComment]   = useState(existing?.comment || "");
   const [submitting, setSubmitting] = useState(false);
   const [error,     setError]     = useState("");
 
-  const LABELS = { 1: "Très décevant", 2: "Décevant", 3: "Correct", 4: "Bien", 5: "Excellent !" };
+  const LABELS = { 1: i18n.t("courseReviews:tres_decevant"), 2: i18n.t("courseReviews:decevant"), 3: i18n.t("courseReviews:correct"), 4: i18n.t("courseReviews:bien"), 5: i18n.t("courseReviews:excellent") };
 
   const handleSubmit = async () => {
-    if (!rating) { setError("Veuillez sélectionner une note."); return; }
+    if (!rating) { setError(t("veuillez_selectionner_une_note")); return; }
     setSubmitting(true);
     setError("");
     try {
@@ -152,7 +157,7 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
       }
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || "Erreur lors de l'envoi de l'avis.");
+      setError(err.response?.data?.message || t("erreur_lors_de_l_envoi_de"));
     } finally {
       setSubmitting(false);
     }
@@ -162,12 +167,12 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
     <div className="bg-white rounded-2xl border border-indigo-200 p-6 shadow-sm">
       <h3 className="font-bold text-gray-800 mb-4 text-base flex items-center gap-2">
         <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-        {existing ? "Modifier votre avis" : "Laisser un avis"}
+        {existing ? t("modifier_votre_avis") : t("laisser_un_avis")}
       </h3>
 
       {/* Étoiles */}
       <div className="mb-4">
-        <p className="text-sm text-gray-500 mb-2">Votre note *</p>
+        <p className="text-sm text-gray-500 mb-2">{t("votre_note")}</p>
         <div className="flex items-center gap-3">
           <StarRating value={rating} onChange={setRating} size="lg" />
           {rating > 0 && (
@@ -178,13 +183,13 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
 
       {/* Commentaire */}
       <div className="mb-4">
-        <p className="text-sm text-gray-500 mb-2">Commentaire (facultatif)</p>
+        <p className="text-sm text-gray-500 mb-2">{t("commentaire_facultatif")}</p>
         <textarea
           value={comment}
           onChange={e => setComment(e.target.value)}
           rows={4}
           maxLength={1000}
-          placeholder="Partagez votre expérience avec ce cours…"
+          placeholder={t("partagez_votre_experience_avec_ce_cours")}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none transition"
         />
         <p className="text-xs text-gray-400 text-right mt-1">{comment.length}/1000</p>
@@ -203,17 +208,15 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
           className="flex-1 py-2.5 bg-indigo-700 hover:bg-indigo-800 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition"
         >
           {submitting
-            ? <><Loader className="w-4 h-4 animate-spin" /> Envoi...</>
-            : <><Send className="w-4 h-4" /> {existing ? "Modifier" : "Publier l'avis"}</>
+            ? <><Loader className="w-4 h-4 animate-spin" />{" "}{t("envoi")}</>
+            : <><Send className="w-4 h-4" /> {existing ? t("modifier") : t("publier_l_avis")}</>
           }
         </button>
         {onCancel && (
           <button
             onClick={onCancel}
             className="px-5 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-medium transition"
-          >
-            Annuler
-          </button>
+          >{t("annuler")}</button>
         )}
       </div>
     </div>
@@ -222,6 +225,7 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
 
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────
 export default function CourseReviews({ courseId, isEnrolled = false }) {
+  const { t } = useTranslation("courseReviews");
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
@@ -273,23 +277,23 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
   const handleSuccess = async () => {
     setShowForm(false);
     setEditMode(false);
-    setSuccess("✅ Avis publié avec succès !");
+    setSuccess(t("avis_publie_avec_succes"));
     setPage(1);
     await Promise.all([fetchReviews(1), fetchMyReview()]);
     setTimeout(() => setSuccess(""), 4000);
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Supprimer votre avis ?")) return;
+    if (!(await askConfirm(t("supprimer_votre_avis")))) return;
     setDeleting(true);
     try {
       await api.delete(`/courses/${courseId}/reviews`);
       setMyReview(null);
-      setSuccess("Avis supprimé.");
+      setSuccess(t("avis_supprime"));
       await fetchReviews(1);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert(err.response?.data?.message || "Erreur suppression.");
+      alert(err.response?.data?.message || t("erreur_suppression"));
     } finally {
       setDeleting(false);
     }
@@ -322,9 +326,7 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
       {/* ── Titre section ─────────────────────────────── */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-indigo-500" />
-          Avis des apprenants
-          {stats?.total > 0 && (
+          <MessageSquare className="w-5 h-5 text-indigo-500" />{t("avis_des_apprenants")}{stats?.total > 0 && (
             <span className="text-base font-normal text-gray-400">({stats.total})</span>
           )}
         </h2>
@@ -339,7 +341,7 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
               {Number(stats.avg_rating).toFixed(1)}
             </p>
             <StarRating value={Math.round(stats.avg_rating)} readonly size="sm" />
-            <p className="text-gray-400 text-xs mt-1">{stats.total} avis</p>
+            <p className="text-gray-400 text-xs mt-1">{i18n.t("courseReviews:avis", { total: stats.total })}</p>
           </div>
 
           {/* Distribution */}
@@ -357,8 +359,8 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
       ) : (
         <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-8 text-center">
           <Award className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500 font-medium">Aucun avis pour l'instant</p>
-          <p className="text-gray-400 text-sm mt-1">Soyez le premier à donner votre avis !</p>
+          <p className="text-gray-500 font-medium">{t("aucun_avis_pour_l_instant")}</p>
+          <p className="text-gray-400 text-sm mt-1">{t("soyez_le_premier_a_donner_votre")}</p>
         </div>
       )}
 
@@ -394,9 +396,7 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
                 onClick={() => setShowForm(true)}
                 className="w-full py-3.5 border-2 border-dashed border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-indigo-600 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition group"
               >
-                <Star className="w-4 h-4 group-hover:fill-indigo-400 transition" />
-                Donner mon avis sur ce cours
-              </button>
+                <Star className="w-4 h-4 group-hover:fill-indigo-400 transition" />{t("donner_mon_avis_sur_ce_cours")}</button>
             )
           )}
         </div>
@@ -405,14 +405,10 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
       {/* Message si non connecté ou non inscrit */}
       {!isLoggedIn && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 text-sm text-gray-500 text-center">
-          <a href="/login" className="text-indigo-600 font-semibold hover:underline">Connectez-vous</a>
-          {" "}pour laisser un avis.
-        </div>
+          <a href="/login" className="text-indigo-600 font-semibold hover:underline">{t("connectez_vous")}</a>{" "}{t("pour_laisser_un_avis")}</div>
       )}
       {isLoggedIn && !isEnrolled && (
-        <div className="bg-amber-50 border border-amber-100 rounded-xl px-5 py-4 text-sm text-amber-700 text-center">
-          Inscrivez-vous au cours pour pouvoir laisser un avis.
-        </div>
+        <div className="bg-amber-50 border border-amber-100 rounded-xl px-5 py-4 text-sm text-amber-700 text-center">{t("inscrivez_vous_au_cours_pour_pouvoir")}</div>
       )}
 
       {/* ── Liste des autres avis ─────────────────────── */}
@@ -438,17 +434,15 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
           className="w-full py-3 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-60"
         >
           {loadingMore
-            ? <><Loader className="w-4 h-4 animate-spin" /> Chargement...</>
-            : <><ChevronDown className="w-4 h-4" /> Voir plus d'avis</>
+            ? <><Loader className="w-4 h-4 animate-spin" />{" "}{t("chargement")}</>
+            : <><ChevronDown className="w-4 h-4" />{" "}{t("voir_plus_d_avis")}</>
           }
         </button>
       )}
 
       {/* Aucun avis, connecté et inscrit */}
       {otherReviews.length === 0 && !myReview && stats?.total === 0 && isEnrolled && (
-        <p className="text-center text-gray-400 text-sm py-4">
-          Personne n'a encore donné d'avis. Soyez le premier !
-        </p>
+        <p className="text-center text-gray-400 text-sm py-4">{t("personne_n_a_encore_donne_d")}</p>
       )}
     </div>
   );

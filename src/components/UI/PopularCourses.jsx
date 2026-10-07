@@ -73,7 +73,7 @@ const PopularCourses = () => {
     }
   };
 
-  // 🎯 LOGIQUE UNIFIÉE POUR LES BOUTONS
+  // LOGIQUE UNIFIÉE POUR LES BOUTONS
   const getActionButtons = (courseId) => {
     const buttons = [];
     
@@ -228,7 +228,7 @@ const PopularCourses = () => {
       {/* TITRE */}
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-extrabold text-[#3B3A82] mb-3">
-          🌟 Formations populaires
+          Formations populaires
         </h2>
         <p className="text-gray-500 text-base md:text-lg">
           Nos parcours les plus suivis par la communauté DevOps Akademy.
@@ -348,7 +348,7 @@ const PopularCourses = () => {
                       </div>
                     </div>
 
-                    {/* 🎯 BOUTONS D'ACTION - TOUJOURS 2 BOUTONS */}
+                    {/* BOUTONS D'ACTION - TOUJOURS 2 BOUTONS */}
                     <div className="mt-auto">
                       <div className="grid grid-cols-2 gap-3">
                         {actionButtons.map((button, index) => (
@@ -402,7 +402,7 @@ const PopularCourses = () => {
         </div>
       )}
     </section>
-      {/* ✅ Modal paiement */}
+      {/* Modal paiement */}
       {paymentModal && (
         <PaymentModal
           course={paymentModal}

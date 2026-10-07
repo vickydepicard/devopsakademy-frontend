@@ -10,20 +10,23 @@ import {
   FileText, Film, HelpCircle, Dumbbell, CheckCircle,
   WifiOff, Settings, ToggleLeft, ToggleRight, Loader
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 // ─── Constantes ────────────────────────────────────────────
-const LEVEL_LABELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced: "Avancé" };
+const LEVEL_LABELS = () => ({ beginner: i18n.t("coursePreview:debutant"), intermediate: i18n.t("coursePreview:intermediaire"), advanced: i18n.t("coursePreview:avance") });
 const LEVEL_COLORS = {
   beginner:     "bg-emerald-100 text-emerald-700",
   intermediate: "bg-blue-100 text-blue-700",
   advanced:     "bg-purple-100 text-purple-700",
 };
-const CONTENT_TYPES = {
-  video:    { icon: Film,       label: "Vidéo",     color: "text-blue-600",    bg: "bg-blue-50" },
-  article:  { icon: FileText,   label: "Article",   color: "text-purple-600",  bg: "bg-purple-50" },
-  quiz:     { icon: HelpCircle, label: "Quiz",      color: "text-amber-600",   bg: "bg-amber-50" },
-  exercise: { icon: Dumbbell,   label: "Exercice",  color: "text-emerald-600", bg: "bg-emerald-50" },
-};
+const CONTENT_TYPES = () => ({
+  video:    { icon: Film,       label: i18n.t("coursePreview:video"),     color: "text-blue-600",    bg: "bg-blue-50" },
+  article:  { icon: FileText,   label: i18n.t("coursePreview:article"),   color: "text-purple-600",  bg: "bg-purple-50" },
+  quiz:     { icon: HelpCircle, label: i18n.t("coursePreview:quiz"),      color: "text-amber-600",   bg: "bg-amber-50" },
+  exercise: { icon: Dumbbell,   label: i18n.t("coursePreview:exercice"),  color: "text-emerald-600", bg: "bg-emerald-50" },
+});
 
 // ─── Helpers URL ───────────────────────────────────────────
 const KNOWN_DOMAINS = ["youtube.com", "youtu.be", "vimeo.com", "loom.com"];
@@ -50,6 +53,7 @@ const formatDur = (h) => !h ? null : h < 1 ? `${Math.round(h * 60)} min` : `${h}
 
 // ─── Lecteur YouTube / MP4 avec poster cliquable ───────────
 function VideoPlayer({ url, poster, title, duration }) {
+  const { t } = useTranslation("coursePreview");
   const [playing, setPlaying] = useState(false);
   const ytId = getYtId(url);
   useEffect(() => { setPlaying(false); }, [url]);
@@ -81,9 +85,7 @@ function VideoPlayer({ url, poster, title, duration }) {
             </div>
           </div>
           {duration > 0 && (
-            <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">
-              {duration} min
-            </div>
+            <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded">{t("min_2", { vduration: duration })}</div>
           )}
         </div>
       ) : ytId ? (
@@ -103,6 +105,7 @@ function VideoPlayer({ url, poster, title, duration }) {
 
 // ─── Visionneuse PDF inline (sans téléchargement) ──────────
 function PdfViewer({ url, title }) {
+  const { t } = useTranslation("coursePreview");
   // Embed le PDF via object tag — pas de bouton téléchargement
   // On empêche le clic droit et le menu contextuel
   return (
@@ -123,10 +126,7 @@ function PdfViewer({ url, title }) {
         <div className="flex flex-col items-center justify-center h-full gap-4 bg-gray-50">
           <FileText className="w-16 h-16 text-[#2d287f]/30" />
           <p className="text-gray-600 font-semibold">{title}</p>
-          <p className="text-gray-400 text-sm text-center max-w-xs">
-            Votre navigateur ne supporte pas l'affichage PDF inline.<br />
-            Inscrivez-vous pour accéder au contenu complet.
-          </p>
+          <p className="text-gray-400 text-sm text-center max-w-xs">{t("votre_navigateur_ne_supporte_pas_l")}<br />{t("inscrivez_vous_pour_acceder_au_contenu")}</p>
         </div>
       </object>
     </div>
@@ -135,7 +135,8 @@ function PdfViewer({ url, title }) {
 
 // ─── Message "contenu indisponible" ────────────────────────
 function NoContentMessage({ lesson, isAdmin, courseId, onTogglePreview, toggling }) {
-  const ct = CONTENT_TYPES[lesson?.content_type] || CONTENT_TYPES.video;
+  const { t } = useTranslation("coursePreview");
+  const ct = CONTENT_TYPES()[lesson?.content_type] || CONTENT_TYPES().video;
   const Icon = ct.icon;
   return (
     <div className="aspect-video flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] relative">
@@ -143,17 +144,15 @@ function NoContentMessage({ lesson, isAdmin, courseId, onTogglePreview, toggling
         <WifiOff className="w-10 h-10 text-white/50" />
       </div>
       <div className="text-center text-white px-8 max-w-md">
-        <p className="font-bold text-lg mb-1">Contenu non disponible</p>
+        <p className="font-bold text-lg mb-1">{t("contenu_non_disponible")}</p>
         <p className="text-white/60 text-sm">
           {lesson
-            ? `Aucun fichier n'a été associé à cette leçon aperçu (${ct.label}).`
-            : "Aucune leçon aperçu n'a été configurée pour ce cours."}
+            ? t("aucun_fichier_n_a_ete_associe", { label: ct.label })
+            : t("aucune_lecon_apercu_n_a_ete")}
         </p>
         {isAdmin && lesson && (
           <div className="mt-4 p-3 bg-white/10 rounded-xl text-xs text-white/70 border border-white/20">
-            <Settings className="w-4 h-4 inline mr-1.5" />
-            En tant qu'admin : uploadez une vidéo ou un fichier dans l'onglet "Fichiers" de cette leçon via le gestionnaire de cours.
-          </div>
+            <Settings className="w-4 h-4 inline mr-1.5" />{t("en_tant_qu_admin_uploadez_une")}</div>
         )}
       </div>
       {isAdmin && lesson && (
@@ -161,9 +160,7 @@ function NoContentMessage({ lesson, isAdmin, courseId, onTogglePreview, toggling
           onClick={() => onTogglePreview(lesson.id, false)}
           disabled={toggling}
           className="flex items-center gap-2 bg-red-500/80 hover:bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition mt-2">
-          {toggling ? <Loader className="w-3 h-3 animate-spin" /> : <EyeOff className="w-3 h-3" />}
-          Retirer de l'aperçu
-        </button>
+          {toggling ? <Loader className="w-3 h-3 animate-spin" /> : <EyeOff className="w-3 h-3" />}{t("retirer_de_l_apercu")}</button>
       )}
     </div>
   );
@@ -171,6 +168,7 @@ function NoContentMessage({ lesson, isAdmin, courseId, onTogglePreview, toggling
 
 // ─── Zone lecteur (dispatch selon type) ────────────────────
 function ContentPlayer({ lesson, course, isAdmin, onTogglePreview, toggling }) {
+  const { t } = useTranslation("coursePreview");
   const url = normalizeUrl(lesson?.content_url);
   const ytId = getYtId(url);
   const isVid = ytId || isVideo(url || "");
@@ -201,7 +199,7 @@ function ContentPlayer({ lesson, course, isAdmin, onTogglePreview, toggling }) {
   }
 
   // Autre type (article, quiz, exercise) avec URL → placeholder
-  const ct = CONTENT_TYPES[lesson.content_type] || CONTENT_TYPES.article;
+  const ct = CONTENT_TYPES()[lesson.content_type] || CONTENT_TYPES().article;
   const Icon = ct.icon;
   return (
     <div className="aspect-video flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#1f1b5a] to-[#2d287f]">
@@ -210,7 +208,7 @@ function ContentPlayer({ lesson, course, isAdmin, onTogglePreview, toggling }) {
       </div>
       <div className="text-center text-white px-6">
         <p className="font-bold text-lg">{lesson.title}</p>
-        <p className="text-white/50 text-sm mt-1">Ce type de contenu est accessible après inscription</p>
+        <p className="text-white/50 text-sm mt-1">{t("ce_type_de_contenu_est_accessible")}</p>
       </div>
     </div>
   );
@@ -220,6 +218,7 @@ function ContentPlayer({ lesson, course, isAdmin, onTogglePreview, toggling }) {
 // PAGE PRINCIPALE
 // ═══════════════════════════════════════════════════════════
 export default function CoursePreview() {
+  const { t } = useTranslation("coursePreview");
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
@@ -238,7 +237,7 @@ export default function CoursePreview() {
     try {
       const res  = await api.get(`/courses/${id}/preview`);
       const data = res.data?.data || res.data;
-      if (!data) { setError("Cours introuvable."); return; }
+      if (!data) { setError(t("cours_introuvable")); return; }
       setCourse(data);
       const allLessons = (data.modules || []).flatMap(m => m.lessons || []);
       const first = allLessons.find(l => l.is_preview) || data.first_lesson_preview;
@@ -248,7 +247,7 @@ export default function CoursePreview() {
         return first || null;
       });
     } catch (err) {
-      setError(err.response?.status === 404 ? "Ce cours est introuvable." : "Erreur de connexion au serveur.");
+      setError(err.response?.status === 404 ? t("ce_cours_est_introuvable") : t("erreur_de_connexion_au_serveur"));
     } finally {
       setLoading(false);
     }
@@ -262,7 +261,7 @@ export default function CoursePreview() {
     try {
       await api.patch(`/admin/lessons/${lessonId}`, { is_preview: newValue ? 1 : 0 });
       await load(); // recharger
-    } catch { alert("Erreur lors de la modification."); }
+    } catch { alert(t("erreur_lors_de_la_modification")); }
     setToggling(null);
   };
 
@@ -275,7 +274,7 @@ export default function CoursePreview() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-4 border-[#2d287f] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-gray-500 text-sm">Chargement…</p>
+        <p className="text-gray-500 text-sm">{t("chargement")}</p>
       </div>
     </div>
   );
@@ -284,21 +283,19 @@ export default function CoursePreview() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-10 text-center max-w-sm shadow border border-gray-100">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-        <p className="font-semibold text-gray-800 mb-4">{error || "Cours non disponible"}</p>
+        <p className="font-semibold text-gray-800 mb-4">{error || t("cours_non_disponible")}</p>
         <button onClick={() => navigate("/courses")}
-          className="px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-[#3b3aab] transition">
-          ← Retour au catalogue
-        </button>
+          className="px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-[#3b3aab] transition">{t("retour_au_catalogue")}</button>
       </div>
     </div>
   );
 
   const isFree = course.is_free === 1 || Number(course.price || 0) === 0;
-  const level  = LEVEL_LABELS[course.level];
+  const level  = LEVEL_LABELS()[course.level];
   const allLessons     = (course.modules || []).flatMap(m => m.lessons || []);
   const previewLessons = allLessons.filter(l => l.is_preview);
   const totalLessons   = (course.modules || []).reduce((s, m) => s + (m.lesson_count || (m.lessons || []).length), 0);
-  const ct = CONTENT_TYPES[activeLesson?.content_type] || CONTENT_TYPES.video;
+  const ct = CONTENT_TYPES()[activeLesson?.content_type] || CONTENT_TYPES().video;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -307,8 +304,8 @@ export default function CoursePreview() {
       {isAdmin && (
         <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center gap-3 text-sm text-amber-800">
           <Settings className="w-4 h-4 shrink-0" />
-          <span className="font-semibold">Mode admin</span>
-          <span className="text-amber-600">— Vous pouvez activer/désactiver l'aperçu de chaque leçon via le bouton <Eye className="w-3.5 h-3.5 inline" /> dans le programme ci-dessous.</span>
+          <span className="font-semibold">{t("mode_admin")}</span>
+          <span className="text-amber-600">{t("vous_pouvez_activer_desactiver_l_apercu")}{" "}<Eye className="w-3.5 h-3.5 inline" />{" "}{t("dans_le_programme_ci_dessous")}</span>
         </div>
       )}
 
@@ -317,12 +314,10 @@ export default function CoursePreview() {
         <div className="max-w-5xl mx-auto">
           <button onClick={() => navigate(`/courses/${id}`)}
             className="flex items-center gap-2 text-white/60 hover:text-white text-sm mb-6 transition">
-            <ChevronLeft className="w-4 h-4" /> Retour au cours
-          </button>
+            <ChevronLeft className="w-4 h-4" />{" "}{t("retour_au_cours")}</button>
           <div className="flex items-center gap-3 mb-3 flex-wrap">
             <span className="bg-[#facc15] text-[#1f1b5a] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-              <Eye className="w-3 h-3" /> Aperçu gratuit
-            </span>
+              <Eye className="w-3 h-3" />{" "}{t("apercu_gratuit")}</span>
             {level && <span className={`text-xs font-semibold px-3 py-1 rounded-full ${LEVEL_COLORS[course.level]}`}>{level}</span>}
           </div>
           <h1 className="text-2xl lg:text-3xl font-black mb-3">{course.title}</h1>
@@ -336,9 +331,9 @@ export default function CoursePreview() {
                 <strong className="text-white">{parseFloat(course.rating).toFixed(1)}</strong>
               </span>
             )}
-            {(course.student_count || 0) > 0 && <span className="flex items-center gap-1.5"><Users className="w-4 h-4" /> {course.student_count} étudiants</span>}
+            {(course.student_count || 0) > 0 && <span className="flex items-center gap-1.5"><Users className="w-4 h-4" />{" "}{t("etudiants", { student_count: course.student_count })}</span>}
             {course.duration_hours && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {formatDur(course.duration_hours)}</span>}
-            {totalLessons > 0 && <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4" /> {totalLessons} leçons</span>}
+            {totalLessons > 0 && <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4" />{" "}{t("lecons", { totalLessons })}</span>}
           </div>
         </div>
       </div>
@@ -360,7 +355,7 @@ export default function CoursePreview() {
             {/* Info sous le lecteur */}
             <div className="p-5">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <span className="text-[#facc15] text-xs font-bold uppercase tracking-wide">APERÇU · LEÇON GRATUITE</span>
+                <span className="text-[#facc15] text-xs font-bold uppercase tracking-wide">{t("apercu_lecon_gratuite")}</span>
                 {activeLesson && (
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ct.bg} ${ct.color}`}>{ct.label}</span>
                 )}
@@ -370,13 +365,10 @@ export default function CoursePreview() {
               </h3>
               {(activeLesson?.duration_minutes || 0) > 0 && (
                 <p className="text-gray-400 text-sm mt-1.5 flex items-center gap-1.5">
-                  <Clock className="w-4 h-4" /> {activeLesson.duration_minutes} min
-                </p>
+                  <Clock className="w-4 h-4" />{" "}{i18n.t("coursePreview:min_3", { vduration_minutes: activeLesson.duration_minutes })}</p>
               )}
               {previewLessons.length > 1 && (
-                <p className="text-gray-500 text-xs mt-2">
-                  {previewLessons.length} leçons en aperçu — cliquez sur une leçon ci-dessous pour la sélectionner
-                </p>
+                <p className="text-gray-500 text-xs mt-2">{t("lecons_en_apercu_cliquez_sur_une", { length: previewLessons.length })}</p>
               )}
             </div>
           </div>
@@ -384,31 +376,28 @@ export default function CoursePreview() {
           {/* Programme */}
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="font-bold text-gray-900">Programme du cours</h2>
-              <span className="text-xs text-[#2d287f] bg-[#2d287f]/8 px-2.5 py-1 rounded-full font-medium">
-                {previewLessons.length} aperçu{previewLessons.length > 1 ? "s" : ""} gratuit{previewLessons.length > 1 ? "s" : ""}
-              </span>
+              <h2 className="font-bold text-gray-900">{t("programme_du_cours")}</h2>
+              <span className="text-xs text-[#2d287f] bg-[#2d287f]/8 px-2.5 py-1 rounded-full font-medium">{t("apercu", { length: previewLessons.length })}{i18n.t("coursePreview:gratuit_2", { s: previewLessons.length > 1 ? "s" : "", s2: previewLessons.length > 1 ? "s" : "" })}</span>
             </div>
 
             {(course.modules || []).length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">Programme en cours de finalisation</div>
+              <div className="p-8 text-center text-gray-400 text-sm">{t("programme_en_cours_de_finalisation")}</div>
             ) : (
               <div className="divide-y divide-gray-50">
                 {course.modules.map((mod, mi) => (
                   <div key={mod.id || mi}>
                     {/* En-tête module */}
                     <div className="px-5 py-3 bg-gray-50 flex items-center justify-between">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                        Module {mi + 1} · {mod.title}
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t("module")}{" "}{mi + 1} · {mod.title}
                       </p>
                       <span className="text-xs text-gray-400">
-                        {mod.lesson_count || (mod.lessons || []).length} leçon{((mod.lesson_count || (mod.lessons || []).length) > 1) ? "s" : ""}
+                        {mod.lesson_count || (mod.lessons || []).length}{" "}{t("lecon_p", { s: ((mod.lesson_count || (mod.lessons || []).length) > 1) ? "s" : "" })}
                       </span>
                     </div>
 
                     {/* Leçons */}
                     {(mod.lessons || []).map((les, li) => {
-                      const lt      = CONTENT_TYPES[les.content_type] || CONTENT_TYPES.video;
+                      const lt      = CONTENT_TYPES()[les.content_type] || CONTENT_TYPES().video;
                       const LIcon   = lt.icon;
                       const isPreview = !!les.is_preview;
                       const isActive  = activeLesson?.id === les.id;
@@ -445,9 +434,9 @@ export default function CoursePreview() {
                               {les.title}
                             </p>
                             <p className="text-xs text-gray-400 mt-0.5">
-                              {lt.label}{les.duration_minutes > 0 ? ` · ${les.duration_minutes} min` : ""}
+                              {lt.label}{les.duration_minutes > 0 ? t("min", { vduration_minutes: les.duration_minutes }) : ""}
                               {isPreview && !hasContent && (
-                                <span className="ml-1.5 text-orange-500 font-medium">· Aucun contenu</span>
+                                <span className="ml-1.5 text-orange-500 font-medium">{t("aucun_contenu")}</span>
                               )}
                             </p>
                           </div>
@@ -456,10 +445,9 @@ export default function CoursePreview() {
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {isActive ? (
                               <span className="text-xs bg-[#2d287f] text-white px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                                <PlayCircle className="w-3 h-3" /> En cours
-                              </span>
+                                <PlayCircle className="w-3 h-3" />{" "}{t("en_cours")}</span>
                             ) : isPreview ? (
-                              <span className="text-xs bg-[#2d287f]/10 text-[#2d287f] px-2 py-0.5 rounded-full font-medium">Aperçu</span>
+                              <span className="text-xs bg-[#2d287f]/10 text-[#2d287f] px-2 py-0.5 rounded-full font-medium">{t("apercu_2")}</span>
                             ) : (
                               <Lock className="w-3.5 h-3.5 text-gray-300" />
                             )}
@@ -469,7 +457,7 @@ export default function CoursePreview() {
                               <button
                                 onClick={e => { e.stopPropagation(); handleTogglePreview(les.id, !isPreview); }}
                                 disabled={isToggling}
-                                title={isPreview ? "Désactiver l'aperçu" : "Activer l'aperçu"}
+                                title={isPreview ? t("desactiver_l_apercu") : t("activer_l_apercu")}
                                 className={`p-1 rounded-lg transition flex items-center gap-1 text-xs font-semibold ${
                                   isPreview
                                     ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
@@ -498,15 +486,13 @@ export default function CoursePreview() {
                 <Lock className="w-5 h-5 text-[#2d287f] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800">
-                    {totalLessons - previewLessons.length} leçon{(totalLessons - previewLessons.length) > 1 ? "s" : ""} verrouillée{(totalLessons - previewLessons.length) > 1 ? "s" : ""}
+                    {totalLessons - previewLessons.length}{" "}{t("lecon_p", { s: (totalLessons - previewLessons.length) > 1 ? "s" : "" })}{" "}{t("verrouillee_p", { s: (totalLessons - previewLessons.length) > 1 ? "s" : "" })}
                   </p>
-                  <p className="text-xs text-gray-500">Inscrivez-vous pour accéder au contenu complet</p>
+                  <p className="text-xs text-gray-500">{t("inscrivez_vous_pour_acceder_au_contenu_2")}</p>
                 </div>
                 <button onClick={() => navigate(`/courses/${id}`)}
                   className="shrink-0 px-4 py-2 text-xs font-bold text-white rounded-xl transition hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                  S'inscrire →
-                </button>
+                  style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{t("s_inscrire")}</button>
               </div>
             )}
           </div>
@@ -517,29 +503,28 @@ export default function CoursePreview() {
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm sticky top-4">
             <div className="mb-5">
               {isFree
-                ? <p className="text-3xl font-black text-emerald-600">Gratuit</p>
-                : <p className="text-3xl font-black text-[#1f1b5a]">{parseFloat(course.price || 0).toLocaleString("fr-FR")} FCFA</p>
+                ? <p className="text-3xl font-black text-emerald-600">{t("gratuit")}</p>
+                : <p className="text-3xl font-black text-[#1f1b5a]">{parseFloat(course.price || 0).toLocaleString(getLocale())} FCFA</p>
               }
-              <p className="text-xs text-gray-400 mt-1">Accès à vie · Certificat inclus</p>
+              <p className="text-xs text-gray-400 mt-1">{t("acces_a_vie_certificat_inclus")}</p>
             </div>
             <div className="space-y-3 mb-5">
               <button onClick={() => navigate(`/courses/${id}`)}
                 className="w-full py-3.5 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base hover:shadow-xl hover:-translate-y-0.5 transition-all"
                 style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                {isAuthenticated ? "S'inscrire au cours" : "Commencer maintenant"}
+                {isAuthenticated ? t("s_inscrire_au_cours") : t("commencer_maintenant")}
                 <ArrowRight className="w-5 h-5" />
               </button>
               <Link to={`/courses/${id}`}
                 className="w-full py-3 rounded-2xl font-semibold text-sm border-2 border-[#2d287f]/25 text-[#2d287f] flex items-center justify-center gap-2 hover:border-[#2d287f] hover:bg-[#2d287f]/5 transition">
-                <BookOpen className="w-4 h-4" /> Voir le détail du cours
-              </Link>
+                <BookOpen className="w-4 h-4" />{" "}{t("voir_le_detail_du_cours")}</Link>
             </div>
             <div className="space-y-2.5 text-sm text-gray-600 border-t border-gray-100 pt-4">
               {[
-                [Clock,    `${formatDur(course.duration_hours) || "—"} de contenu`],
-                [BookOpen, `${totalLessons} leçon${totalLessons > 1 ? "s" : ""}`],
-                [Eye,      `${previewLessons.length} aperçu${previewLessons.length > 1 ? "s" : ""} gratuit${previewLessons.length > 1 ? "s" : ""}`],
-                [Award,    "Certificat officiel inclus"],
+                [Clock,    i18n.t("coursePreview:de_contenu", { v: formatDur(course.duration_hours) || "—" })],
+                [BookOpen, i18n.t("coursePreview:lecon_2", { totalLessons, s: totalLessons > 1 ? "s" : "" })],
+                [Eye,      i18n.t("coursePreview:apercu_gratuit_2", { length: previewLessons.length, s: previewLessons.length > 1 ? "s" : "", s2: previewLessons.length > 1 ? "s" : "" })],
+                [Award,    i18n.t("coursePreview:certificat_officiel_inclus")],
               ].map(([Icon, label]) => (
                 <div key={label} className="flex items-center gap-2.5">
                   <Icon className="w-4 h-4 text-[#2d287f]" />
@@ -551,11 +536,11 @@ export default function CoursePreview() {
             {/* Liste rapide des leçons aperçu */}
             {previewLessons.length > 0 && (
               <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Leçons aperçu</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">{t("lecons_apercu")}</p>
                 <div className="space-y-2">
                   {previewLessons.map(les => {
                     const isActive = activeLesson?.id === les.id;
-                    const lt = CONTENT_TYPES[les.content_type] || CONTENT_TYPES.video;
+                    const lt = CONTENT_TYPES()[les.content_type] || CONTENT_TYPES().video;
                     const LIcon = lt.icon;
                     const hasContent = !!normalizeUrl(les.content_url);
                     return (

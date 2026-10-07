@@ -15,12 +15,18 @@ import {
   Globe, Lock, CheckCircle, Circle, AlertCircle, X, Save,
   Play, Pause, RefreshCw, Layers, Settings, Award, TrendingUp
 } from "lucide-react";
+import CourseTeamModal from "./CourseTeamModal";
+import { localizeLogos } from "../../utils/logos";
+import FileUrlField from "../../components/Common/FileUrlField";
+import { FileTypeIcon } from "../../components/UI/Icons";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 /* ──────── CONSTANTES ──────── */
-const LEVEL_MAP  = { beginner:"Débutant",   intermediate:"Intermédiaire", advanced:"Avancé" };
+const LEVEL_MAP  = () => ({ beginner:i18n.t("adminCourses:debutant"),   intermediate:i18n.t("adminCourses:intermediaire"), advanced:i18n.t("adminCourses:avance") });
 const LEVEL_CLR  = { beginner:"#10b981",    intermediate:"#f59e0b",       advanced:"#ef4444" };
 const LEVEL_BG   = { beginner:"#d1fae5",    intermediate:"#fef3c7",       advanced:"#fee2e2" };
-const TYPE_MAP   = { video:"Vidéo", article:"Article", quiz:"Quiz", exercise:"Exercice", download:"Téléchargement" };
+const TYPE_MAP   = () => ({ video:i18n.t("adminCourses:video"), article:i18n.t("adminCourses:article"), quiz:i18n.t("adminCourses:quiz"), exercise:i18n.t("adminCourses:exercice"), download:i18n.t("adminCourses:telechargement") });
 const TYPE_ICO   = { video:Film, article:FileText, quiz:Brain, exercise:Zap, download:Download };
 const TYPE_CLR   = { video:"#6366f1", article:"#0ea5e9", quiz:"#8b5cf6", exercise:"#f97316", download:"#059669" };
 
@@ -33,9 +39,9 @@ async function api(token, method, path, body) {
       body: body ? JSON.stringify(body) : undefined,
     });
     const t = await r.text();
-    try { return JSON.parse(t); }
+    try { return localizeLogos(JSON.parse(t)); }
     catch { return { success: false, message: `HTTP ${r.status}` }; }
-  } catch(e) { return { success: false, message: "Réseau: " + e.message }; }
+  } catch(e) { return { success: false, message: i18n.t("adminCourses:reseau") + e.message }; }
 }
 
 /* ──────── TOAST ──────── */
@@ -51,16 +57,17 @@ function Toast({ t }) {
 
 /* ──────── CONFIRM DIALOG ──────── */
 function Confirm({ d, onClose }) {
+  const { t } = useTranslation("adminCourses");
   if (!d) return null;
   return (
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[9998] flex items-center justify-center p-5">
       <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in-up">
-        <div className="text-5xl mb-4">⚠️</div>
+        
         <p className="font-bold text-slate-900 text-lg mb-2">{d.title}</p>
         <p className="text-slate-500 text-sm leading-relaxed mb-7">{d.msg}</p>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition">Annuler</button>
-          <button onClick={d.ok} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition">Supprimer</button>
+          <button onClick={onClose} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition">{t("annuler")}</button>
+          <button onClick={d.ok} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition">{t("supprimer")}</button>
         </div>
       </div>
     </div>
@@ -131,6 +138,7 @@ const Spin = ({ sm }) => (
 
 /* ──────── UPLOAD VIDÉO ──────── */
 function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
+  const { t } = useTranslation("adminCourses");
   const [tab,       setTab]       = useState(currentUrl?.includes("/uploads/") ? "file" : "url");
   const [urlVal,    setUrlVal]    = useState(currentUrl || "");
   const [uploading, setUploading] = useState(false);
@@ -151,11 +159,11 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
       try {
         const r = JSON.parse(xhr.responseText);
         if (r.success) onSuccess(r.data.file_url);
-        else alert("Erreur: " + r.message);
-      } catch { alert("Erreur serveur"); }
+        else alert(i18n.t("adminCourses:erreur") + r.message);
+      } catch { alert(t("erreur_serveur")); }
       setTimeout(() => { setUploading(false); setProgress(null); }, 800);
     };
-    xhr.onerror = () => { setUploading(false); setProgress(null); alert("Erreur réseau"); };
+    xhr.onerror = () => { setUploading(false); setProgress(null); alert(t("erreur_reseau")); };
     xhr.send(fd);
   };
 
@@ -168,7 +176,7 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
     <div className="flex flex-col gap-4">
       {/* Onglets */}
       <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-        {[["url", Link, "URL externe"], ["file", Upload, "Depuis mon ordi"]].map(([v, Icon, l]) => (
+        {[["url", Link, i18n.t("adminCourses:url_externe")], ["file", Upload, i18n.t("adminCourses:depuis_mon_ordi")]].map(([v, Icon, l]) => (
           <button key={v} onClick={() => setTab(v)} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition ${tab === v ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`} style={tab === v ? { color: "#2d287f" } : {}}>
             <Icon size={15} /> {l}
           </button>
@@ -178,8 +186,8 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
       {/* URL externe */}
       {tab === "url" && (
         <div className="flex flex-col gap-3">
-          <Field label="URL de la vidéo" hint="YouTube, Vimeo, MP4 direct…">
-            <input className={IS} value={urlVal} onChange={e => { setUrlVal(e.target.value); onSuccess(e.target.value); }} placeholder="https://youtube.com/watch?v=… ou https://…/video.mp4" />
+          <Field label={t("url_de_la_video")} hint={t("youtube_vimeo_mp4_direct")}>
+            <input className={IS} value={urlVal} onChange={e => { setUrlVal(e.target.value); onSuccess(e.target.value); }} placeholder={i18n.t("adminCourses:placeholder_video_url")} />
           </Field>
           {urlVal && (
             <div className="rounded-2xl overflow-hidden bg-black aspect-video">
@@ -188,7 +196,7 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
               ) : urlVal.match(/\.(mp4|webm|ogg)$/i) ? (
                 <video src={urlVal} controls className="w-full max-h-48" />
               ) : (
-                <div className="flex items-center justify-center h-32 text-slate-400 text-sm">🔗 {urlVal.slice(0, 80)}</div>
+                <div className="flex items-center justify-center h-32 text-slate-400 text-sm">{urlVal.slice(0, 80)}</div>
               )}
             </div>
           )}
@@ -209,7 +217,7 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
             {uploading ? (
               <div>
                 <div className="flex justify-center mb-3"><Spin sm /></div>
-                <p className="text-sm font-bold mb-3" style={{ color: "#2d287f" }}>Upload en cours…</p>
+                <p className="text-sm font-bold mb-3" style={{ color: "#2d287f" }}>{t("upload_en_cours")}</p>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: "linear-gradient(90deg,#2d287f,#5653e1)" }} />
                 </div>
@@ -220,8 +228,8 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
                 <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#2d287f18" }}>
                   <Film size={26} style={{ color: "#2d287f" }} />
                 </div>
-                <p className="font-bold text-slate-700 mb-1">Glissez votre vidéo ici</p>
-                <p className="text-xs text-slate-400">ou cliquez pour sélectionner · MP4, MKV, AVI, MOV, WebM · max 2 Go</p>
+                <p className="font-bold text-slate-700 mb-1">{t("glissez_votre_video_ici")}</p>
+                <p className="text-xs text-slate-400">{t("ou_cliquez_pour_selectionner_mp4_mkv")}</p>
               </>
             )}
           </div>
@@ -239,6 +247,7 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
 
 /* ──────── UPLOAD RESSOURCE ──────── */
 function ResourceUploader({ token, lessonId, onSuccess }) {
+  const { t } = useTranslation("adminCourses");
   const [fileType, setFileType] = useState("pdf");
   const [title,    setTitle]    = useState("");
   const [urlVal,   setUrlVal]   = useState("");
@@ -251,13 +260,13 @@ function ResourceUploader({ token, lessonId, onSuccess }) {
 
   const submit = async () => {
     if (isLink) {
-      if (!urlVal.trim()) { alert("URL requise"); return; }
+      if (!urlVal.trim()) { alert(t("url_requise")); return; }
       const r = await api(token, "POST", "/lessons/resources", { lesson_id: lessonId, title: title || urlVal, file_url: urlVal, file_type: "link" });
       if (r.success) { onSuccess(); setUrlVal(""); setTitle(""); }
       else alert(r.message);
       return;
     }
-    if (!file) { alert("Choisissez un fichier"); return; }
+    if (!file) { alert(t("choisissez_un_fichier")); return; }
     setUploading(true); setProgress(5);
     const fd = new FormData(); fd.append("file", file);
     if (title) fd.append("title", title);
@@ -270,37 +279,37 @@ function ResourceUploader({ token, lessonId, onSuccess }) {
       try {
         const r = JSON.parse(xhr.responseText);
         if (r.success) { onSuccess(); setFile(null); setTitle(""); }
-        else alert("Erreur: " + r.message);
-      } catch { alert("Erreur serveur"); }
+        else alert(i18n.t("adminCourses:erreur") + r.message);
+      } catch { alert(t("erreur_serveur")); }
       setTimeout(() => { setUploading(false); setProgress(null); }, 800);
     };
-    xhr.onerror = () => { setUploading(false); setProgress(null); alert("Erreur réseau"); };
+    xhr.onerror = () => { setUploading(false); setProgress(null); alert(t("erreur_reseau")); };
     xhr.send(fd);
   };
 
   const FILE_TYPES = [
-    ["pdf", "📄", "PDF"], ["mp4", "🎬", "Vidéo"],
-    ["pptx", "📊", "Slides"], ["docx", "📝", "Word"],
-    ["zip", "🗜", "ZIP"], ["code", "💻", "Code"],
-    ["link", "🔗", "Lien"],
+    ["pdf", "PDF"], ["mp4", i18n.t("adminCourses:video")],
+    ["pptx", i18n.t("adminCourses:slides")], ["docx", i18n.t("adminCourses:word")],
+    ["zip", "ZIP"], ["code", i18n.t("adminCourses:code")],
+    ["link", i18n.t("adminCourses:lien")],
   ];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
-        {FILE_TYPES.map(([v, ic, l]) => (
+        {FILE_TYPES.map(([v, l]) => (
           <button key={v} onClick={() => setFileType(v)} className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition ${fileType === v ? "border-primary/50 bg-primary/8 text-primary" : "border-slate-200 text-slate-500 hover:border-slate-300"}`} style={fileType === v ? { borderColor: "#2d287f50", background: "#2d287f10", color: "#2d287f" } : {}}>
-            <span>{ic}</span>{l}
+            <FileTypeIcon type={v} className="w-3.5 h-3.5" />{l}
           </button>
         ))}
       </div>
 
-      <Field label="Titre" hint="optionnel">
-        <input className={IS} value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Slides cours Docker…" />
+      <Field label={t("titre")} hint="optionnel">
+        <input className={IS} value={title} onChange={e => setTitle(e.target.value)} placeholder={t("ex_slides_cours_docker")} />
       </Field>
 
       {isLink ? (
-        <Field label="URL externe">
+        <Field label={t("url_externe")}>
           <input className={IS} value={urlVal} onChange={e => setUrlVal(e.target.value)} placeholder="https://…" />
         </Field>
       ) : (
@@ -312,15 +321,15 @@ function ResourceUploader({ token, lessonId, onSuccess }) {
             {uploading ? (
               <div>
                 <div className="flex justify-center mb-2"><Spin sm /></div>
-                <p className="text-xs font-bold mb-2" style={{ color: "#2d287f" }}>Envoi…</p>
+                <p className="text-xs font-bold mb-2" style={{ color: "#2d287f" }}>{t("envoi")}</p>
                 <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "#2d287f" }} />
                 </div>
               </div>
             ) : file ? (
-              <p className="text-sm text-slate-700 font-medium">📎 {file.name} ({(file.size / 1024 / 1024).toFixed(1)} Mo)</p>
+              <p className="text-sm text-slate-700 font-medium">{file.name} ({(file.size / 1024 / 1024).toFixed(1)}{" "}{t("mo")}</p>
             ) : (
-              <p className="text-sm text-slate-400">Cliquez pour choisir un fichier</p>
+              <p className="text-sm text-slate-400">{t("cliquez_pour_choisir_un_fichier")}</p>
             )}
           </div>
           <input ref={inputRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} />
@@ -328,7 +337,7 @@ function ResourceUploader({ token, lessonId, onSuccess }) {
       )}
 
       <button onClick={submit} disabled={uploading} className="w-full py-3 rounded-xl font-bold text-sm text-white transition" style={{ background: uploading ? "#a5b4fc" : "#059669" }}>
-        {uploading ? "Envoi…" : "✓ Ajouter la ressource"}
+        {uploading ? t("envoi") : t("ajouter_la_ressource")}
       </button>
     </div>
   );
@@ -338,7 +347,9 @@ function ResourceUploader({ token, lessonId, onSuccess }) {
    COMPOSANT PRINCIPAL
 ══════════════════════════════════════════════════ */
 export default function AdminCourses() {
+  const { t } = useTranslation("adminCourses");
   const { token } = useAuth();
+  const [teamCourse, setTeamCourse] = useState(null);
 
   const [courses,     setCourses]    = useState([]);
   const [categories,  setCategories] = useState([]);
@@ -473,8 +484,8 @@ export default function AdminCourses() {
   };
 
   const saveCourse = async () => {
-    if (!cForm.title?.trim()) { t$("Titre requis", false); return; }
-    if (!cForm.instructor_id) { t$("Instructeur requis", false); return; }
+    if (!cForm.title?.trim()) { t$(i18n.t("adminCourses:titre_requis"), false); return; }
+    if (!cForm.instructor_id) { t$(i18n.t("adminCourses:instructeur_requis"), false); return; }
     setSaving(true);
     const payload = {
       ...cForm, price: Number(cForm.price) || 0,
@@ -485,8 +496,8 @@ export default function AdminCourses() {
       ? await api(token, "POST", "/courses", payload)
       : await api(token, "PATCH", `/courses/${course.id}`, payload);
     setSaving(false);
-    if (r.success) { t$(r.message || "Cours enregistré ✓"); await loadAll(); setView("list"); }
-    else t$(r.message || "Erreur", false);
+    if (r.success) { t$(r.message || i18n.t("adminCourses:cours_enregistre")); await loadAll(); setView("list"); }
+    else t$(r.message || i18n.t("adminCourses:erreur_2"), false);
   };
 
   const togglePublishCourse = async (c, e) => {
@@ -498,9 +509,9 @@ export default function AdminCourses() {
 
   const deleteCourse = (c, e) => {
     e?.stopPropagation();
-    ask("Supprimer ce cours ?", `"${c.title}" et tout son contenu sera supprimé.`, async () => {
+    ask(i18n.t("adminCourses:supprimer_ce_cours"), i18n.t("adminCourses:et_tout_son_contenu_sera_supprime", { title: c.title }), async () => {
       const r = await api(token, "DELETE", `/courses/${c.id}`);
-      if (r.success) { t$("Cours supprimé"); loadAll(); if (view !== "list") setView("list"); }
+      if (r.success) { t$(i18n.t("adminCourses:cours_supprime")); loadAll(); if (view !== "list") setView("list"); }
       else t$(r.message, false);
     });
   };
@@ -541,9 +552,9 @@ export default function AdminCourses() {
       a.download = `cours-${slug}-${new Date().toISOString().slice(0,10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      t$("📥 Cours téléchargé !");
+      t$(i18n.t("adminCourses:cours_telecharge"));
     } catch(e) {
-      t$("Erreur export: " + e.message, false);
+      t$(i18n.t("adminCourses:erreur_export") + e.message, false);
     } finally {
       setDlCourse(false);
     }
@@ -553,14 +564,14 @@ export default function AdminCourses() {
   const openModM = (mod = null) => setModM(mod || { _new: true, title: "", description: "", order_index: modules.length, is_published: true });
 
   const saveMod = async () => {
-    if (!modM?.title?.trim()) { t$("Titre requis", false); return; }
+    if (!modM?.title?.trim()) { t$(i18n.t("adminCourses:titre_requis"), false); return; }
     setModSv(true);
     const payload = { title: modM.title, description: modM.description || "", order_index: +modM.order_index || 0, is_published: modM.is_published !== false };
     const r = modM._new
       ? await api(token, "POST", "/modules", { ...payload, course_id: course.id })
       : await api(token, "PATCH", `/modules/${modM.id}`, payload);
     setModSv(false);
-    if (r.success) { t$(r.message || "Module enregistré"); setModM(null); await reloadAllMods(); }
+    if (r.success) { t$(r.message || i18n.t("adminCourses:module_enregistre")); setModM(null); await reloadAllMods(); }
     else t$(r.message, false);
   };
 
@@ -570,9 +581,9 @@ export default function AdminCourses() {
     else t$(r.message, false);
   };
 
-  const deleteMod = (mod) => ask("Supprimer ce module ?", `"${mod.title}" et toutes ses leçons seront supprimés.`, async () => {
+  const deleteMod = (mod) => ask(i18n.t("adminCourses:supprimer_ce_module"), i18n.t("adminCourses:et_toutes_ses_lecons_seront_supprimes", { title: mod.title }), async () => {
     const r = await api(token, "DELETE", `/modules/${mod.id}`);
-    if (r.success) { t$("Module supprimé"); await reloadAllMods(); }
+    if (r.success) { t$(i18n.t("adminCourses:module_supprime")); await reloadAllMods(); }
     else t$(r.message, false);
   });
 
@@ -589,7 +600,7 @@ export default function AdminCourses() {
   });
 
   const saveLes = async () => {
-    if (!lesM?.title?.trim()) { t$("Titre requis", false); return; }
+    if (!lesM?.title?.trim()) { t$(i18n.t("adminCourses:titre_requis"), false); return; }
     setLesSv(true);
     const { modId, les, title, content_type, content_url, article_content, duration_minutes, order_index, is_published, is_preview, requires_completion, is_downloadable } = lesM;
     const payload = { title, content_type, content_url: content_url || null, article_content: article_content || null, duration_minutes: +duration_minutes || 0, order_index: +order_index || 0, is_published, is_preview, requires_completion, is_downloadable };
@@ -597,7 +608,7 @@ export default function AdminCourses() {
       ? await api(token, "PATCH", `/lessons/${les.id}`, payload)
       : await api(token, "POST", "/lessons", { ...payload, module_id: modId });
     setLesSv(false);
-    if (r.success) { t$(r.message || "Leçon enregistrée"); setLesM(null); await reloadMod(modId); }
+    if (r.success) { t$(r.message || i18n.t("adminCourses:lecon_enregistree")); setLesM(null); await reloadMod(modId); }
     else t$(r.message, false);
   };
 
@@ -607,16 +618,16 @@ export default function AdminCourses() {
     else t$(r.message, false);
   };
 
-  const deleteLes = (les, mid) => ask("Supprimer cette leçon ?", `"${les.title}" sera supprimée.`, async () => {
+  const deleteLes = (les, mid) => ask(i18n.t("adminCourses:supprimer_cette_lecon"), i18n.t("adminCourses:sera_supprimee", { title: les.title }), async () => {
     const r = await api(token, "DELETE", `/lessons/${les.id}`);
-    if (r.success) { t$("Leçon supprimée"); await reloadMod(mid); }
+    if (r.success) { t$(i18n.t("adminCourses:lecon_supprimee")); await reloadMod(mid); }
     else t$(r.message, false);
   });
 
   /* ═══ RESSOURCES ═══ */
-  const deleteRes = (res, lid) => ask("Supprimer ?", `"${res.title}" sera supprimée.`, async () => {
+  const deleteRes = (res, lid) => ask(i18n.t("adminCourses:supprimer_2"), i18n.t("adminCourses:sera_supprimee", { title: res.title }), async () => {
     const r = await api(token, "DELETE", `/lesson-resources/${res.id}`);
-    if (r.success) { t$("Supprimé"); await loadRes(lid); }
+    if (r.success) { t$(i18n.t("adminCourses:supprime")); await loadRes(lid); }
     else t$(r.message, false);
   });
 
@@ -639,6 +650,7 @@ export default function AdminCourses() {
     <div className="p-6 max-w-screen-xl mx-auto">
       <Toast t={toast} />
       <Confirm d={dlg} onClose={() => setDlg(null)} />
+      {teamCourse && <CourseTeamModal courseId={teamCourse.id} courseTitle={teamCourse.title} onClose={() => setTeamCourse(null)} />}
 
       {/* ════ LISTE DES COURS ════ */}
       {view === "list" && (
@@ -647,23 +659,21 @@ export default function AdminCourses() {
           <div className="flex items-end justify-between mb-7 flex-wrap gap-4">
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <BookOpen size={26} style={{ color: "#2d287f" }} /> Gestion des cours
-              </h1>
-              <p className="text-sm text-slate-400 mt-1">{courses.length} cours · {courses.filter(c => c.is_published).length} publiés · {courses.filter(c => c.is_free).length} gratuits</p>
+                <BookOpen size={26} style={{ color: "#2d287f" }} />{" "}{t("gestion_des_cours")}</h1>
+              <p className="text-sm text-slate-400 mt-1">{t("cours", { length: courses.length })}{" "}{courses.filter(c => c.is_published).length}{" "}{t("publies")}{" "}{courses.filter(c => c.is_free).length}{" "}{i18n.t("adminCourses:gratuits")}</p>
             </div>
             <button onClick={openCreate} className="flex items-center gap-2 px-5 py-2.5 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-              <Plus size={16} /> Nouveau cours
-            </button>
+              <Plus size={16} />{" "}{t("nouveau_cours")}</button>
           </div>
 
           {/* Filtres */}
           <div className="flex gap-3 mb-5 flex-wrap">
             <div className="flex-1 min-w-[200px] relative">
               <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par titre, instructeur…" className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10" style={{ "--tw-ring-color": "#2d287f20" }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("rechercher_par_titre_instructeur")} className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10" style={{ "--tw-ring-color": "#2d287f20" }} />
             </div>
             <div className="flex gap-2 flex-wrap">
-              {[["all","Tous"],["published","✅ Publiés"],["draft","○ Brouillons"],["free","🆓 Gratuits"],["featured","⭐ Vedette"]].map(([v, l]) => (
+              {[["all",i18n.t("adminCourses:tous")],["published",i18n.t("adminCourses:publies_2")],["draft",i18n.t("adminCourses:brouillons_filtre")],["free",i18n.t("adminCourses:gratuits_2")],["featured",i18n.t("adminCourses:vedette")]].map(([v, l]) => (
                 <button key={v} onClick={() => setFilter(v)} className={`px-4 py-2.5 rounded-xl text-xs font-bold transition ${filter === v ? "text-white shadow-sm" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`} style={filter === v ? { background: "#2d287f" } : {}}>
                   {l}
                 </button>
@@ -676,11 +686,11 @@ export default function AdminCourses() {
             <div className="flex justify-center py-20"><Spin /></div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 text-slate-400">
-              <div className="text-6xl mb-3">📭</div>
-              <p className="font-bold text-base">Aucun cours trouvé</p>
+              
+              <p className="font-bold text-base">{t("aucun_cours_trouve")}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-5">
               {filtered.map(c => {
                 const lc = LEVEL_CLR[c.level] || "#2d287f";
                 return (
@@ -690,12 +700,12 @@ export default function AdminCourses() {
                       {c.thumbnail_url && <img src={c.thumbnail_url} alt="" className="w-full h-full object-contain opacity-80" onError={e => e.target.style.display = "none"} />}
                       <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55))" }} />
                       <div className="absolute top-2.5 left-3 flex gap-1.5">
-                        <Badge color={lc} bg={lc + "30"}>{LEVEL_MAP[c.level]}</Badge>
+                        <Badge color={lc} bg={lc + "30"}>{LEVEL_MAP()[c.level]}</Badge>
                         <Badge color="#fff" bg="rgba(0,0,0,.35)">{(c.language || "fr").toUpperCase()}</Badge>
                       </div>
                       <div className="absolute top-2.5 right-2.5 flex gap-1.5">
-                        {c.is_featured && <Badge color="#facc15" bg="rgba(0,0,0,.4)">⭐</Badge>}
-                        <Badge color={c.is_published ? "#4ade80" : "#fca5a5"} bg="rgba(0,0,0,.4)">{c.is_published ? "✓ Publié" : "○ Brouillon"}</Badge>
+                        {!!c.is_featured && <Badge color="#facc15" bg="rgba(0,0,0,.4)"></Badge>}
+                        <Badge color={c.is_published ? "#4ade80" : "#fca5a5"} bg="rgba(0,0,0,.4)">{c.is_published ? t("publie") : t("brouillon")}</Badge>
                       </div>
                       <p className="absolute bottom-2 left-3 right-3 font-bold text-white text-sm leading-tight" style={{ textShadow: "0 1px 5px rgba(0,0,0,.6)" }}>{c.title}</p>
                     </div>
@@ -703,18 +713,17 @@ export default function AdminCourses() {
                     <div className="p-4">
                       <p className="text-xs text-slate-400 mb-2 truncate">{c.instructor_name || "—"} · {c.category_name || "—"}</p>
                       <div className="flex gap-1.5 flex-wrap mb-3">
-                        <Badge color="#2d287f">{c.is_free ? "GRATUIT" : `${Number(c.price || 0).toLocaleString()} XAF`}</Badge>
-                        <Badge color="#64748b">⏱ {c.duration_hours || 0}h</Badge>
-                        <Badge color="#64748b">👥 {(c.student_count || 0).toLocaleString()}</Badge>
-                        <Badge color="#d97706">⭐ {Number(c.rating || 0).toFixed(1)}</Badge>
+                        <Badge color="#2d287f">{c.is_free ? t("gratuit") : `${Number(c.price || 0).toLocaleString()} XAF`}</Badge>
+                        <Badge color="#64748b">{c.duration_hours || 0}h</Badge>
+                        <Badge color="#64748b">{(c.student_count || 0).toLocaleString()}</Badge>
+                        <Badge color="#d97706">{Number(c.rating || 0).toFixed(1)}</Badge>
                       </div>
                       <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                         <button onClick={() => openEditor(c)} className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition flex items-center justify-center gap-1">
-                          <Layers size={12} /> Contenu
-                        </button>
+                          <Layers size={12} />{" "}{t("contenu")}</button>
                         <button onClick={e => openEdit(c, e)} className="flex-1 py-2 bg-violet-50 text-violet-700 rounded-lg text-xs font-bold hover:bg-violet-100 transition flex items-center justify-center gap-1">
-                          <Edit3 size={12} /> Modifier
-                        </button>
+                          <Edit3 size={12} />{" "}{t("modifier")}</button>
+                        <button onClick={() => setTeamCourse(c)} title={t("equipe")} aria-label={t("equipe")} className="px-3 py-2 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-100 transition"><Users size={13} /></button>
                         <button onClick={e => togglePublishCourse(c, e)} className={`px-3 py-2 rounded-lg text-xs font-bold transition ${c.is_published ? "bg-orange-50 text-orange-500 hover:bg-orange-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}>
                           {c.is_published ? <EyeOff size={13} /> : <Eye size={13} />}
                         </button>
@@ -735,40 +744,37 @@ export default function AdminCourses() {
       {view === "form" && (
         <div className="animate-fade-in-up">
           <div className="flex items-center gap-4 mb-7">
-            <button onClick={() => setView("list")} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">
-              ← Retour
-            </button>
+            <button onClick={() => setView("list")} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">{t("retour")}</button>
             <div>
-              <h1 className="text-xl font-black text-slate-900">{isNew ? "🆕 Nouveau cours" : `✏️ ${course?.title}`}</h1>
-              {!isNew && <p className="text-xs text-slate-400 mt-0.5">ID #{course?.id}</p>}
+              <h1 className="text-xl font-black text-slate-900">{isNew ? t("nouveau_cours") : `${course?.title}`}</h1>
+              {!isNew && <p className="text-xs text-slate-400 mt-0.5">{t("id", { id: course?.id })}</p>}
             </div>
           </div>
 
-          <div className="grid grid-cols-[1fr_290px] gap-5 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_290px] gap-5 items-start">
             {/* Gauche */}
             <div className="flex flex-col gap-4">
               {[
-                ["📋 Informations générales", "#2d287f", () => (
+                [i18n.t("adminCourses:informations_generales"), "#2d287f", () => (
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Titre" required><input className={IS} value={cForm.title || ""} onChange={e => setCForm(p => ({ ...p, title: e.target.value }))} placeholder="Docker Fondamentaux" /></Field>
-                    <Field label="Slug"><input className={IS} value={cForm.slug || ""} onChange={e => setCForm(p => ({ ...p, slug: e.target.value }))} placeholder="docker-fondamentaux" /></Field>
-                    <Field label="Résumé court" col2><input className={IS} value={cForm.short_description || ""} onChange={e => setCForm(p => ({ ...p, short_description: e.target.value }))} placeholder="Description affichée dans les listes" /></Field>
-                    <Field label="Description complète" col2><textarea className={`${IS} resize-y`} rows={5} value={cForm.description || ""} onChange={e => setCForm(p => ({ ...p, description: e.target.value }))} /></Field>
+                    <Field label={t("titre")} required><input className={IS} value={cForm.title || ""} onChange={e => setCForm(p => ({ ...p, title: e.target.value }))} placeholder={t("docker_fondamentaux")} /></Field>
+                    <Field label={t("slug")}><input className={IS} value={cForm.slug || ""} onChange={e => setCForm(p => ({ ...p, slug: e.target.value }))} placeholder="docker-fondamentaux" /></Field>
+                    <Field label={t("resume_court")} col2><input className={IS} value={cForm.short_description || ""} onChange={e => setCForm(p => ({ ...p, short_description: e.target.value }))} placeholder={t("description_affichee_dans_les_listes")} /></Field>
+                    <Field label={t("description_complete")} col2><textarea className={`${IS} resize-y`} rows={5} value={cForm.description || ""} onChange={e => setCForm(p => ({ ...p, description: e.target.value }))} /></Field>
                   </div>
                 )],
-                ["📝 Pédagogie", "#0ea5e9", () => (
+                [i18n.t("adminCourses:pedagogie"), "#0ea5e9", () => (
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Prérequis" hint="1 par ligne" col2><textarea className={`${IS} resize-y`} rows={3} value={cForm.requirements || ""} onChange={e => setCForm(p => ({ ...p, requirements: e.target.value }))} placeholder={"Bases de Linux\nConnaissance Docker"} /></Field>
-                    <Field label="Objectifs d'apprentissage" hint="1 par ligne" col2><textarea className={`${IS} resize-y`} rows={3} value={cForm.learning_outcomes || ""} onChange={e => setCForm(p => ({ ...p, learning_outcomes: e.target.value }))} placeholder={"Déployer des conteneurs\nMaîtriser Docker Compose"} /></Field>
+                    <Field label={t("prerequis")} hint={t("1_par_ligne")} col2><textarea className={`${IS} resize-y`} rows={3} value={cForm.requirements || ""} onChange={e => setCForm(p => ({ ...p, requirements: e.target.value }))} placeholder={t("bases_de_linux_connaissance_docker")} /></Field>
+                    <Field label={t("objectifs_d_apprentissage")} hint={t("1_par_ligne")} col2><textarea className={`${IS} resize-y`} rows={3} value={cForm.learning_outcomes || ""} onChange={e => setCForm(p => ({ ...p, learning_outcomes: e.target.value }))} placeholder={t("deployer_des_conteneurs_maitriser_docker_compose")} /></Field>
                   </div>
                 )],
-                ["🖼 Médias", "#f59e0b", () => (
+                [i18n.t("adminCourses:medias"), "#f59e0b", () => (
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Image de couverture">
-                      <input className={IS}
-                        value={cForm.thumbnail_url || ""}
-                        onChange={e => setCForm(p => ({ ...p, thumbnail_url: e.target.value }))}
-                        placeholder="URL image ou logo tech (https://…)" />
+                    <Field label={t("image_de_couverture")}>
+                      <FileUrlField kind="image" preview={false} value={cForm.thumbnail_url || ""}
+                        onChange={v => setCForm(p => ({ ...p, thumbnail_url: v }))}
+                        placeholder={t("url_image_ou_logo_tech_https")} inputClass={`${IS} !pl-9`} />
                       {/* Prévisualisation en temps réel */}
                       <div className="mt-2 h-24 rounded-xl overflow-hidden border border-slate-200">
                         <CourseImage
@@ -779,7 +785,7 @@ export default function AdminCourses() {
                         />
                       </div>
                       {/* Suggestions de logos officiels */}
-                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium">Logos officiels suggérés :</p>
+                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium">{t("logos_officiels_suggeres")}</p>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {[
                           ["Docker",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg"],
@@ -790,14 +796,14 @@ export default function AdminCourses() {
                           ["Azure",      "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg"],
                           ["GCP",        "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg"],
                           ["Linux",      "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg"],
-                          ["Python",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"],
+                          [i18n.t("adminCourses:python"),     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"],
                           ["GitLab",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/gitlab/gitlab-original.svg"],
                           ["Jenkins",    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg"],
-                          ["Helm",       "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/helm/helm-original.svg"],
+                          [i18n.t("adminCourses:helm"),       "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/helm/helm-original.svg"],
                           ["GitHub",     "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"],
                           ["Prometheus", "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prometheus/prometheus-original.svg"],
-                          ["Bash",       "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bash/bash-original.svg"],
-                          ["Vault",      "https://cdn.simpleicons.org/vault/000000"],
+                          [i18n.t("adminCourses:bash"),       "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bash/bash-original.svg"],
+                          [i18n.t("adminCourses:vault"),      "https://cdn.simpleicons.org/vault/000000"],
                           ["ELK",        "https://cdn.simpleicons.org/elastic/005571"],
                           ["ArgoCD",     "https://cdn.simpleicons.org/argo/EF7B4D"],
                         ].map(([name, url]) => (
@@ -815,11 +821,9 @@ export default function AdminCourses() {
                       </div>
                       <button type="button"
                         onClick={() => setCForm(p => ({ ...p, thumbnail_url: "" }))}
-                        className="mt-1.5 text-[10px] text-red-400 hover:text-red-600 font-medium transition">
-                        ✕ Effacer l'image
-                      </button>
+                        className="mt-1.5 text-[10px] text-red-400 hover:text-red-600 font-medium transition">{t("effacer_l_image")}</button>
                     </Field>
-                    <Field label="URL Vidéo de prévisualisation"><input className={IS} value={cForm.video_preview_url || ""} onChange={e => setCForm(p => ({ ...p, video_preview_url: e.target.value }))} placeholder="https://youtube.com/…" /></Field>
+                    <Field label={t("url_video_de_previsualisation")}><FileUrlField kind="video" value={cForm.video_preview_url || ""} onChange={v => setCForm(p => ({ ...p, video_preview_url: v }))} placeholder="https://youtube.com/…" inputClass={`${IS} !pl-9`} /></Field>
                   </div>
                 )],
               ].map(([title, accent, render]) => (
@@ -833,20 +837,20 @@ export default function AdminCourses() {
             {/* Droite */}
             <div className="flex flex-col gap-3">
               {[
-                ["👤 Assignation", "#8b5cf6", () => (
+                [i18n.t("adminCourses:assignation"), "#8b5cf6", () => (
                   <div className="flex flex-col gap-3">
-                    <Field label="Instructeur" required>
+                    <Field label={t("instructeur")} required>
                       <select className={IS} value={cForm.instructor_id || ""} onChange={e => setCForm(p => ({ ...p, instructor_id: e.target.value }))}>
-                        <option value="">— Sélectionner un instructeur —</option>
+                        <option value="">{t("selectionner_un_instructeur")}</option>
                         {instructors.filter(i=>i.role==="instructor").length>0 && (
-                          <optgroup label="👨‍🏫 Instructeurs">
+                          <optgroup label={t("instructeurs")}>
                             {instructors.filter(i=>i.role==="instructor").map(i => (
                               <option key={i.id} value={i.id}>{i.first_name} {i.last_name} — {i.email}</option>
                             ))}
                           </optgroup>
                         )}
                         {instructors.filter(i=>i.role==="admin").length>0 && (
-                          <optgroup label="🛡️ Admins">
+                          <optgroup label={t("admins")}>
                             {instructors.filter(i=>i.role==="admin").map(i => (
                               <option key={i.id} value={i.id}>{i.first_name} {i.last_name} — {i.email}</option>
                             ))}
@@ -854,41 +858,41 @@ export default function AdminCourses() {
                         )}
                       </select>
                     </Field>
-                    <Field label="Catégorie">
+                    <Field label={t("categorie")}>
                       <select className={IS} value={cForm.category_id || ""} onChange={e => setCForm(p => ({ ...p, category_id: e.target.value }))}>
-                        <option value="">— Aucune —</option>
+                        <option value="">{t("aucune")}</option>
                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     </Field>
                   </div>
                 )],
-                ["⚙️ Paramètres", "#10b981", () => (
+                [i18n.t("adminCourses:parametres"), "#10b981", () => (
                   <div className="grid grid-cols-2 gap-2.5">
-                    <Field label="Niveau"><select className={IS} value={cForm.level || "beginner"} onChange={e => setCForm(p => ({ ...p, level: e.target.value }))}>{Object.entries(LEVEL_MAP).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
-                    <Field label="Langue"><select className={IS} value={cForm.language || "fr"} onChange={e => setCForm(p => ({ ...p, language: e.target.value }))}><option value="fr">🇫🇷 Français</option><option value="en">🇬🇧 Anglais</option><option value="ar">🇸🇦 Arabe</option></select></Field>
-                    <Field label="Durée (h)"><input type="number" min="0" className={IS} value={cForm.duration_hours || ""} onChange={e => setCForm(p => ({ ...p, duration_hours: e.target.value }))} /></Field>
-                    <Field label="Commission %"><input type="number" min="0" max="100" className={IS} value={cForm.instructor_commission_rate || 70} onChange={e => setCForm(p => ({ ...p, instructor_commission_rate: e.target.value }))} /></Field>
+                    <Field label={t("niveau")}><select className={IS} value={cForm.level || "beginner"} onChange={e => setCForm(p => ({ ...p, level: e.target.value }))}>{Object.entries(LEVEL_MAP()).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
+                    <Field label={t("langue")}><select className={IS} value={cForm.language || "fr"} onChange={e => setCForm(p => ({ ...p, language: e.target.value }))}><option value="fr">{t("francais")}</option><option value="en">{t("anglais")}</option><option value="ar">{t("arabe")}</option></select></Field>
+                    <Field label={t("duree_h")}><input type="number" min="0" className={IS} value={cForm.duration_hours || ""} onChange={e => setCForm(p => ({ ...p, duration_hours: e.target.value }))} /></Field>
+                    <Field label={t("commission")}><input type="number" min="0" max="100" className={IS} value={cForm.instructor_commission_rate || 70} onChange={e => setCForm(p => ({ ...p, instructor_commission_rate: e.target.value }))} /></Field>
                   </div>
                 )],
-                ["💰 Prix", "#f97316", () => (
+                [i18n.t("adminCourses:prix"), "#f97316", () => (
                   <div className="flex flex-col gap-3">
-                    <Toggle label="Cours gratuit" checked={!!cForm.is_free} on={v => setCForm(p => ({ ...p, is_free: v, price: v ? 0 : p.price }))} color="#059669" />
+                    <Toggle label={t("cours_gratuit")} checked={!!cForm.is_free} on={v => setCForm(p => ({ ...p, is_free: v, price: v ? 0 : p.price }))} color="#059669" />
                     {!cForm.is_free && (
                       <div className="grid grid-cols-2 gap-2.5">
-                        <Field label="Prix XAF"><input type="number" min="0" className={IS} value={cForm.price || 0} onChange={e => setCForm(p => ({ ...p, price: e.target.value }))} /></Field>
-                        <Field label="Prix barré"><input type="number" min="0" className={IS} value={cForm.original_price || ""} onChange={e => setCForm(p => ({ ...p, original_price: e.target.value }))} /></Field>
+                        <Field label={t("prix_xaf")}><input type="number" min="0" className={IS} value={cForm.price || 0} onChange={e => setCForm(p => ({ ...p, price: e.target.value }))} /></Field>
+                        <Field label={t("prix_barre")}><input type="number" min="0" className={IS} value={cForm.original_price || ""} onChange={e => setCForm(p => ({ ...p, original_price: e.target.value }))} /></Field>
                       </div>
                     )}
                   </div>
                 )],
-                ["👁 Visibilité & Options", "#6366f1", () => (
+                [i18n.t("adminCourses:visibilite_options"), "#6366f1", () => (
                   <div className="flex flex-col gap-3">
-                    <Toggle label="Publié" checked={!!cForm.is_published} on={v => setCForm(p => ({ ...p, is_published: v }))} />
-                    <Toggle label="Mis en avant" checked={!!cForm.is_featured} on={v => setCForm(p => ({ ...p, is_featured: v }))} color="#d97706" />
-                    <Toggle label="Inclus dans l'abonnement" checked={!!cForm.is_subscription_included} on={v => setCForm(p => ({ ...p, is_subscription_included: v }))} color="#7c3aed" />
-                    <Toggle label="Forum activé" checked={!!cForm.is_forum_enabled} on={v => setCForm(p => ({ ...p, is_forum_enabled: v }))} color="#0ea5e9" />
-                    <Toggle label="Mode séquentiel" checked={!!cForm.sequential_mode} on={v => setCForm(p => ({ ...p, sequential_mode: v }))} color="#f59e0b" />
-                    <Toggle label="Approbation requise" checked={!!cForm.requires_approval} on={v => setCForm(p => ({ ...p, requires_approval: v }))} color="#ef4444" />
+                    <Toggle label={t("publie_2")} checked={!!cForm.is_published} on={v => setCForm(p => ({ ...p, is_published: v }))} />
+                    <Toggle label={t("mis_en_avant")} checked={!!cForm.is_featured} on={v => setCForm(p => ({ ...p, is_featured: v }))} color="#d97706" />
+                    <Toggle label={t("inclus_dans_l_abonnement")} checked={!!cForm.is_subscription_included} on={v => setCForm(p => ({ ...p, is_subscription_included: v }))} color="#7c3aed" />
+                    <Toggle label={t("forum_active")} checked={!!cForm.is_forum_enabled} on={v => setCForm(p => ({ ...p, is_forum_enabled: v }))} color="#0ea5e9" />
+                    <Toggle label={t("mode_sequentiel")} checked={!!cForm.sequential_mode} on={v => setCForm(p => ({ ...p, sequential_mode: v }))} color="#f59e0b" />
+                    <Toggle label={t("approbation_requise")} checked={!!cForm.requires_approval} on={v => setCForm(p => ({ ...p, requires_approval: v }))} color="#ef4444" />
                   </div>
                 )],
               ].map(([title, accent, render]) => (
@@ -899,7 +903,7 @@ export default function AdminCourses() {
               ))}
 
               <button onClick={saveCourse} disabled={saving} className="w-full py-3.5 text-white font-bold text-sm rounded-2xl transition shadow-lg hover:shadow-xl hover:-translate-y-0.5" style={{ background: saving ? "#a5b4fc" : "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                {saving ? "Enregistrement…" : isNew ? "✓ Créer le cours" : "✓ Mettre à jour"}
+                {saving ? t("enregistrement") : isNew ? t("creer_le_cours") : t("mettre_a_jour")}
               </button>
             </div>
           </div>
@@ -911,35 +915,30 @@ export default function AdminCourses() {
         <div className="animate-fade-in-up">
           {/* Bandeau cours */}
           <div className="flex items-center gap-4 mb-5 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex-wrap">
-            <button onClick={() => setView("list")} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition flex-shrink-0">
-              ← Retour
-            </button>
+            <button onClick={() => setView("list")} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition flex-shrink-0">{t("retour")}</button>
             <div className="w-12 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: `linear-gradient(135deg,${LEVEL_CLR[course.level] || "#2d287f"}50,${LEVEL_CLR[course.level] || "#2d287f"})` }}>
               {course.thumbnail_url && <img src={course.thumbnail_url} alt="" className="w-full h-full object-contain" onError={e => e.target.style.display = "none"} />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="font-black text-slate-900 text-lg">{course.title}</h1>
-                <Badge color={course.is_published ? "#059669" : "#94a3b8"}>{course.is_published ? "✓ Publié" : "○ Brouillon"}</Badge>
-                {course.is_featured && <Badge color="#d97706">⭐ Vedette</Badge>}
+                <Badge color={course.is_published ? "#059669" : "#94a3b8"}>{course.is_published ? t("publie") : t("brouillon")}</Badge>
+                {!!course.is_featured && <Badge color="#d97706">{t("vedette")}</Badge>}
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                {course.instructor_name} · {LEVEL_MAP[course.level]} · {(course.language || "fr").toUpperCase()}
-                {" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{modules.length}</strong> module{modules.length !== 1 ? "s" : ""}
-                {" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{totalLessons}</strong> leçon{totalLessons !== 1 ? "s" : ""}
+                {course.instructor_name} · {LEVEL_MAP()[course.level]} · {(course.language || "fr").toUpperCase()}
+                {" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{modules.length}</strong>{" "}{i18n.t("adminCourses:module_2", { s: modules.length !== 1 ? "s" : "" })}{" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{totalLessons}</strong>{" "}{t("lecon_p", { s: totalLessons !== 1 ? "s" : "" })}
               </p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={e => openEdit(course, e)} className="flex items-center gap-1.5 px-4 py-2 bg-violet-50 text-violet-700 rounded-xl text-sm font-bold hover:bg-violet-100 transition">
-                <Edit3 size={14} /> Modifier
-              </button>
-              <button onClick={downloadCourse} disabled={dlCourse} title="Télécharger le cours en JSON" className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition disabled:opacity-60">
+                <Edit3 size={14} />{" "}{t("modifier")}</button>
+              <button onClick={downloadCourse} disabled={dlCourse} title={t("telecharger_le_cours_en_json")} className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition disabled:opacity-60">
                 {dlCourse ? <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <Download size={14} />}
-                {dlCourse ? "Export…" : "Export"}
+                {dlCourse ? t("export") : t("export_2")}
               </button>
               <button onClick={() => openModM()} className="flex items-center gap-1.5 px-4 py-2 text-white rounded-xl text-sm font-bold hover:opacity-90 transition shadow-md" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                <Plus size={15} /> Module
-              </button>
+                <Plus size={15} />{" "}{t("module")}</button>
             </div>
           </div>
 
@@ -956,12 +955,10 @@ export default function AdminCourses() {
             <div className="flex flex-col gap-3">
               {modules.length === 0 && (
                 <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200">
-                  <div className="text-5xl mb-4">📦</div>
-                  <p className="font-bold text-slate-700 text-base mb-2">Ce cours n'a pas encore de modules</p>
-                  <p className="text-sm text-slate-400 mb-5">Vérifiez que le backend est rebuild · npm run build && pm2 restart 0</p>
-                  <button onClick={() => openModM()} className="px-7 py-3 text-white rounded-2xl font-bold text-sm shadow-lg" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
-                    + Créer le premier module
-                  </button>
+                  
+                  <p className="font-bold text-slate-700 text-base mb-2">{t("ce_cours_n_a_pas_encore")}</p>
+                  <p className="text-sm text-slate-400 mb-5">{t("verifiez_que_le_backend_est_rebuild")}</p>
+                  <button onClick={() => openModM()} className="px-7 py-3 text-white rounded-2xl font-bold text-sm shadow-lg" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{t("creer_le_premier_module")}</button>
                 </div>
               )}
 
@@ -986,23 +983,22 @@ export default function AdminCourses() {
                           <p className="font-bold text-slate-900 text-sm">{mod.title}</p>
                           {/* Statut publié MODULE */}
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${mod.is_published ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                            {mod.is_published ? "✓ Publié" : "○ Brouillon"}
+                            {mod.is_published ? t("publie") : t("brouillon")}
                           </span>
                         </div>
                         {mod.description && <p className="text-xs text-slate-400 mt-0.5">{mod.description}</p>}
                         <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                          <Badge color="#2d287f">{modLes.length} leçon{modLes.length !== 1 ? "s" : ""}</Badge>
-                          {totMin > 0 && <Badge color="#64748b">⏱ {totMin} min</Badge>}
+                          <Badge color="#2d287f">{t("lecon_2_p", { length: modLes.length, s: modLes.length !== 1 ? "s" : "" })}</Badge>
+                          {totMin > 0 && <Badge color="#64748b">{i18n.t("adminCourses:min", { totMin })}</Badge>}
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
                         <button onClick={() => openLesM(mod.id)} className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition">
-                          <Plus size={11} /> Leçon
-                        </button>
+                          <Plus size={11} />{" "}{t("lecon_3")}</button>
                         {/* Publier/Dépublier MODULE */}
                         <button onClick={() => togglePublishMod(mod)} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition ${mod.is_published ? "bg-orange-50 text-orange-500 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100"}`}>
-                          {mod.is_published ? <><EyeOff size={11} /> Dépublier</> : <><Eye size={11} /> Publier</>}
+                          {mod.is_published ? <><EyeOff size={11} />{" "}{t("depublier")}</> : <><Eye size={11} />{" "}{t("publier")}</>}
                         </button>
                         <button onClick={() => openModM(mod)} className="w-8 h-8 flex items-center justify-center bg-violet-50 text-violet-600 rounded-lg hover:bg-violet-100 transition"><Edit3 size={13} /></button>
                         <button onClick={() => deleteMod(mod)} className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition"><Trash2 size={13} /></button>
@@ -1015,8 +1011,8 @@ export default function AdminCourses() {
                       <div className="p-4 pb-5">
                         {modLes.length === 0 ? (
                           <div className="text-center py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
-                            <p className="text-sm text-slate-400 font-medium mb-2">Aucune leçon dans ce module</p>
-                            <button onClick={() => openLesM(mod.id)} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition">+ Ajouter la première leçon</button>
+                            <p className="text-sm text-slate-400 font-medium mb-2">{t("aucune_lecon_dans_ce_module")}</p>
+                            <button onClick={() => openLesM(mod.id)} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition">{t("ajouter_la_premiere_lecon")}</button>
                           </div>
                         ) : (
                           <>
@@ -1037,15 +1033,15 @@ export default function AdminCourses() {
                                     <div className="flex-1 min-w-0">
                                       <p className="font-bold text-slate-900 text-sm truncate">{les.title}</p>
                                       <div className="flex gap-1.5 mt-1 flex-wrap">
-                                        <Badge color={tc}>{TYPE_MAP[les.content_type]}</Badge>
-                                        {les.duration_minutes > 0 && <Badge color="#64748b">⏱ {les.duration_minutes}min</Badge>}
-                                        {les.is_preview === 1 && <Badge color="#d97706">👁 Aperçu</Badge>}
-                                        {les.is_downloadable === 1 && <Badge color="#7c3aed">📥 Offline</Badge>}
-                                        {les.content_url && <Badge color="#0ea5e9">🔗 URL</Badge>}
-                                        {rc > 0 && <Badge color="#059669">📎 {rc}</Badge>}
+                                        <Badge color={tc}>{TYPE_MAP()[les.content_type]}</Badge>
+                                        {les.duration_minutes > 0 && <Badge color="#64748b">{i18n.t("adminCourses:min_2", { vduration_minutes: les.duration_minutes })}</Badge>}
+                                        {les.is_preview === 1 && <Badge color="#d97706">{t("apercu")}</Badge>}
+                                        {les.is_downloadable === 1 && <Badge color="#7c3aed">{t("offline")}</Badge>}
+                                        {les.content_url && <Badge color="#0ea5e9">URL</Badge>}
+                                        {rc > 0 && <Badge color="#059669">{rc}</Badge>}
                                         {/* Statut LEÇON */}
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${les.is_published ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                                          {les.is_published ? "✓" : "○ Brouillon"}
+                                          {les.is_published ? "✓" : t("brouillon")}
                                         </span>
                                       </div>
                                     </div>
@@ -1054,13 +1050,11 @@ export default function AdminCourses() {
                                       {/* Bouton vidéo upload */}
                                       {les.content_type === "video" && (
                                         <button onClick={() => setUpVid(les)} className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
-                                          <Film size={11} /> Vidéo
-                                        </button>
+                                          <Film size={11} />{" "}{t("video")}</button>
                                       )}
                                       {/* Ressources */}
                                       <button onClick={async () => { await loadRes(les.id); setResM({ lesId: les.id, les }); }} className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">
-                                        <Paperclip size={11} /> Fichiers
-                                      </button>
+                                        <Paperclip size={11} />{" "}{t("fichiers")}</button>
                                       {/* Publier/Dépublier LEÇON */}
                                       <button onClick={() => togglePublishLes(les, mod.id)} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${les.is_published ? "bg-orange-50 text-orange-500 border-orange-200 hover:bg-orange-100" : "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100"}`}>
                                         {les.is_published ? <EyeOff size={11} /> : <Eye size={11} />}
@@ -1074,16 +1068,16 @@ export default function AdminCourses() {
                                   {resources[les.id] !== undefined && (
                                     <div className="px-4 pb-3 pt-2.5 bg-white border-t border-slate-50">
                                       {resources[les.id].length === 0 ? (
-                                        <p className="text-xs text-slate-400 italic">Aucun fichier attaché</p>
+                                        <p className="text-xs text-slate-400 italic">{t("aucun_fichier_attache")}</p>
                                       ) : resources[les.id].map(r => (
                                         <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 bg-slate-50 rounded-xl mb-1.5 border border-slate-100">
-                                          <span className="text-sm">{r.file_type==="pdf"?"📄":r.file_type==="mp4"||r.file_type==="video"?"🎬":r.file_type==="zip"?"🗜":r.file_type==="pptx"?"📊":r.file_type==="docx"?"📝":r.file_type==="code"?"💻":r.file_type==="link"?"🔗":"📎"}</span>
+                                          <span className="text-slate-500"><FileTypeIcon type={r.file_type} className="w-4 h-4" /></span>
                                           <div className="flex-1 min-w-0">
                                             <p className="font-semibold text-xs text-slate-800">{r.title}</p>
                                             <a href={r.file_url} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-500 truncate block hover:text-indigo-700">{(r.file_url || "").slice(0, 55)}{(r.file_url || "").length > 55 ? "…" : ""}</a>
                                           </div>
-                                          {r.file_size > 0 && <Badge color="#64748b">{(r.file_size/1024/1024).toFixed(1)}Mo</Badge>}
-                                          <a href={r.file_url} target="_blank" rel="noreferrer" download className="w-6 h-6 flex items-center justify-center bg-blue-50 text-blue-400 rounded-lg hover:bg-blue-100 transition" title="Télécharger"><Download size={10} /></a>
+                                          {r.file_size > 0 && <Badge color="#64748b">{(r.file_size/1024/1024).toFixed(1)}{t("mo_2")}</Badge>}
+                                          <a href={r.file_url} target="_blank" rel="noreferrer" download className="w-6 h-6 flex items-center justify-center bg-blue-50 text-blue-400 rounded-lg hover:bg-blue-100 transition" title={t("telecharger")}><Download size={10} /></a>
                                           <button onClick={() => deleteRes(r, les.id)} className="w-6 h-6 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-100 transition"><Trash2 size={10} /></button>
                                         </div>
                                       ))}
@@ -1092,9 +1086,7 @@ export default function AdminCourses() {
                                 </div>
                               );
                             })}
-                            <button onClick={() => openLesM(mod.id)} className="w-full mt-2 py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-sm font-bold text-slate-400 hover:border-indigo-400 hover:text-indigo-500 transition">
-                              + Ajouter une leçon
-                            </button>
+                            <button onClick={() => openLesM(mod.id)} className="w-full mt-2 py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-sm font-bold text-slate-400 hover:border-indigo-400 hover:text-indigo-500 transition">{t("ajouter_une_lecon")}</button>
                           </>
                         )}
                       </div>
@@ -1104,9 +1096,7 @@ export default function AdminCourses() {
               })}
 
               {modules.length > 0 && (
-                <button onClick={() => openModM()} className="w-full py-3.5 border-2 border-dashed border-slate-200 rounded-2xl text-sm font-bold text-slate-400 hover:border-primary/40 hover:text-primary transition-all">
-                  + Ajouter un module
-                </button>
+                <button onClick={() => openModM()} className="w-full py-3.5 border-2 border-dashed border-slate-200 rounded-2xl text-sm font-bold text-slate-400 hover:border-primary/40 hover:text-primary transition-all">{t("ajouter_un_module")}</button>
               )}
             </div>
           )}
@@ -1114,21 +1104,21 @@ export default function AdminCourses() {
       )}
 
       {/* ════ MODAL MODULE ════ */}
-      <Modal open={!!modM} onClose={() => setModM(null)} title={modM?._new ? "➕ Nouveau module" : `✏️ ${modM?.title || ""}`}>
+      <Modal open={!!modM} onClose={() => setModM(null)} title={modM?._new ? t("nouveau_module") : `${modM?.title || ""}`}>
         {modM && (
           <>
             <div className="flex flex-col gap-4">
-              <Field label="Titre" required><input className={IS} value={modM.title || ""} onChange={e => setModM(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Introduction et Prérequis" autoFocus onKeyDown={e => e.key === "Enter" && saveMod()} /></Field>
-              <Field label="Description"><input className={IS} value={modM.description || ""} onChange={e => setModM(p => ({ ...p, description: e.target.value }))} placeholder="Description courte du module" /></Field>
+              <Field label={t("titre")} required><input className={IS} value={modM.title || ""} onChange={e => setModM(p => ({ ...p, title: e.target.value }))} placeholder={t("ex_introduction_et_prerequis")} autoFocus onKeyDown={e => e.key === "Enter" && saveMod()} /></Field>
+              <Field label={t("description")}><input className={IS} value={modM.description || ""} onChange={e => setModM(p => ({ ...p, description: e.target.value }))} placeholder={t("description_courte_du_module")} /></Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Ordre"><input type="number" min="0" className={IS} value={modM.order_index ?? 0} onChange={e => setModM(p => ({ ...p, order_index: +e.target.value }))} /></Field>
-                <div className="flex items-end pb-2"><Toggle label="Module publié" checked={modM.is_published !== false} on={v => setModM(p => ({ ...p, is_published: v }))} color="#059669" /></div>
+                <Field label={t("ordre")}><input type="number" min="0" className={IS} value={modM.order_index ?? 0} onChange={e => setModM(p => ({ ...p, order_index: +e.target.value }))} /></Field>
+                <div className="flex items-end pb-2"><Toggle label={t("module_publie")} checked={modM.is_published !== false} on={v => setModM(p => ({ ...p, is_published: v }))} color="#059669" /></div>
               </div>
             </div>
             <div className="flex gap-3 mt-6 pt-5 border-t border-slate-100">
-              <button onClick={() => setModM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Annuler</button>
+              <button onClick={() => setModM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">{t("annuler")}</button>
               <button onClick={saveMod} disabled={modSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: modSv ? "#a5b4fc" : "#2d287f" }}>
-                {modSv ? "Enregistrement…" : modM._new ? "✓ Créer le module" : "✓ Mettre à jour"}
+                {modSv ? t("enregistrement") : modM._new ? t("creer_le_module") : t("mettre_a_jour")}
               </button>
             </div>
           </>
@@ -1136,20 +1126,20 @@ export default function AdminCourses() {
       </Modal>
 
       {/* ════ MODAL LEÇON ════ */}
-      <Modal open={!!lesM} onClose={() => setLesM(null)} title={lesM?.les ? `✏️ ${lesM.les.title}` : "➕ Nouvelle leçon"} wide>
+      <Modal open={!!lesM} onClose={() => setLesM(null)} title={lesM?.les ? `${lesM.les.title}` : t("nouvelle_lecon")} wide>
         {lesM && (
           <>
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-[1fr_90px] gap-3">
-                <Field label="Titre" required><input className={IS} value={lesM.title || ""} onChange={e => setLesM(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Introduction à Docker" autoFocus /></Field>
-                <Field label="Ordre"><input type="number" min="0" className={IS} value={lesM.order_index ?? 0} onChange={e => setLesM(p => ({ ...p, order_index: +e.target.value }))} /></Field>
+                <Field label={t("titre")} required><input className={IS} value={lesM.title || ""} onChange={e => setLesM(p => ({ ...p, title: e.target.value }))} placeholder={t("ex_introduction_a_docker")} autoFocus /></Field>
+                <Field label={t("ordre")}><input type="number" min="0" className={IS} value={lesM.order_index ?? 0} onChange={e => setLesM(p => ({ ...p, order_index: +e.target.value }))} /></Field>
               </div>
 
               {/* Type de contenu */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2.5">Type de contenu *</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2.5">{t("type_de_contenu")}</label>
                 <div className="flex gap-2 flex-wrap">
-                  {Object.entries(TYPE_MAP).map(([v, l]) => {
+                  {Object.entries(TYPE_MAP()).map(([v, l]) => {
                     const sel = (lesM.content_type || "video") === v;
                     const tc = TYPE_CLR[v];
                     const TIcon = TYPE_ICO[v] || Film;
@@ -1166,14 +1156,14 @@ export default function AdminCourses() {
               {["video", "exercise", "download"].includes(lesM.content_type || "video") && (
                 <div className="bg-slate-50 rounded-2xl p-4">
                   <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#2d287f" }}>
-                    {lesM.content_type === "video" ? "🎬 Contenu vidéo" : lesM.content_type === "download" ? "📥 URL du fichier" : "⚡ URL de l'exercice"}
+                    {lesM.content_type === "video" ? t("contenu_video") : lesM.content_type === "download" ? t("url_du_fichier") : t("url_de_l_exercice")}
                   </p>
 
                   {/* Onglets URL / Upload — uniquement pour vidéo */}
                   {lesM.content_type === "video" && (
                     <>
                       <div className="flex gap-2 p-1 bg-white rounded-xl mb-3 border border-slate-200">
-                        {[["url", "🔗 URL externe"], ["upload", "💾 Depuis mon PC"]].map(([v, l]) => (
+                        {[["url", i18n.t("adminCourses:url_externe")], ["upload", i18n.t("adminCourses:depuis_mon_pc")]].map(([v, l]) => (
                           <button key={v} onClick={() => setLesM(p => ({ ...p, _vidTab: v }))} className="flex-1 py-2 rounded-lg text-xs font-bold transition" style={{ background: (lesM._vidTab||"url")===v ? "#2d287f" : "transparent", color: (lesM._vidTab||"url")===v ? "#fff" : "#64748b" }}>
                             {l}
                           </button>
@@ -1183,7 +1173,7 @@ export default function AdminCourses() {
                       {/* Tab URL */}
                       {(lesM._vidTab||"url") === "url" && (
                         <>
-                          <Field label="URL YouTube / Vimeo / MP4 direct" hint="optionnel">
+                          <Field label={t("url_youtube_vimeo_mp4_direct")} hint="optionnel">
                             <input className={IS} value={lesM.content_url || ""} onChange={e => setLesM(p => ({ ...p, content_url: e.target.value }))} placeholder="https://youtube.com/watch?v=…" />
                           </Field>
                           {lesM.content_url && (
@@ -1197,7 +1187,7 @@ export default function AdminCourses() {
                                     : lesM.content_url}
                                   controls className="w-full max-h-44"
                                 />
-                              ) : <div className="flex items-center justify-center h-32 text-slate-400 text-xs">🔗 {lesM.content_url.slice(0,60)}</div>}
+                              ) : <div className="flex items-center justify-center h-32 text-slate-400 text-xs">{lesM.content_url.slice(0,60)}</div>}
                             </div>
                           )}
                         </>
@@ -1213,7 +1203,7 @@ export default function AdminCourses() {
                               currentUrl={lesM.content_url || ""}
                               onSuccess={(url) => {
                                 setLesM(p => ({ ...p, content_url: url, _vidTab: "url" }));
-                                t$("🎬 Vidéo uploadée !");
+                                t$(i18n.t("adminCourses:video_uploadee"));
                                 // Mettre à jour la leçon dans la liste
                                 setLessons(prev => {
                                   const map = { ...prev };
@@ -1227,9 +1217,9 @@ export default function AdminCourses() {
                           </div>
                         ) : (
                           <div className="border-2 border-dashed border-amber-300 rounded-xl p-4 text-center bg-amber-50">
-                            <p className="text-amber-700 font-bold text-sm mb-1">⚠️ Créez d'abord la leçon</p>
-                            <p className="text-amber-600 text-xs">L'upload depuis PC n'est disponible qu'après la création de la leçon.</p>
-                            <p className="text-amber-600 text-xs mt-1">Créez la leçon, puis cliquez sur le bouton <strong>🎬 Vidéo</strong> sur la ligne de la leçon.</p>
+                            <p className="text-amber-700 font-bold text-sm mb-1">{t("creez_d_abord_la_lecon")}</p>
+                            <p className="text-amber-600 text-xs">{t("l_upload_depuis_pc_n_est")}</p>
+                            <p className="text-amber-600 text-xs mt-1">{t("creez_la_lecon_puis_cliquez_sur")}{" "}<strong>{t("video")}</strong>{" "}{t("sur_la_ligne_de_la_lecon")}</p>
                           </div>
                         )
                       )}
@@ -1238,7 +1228,7 @@ export default function AdminCourses() {
 
                   {/* Pour exercice et téléchargement : juste l'URL */}
                   {lesM.content_type !== "video" && (
-                    <Field label={lesM.content_type === "download" ? "URL du fichier" : "URL du Lab / exercice"} hint="optionnel">
+                    <Field label={lesM.content_type === "download" ? t("url_du_fichier") : t("url_du_lab_exercice")} hint="optionnel">
                       <input className={IS} value={lesM.content_url || ""} onChange={e => setLesM(p => ({ ...p, content_url: e.target.value }))} placeholder="https://…" />
                     </Field>
                   )}
@@ -1251,22 +1241,22 @@ export default function AdminCourses() {
                   {/* Bandeau rouge */}
                   <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border-b border-red-200">
                     <FileText size={14} className="text-red-500" />
-                    <span className="text-xs font-bold text-red-600 uppercase tracking-wider">📝 Contenu de l'article</span>
-                    <span className="text-xs text-red-400 ml-1">— HTML accepté</span>
+                    <span className="text-xs font-bold text-red-600 uppercase tracking-wider">{t("contenu_de_l_article")}</span>
+                    <span className="text-xs text-red-400 ml-1">{t("html_accepte")}</span>
                   </div>
                   <textarea
                     className="w-full resize-y font-mono text-xs text-red-900 bg-red-50/40 border-none outline-none p-4 placeholder:text-red-300"
                     rows={9}
                     value={lesM.article_content || ""}
                     onChange={e => setLesM(p => ({ ...p, article_content: e.target.value }))}
-                    placeholder={"<h2>Introduction</h2>\n<p>Dans cette leçon…</p>\n\n<h3>Section 1</h3>\n<p>Contenu de la section</p>"}
+                    placeholder={t("h2_introduction_h2_p_dans_cette")}
                     style={{ fontFamily: "'Fira Code', 'JetBrains Mono', monospace", lineHeight: 1.6 }}
                   />
                   {/* Aperçu rendu */}
                   {lesM.article_content && (
                     <div className="border-t border-red-200">
                       <div className="flex items-center gap-2 px-4 py-2 bg-red-50">
-                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Aperçu rendu</span>
+                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">{t("apercu_rendu")}</span>
                       </div>
                       <div
                         className="px-5 py-4 bg-white text-sm text-slate-700 leading-7
@@ -1288,27 +1278,27 @@ export default function AdminCourses() {
               {/* Durée */}
               <div className="flex items-end gap-4">
                 <div className="w-40">
-                  <Field label="Durée (minutes)"><input type="number" min="0" className={IS} value={lesM.duration_minutes ?? 0} onChange={e => setLesM(p => ({ ...p, duration_minutes: +e.target.value }))} /></Field>
+                  <Field label={t("duree_minutes")}><input type="number" min="0" className={IS} value={lesM.duration_minutes ?? 0} onChange={e => setLesM(p => ({ ...p, duration_minutes: +e.target.value }))} /></Field>
                 </div>
                 {lesM.duration_minutes > 0 && <p className="text-sm text-slate-400 pb-2">≈ {Math.floor(lesM.duration_minutes / 60) > 0 ? `${Math.floor(lesM.duration_minutes / 60)}h ` : ""}{lesM.duration_minutes % 60 > 0 ? `${lesM.duration_minutes % 60}min` : ""}</p>}
               </div>
 
               {/* Options */}
               <div className="bg-slate-50 rounded-2xl p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4">⚙️ Options</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4">{t("options")}</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <Toggle label="Leçon publiée" checked={lesM.is_published !== false} on={v => setLesM(p => ({ ...p, is_published: v }))} />
-                  <Toggle label="Aperçu gratuit" checked={!!lesM.is_preview} on={v => setLesM(p => ({ ...p, is_preview: v }))} color="#d97706" />
-                  <Toggle label="Complétion requise" checked={lesM.requires_completion !== false} on={v => setLesM(p => ({ ...p, requires_completion: v }))} color="#0ea5e9" />
-                  <Toggle label="Téléchargeable offline" checked={!!lesM.is_downloadable} on={v => setLesM(p => ({ ...p, is_downloadable: v }))} color="#7c3aed" />
+                  <Toggle label={t("lecon_publiee")} checked={lesM.is_published !== false} on={v => setLesM(p => ({ ...p, is_published: v }))} />
+                  <Toggle label={t("apercu_gratuit")} checked={!!lesM.is_preview} on={v => setLesM(p => ({ ...p, is_preview: v }))} color="#d97706" />
+                  <Toggle label={t("completion_requise")} checked={lesM.requires_completion !== false} on={v => setLesM(p => ({ ...p, requires_completion: v }))} color="#0ea5e9" />
+                  <Toggle label={t("telechargeable_offline")} checked={!!lesM.is_downloadable} on={v => setLesM(p => ({ ...p, is_downloadable: v }))} color="#7c3aed" />
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3 mt-6 pt-5 border-t border-slate-100">
-              <button onClick={() => setLesM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Annuler</button>
+              <button onClick={() => setLesM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">{t("annuler")}</button>
               <button onClick={saveLes} disabled={lesSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: lesSv ? "#a5b4fc" : "#2d287f" }}>
-                {lesSv ? "Enregistrement…" : lesM.les ? "✓ Mettre à jour la leçon" : "✓ Créer la leçon"}
+                {lesSv ? t("enregistrement") : lesM.les ? t("mettre_a_jour_la_lecon") : t("creer_la_lecon")}
               </button>
             </div>
           </>
@@ -1316,19 +1306,16 @@ export default function AdminCourses() {
       </Modal>
 
       {/* ════ MODAL UPLOAD VIDÉO ════ */}
-      <Modal open={!!upVid} onClose={() => setUpVid(null)} title={`🎬 Vidéo — ${upVid?.title || ""}`} wide>
+      <Modal open={!!upVid} onClose={() => setUpVid(null)} title={t("video_2", { v: upVid?.title || "" })} wide>
         {upVid && (
           <>
-            <p className="text-sm text-slate-500 leading-relaxed mb-5">
-              Glisse ta vidéo <strong>directement depuis ton ordinateur</strong> ou colle une URL YouTube / MP4.
-              La vidéo uploadée sera stockée sur le serveur et automatiquement associée à la leçon.
-            </p>
+            <p className="text-sm text-slate-500 leading-relaxed mb-5">{t("glisse_ta_video")}{" "}<strong>{t("directement_depuis_ton_ordinateur")}</strong>{" "}{t("ou_colle_une_url_youtube_mp4")}</p>
             <VideoUploader
               token={token}
               lessonId={upVid.id}
               currentUrl={upVid.content_url || ""}
               onSuccess={(url) => {
-                t$("🎬 Vidéo enregistrée !");
+                t$(i18n.t("adminCourses:video_enregistree"));
                 setLessons(prev => {
                   const map = { ...prev };
                   for (const [mid, arr] of Object.entries(map)) {
@@ -1339,28 +1326,28 @@ export default function AdminCourses() {
               }}
             />
             <div className="mt-6 pt-5 border-t border-slate-100">
-              <button onClick={() => setUpVid(null)} className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Fermer</button>
+              <button onClick={() => setUpVid(null)} className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">{t("fermer")}</button>
             </div>
           </>
         )}
       </Modal>
 
       {/* ════ MODAL RESSOURCES / FICHIERS ════ */}
-      <Modal open={!!resM} onClose={() => setResM(null)} title={`📎 Fichiers — ${resM?.les?.title || ""}`} wide>
+      <Modal open={!!resM} onClose={() => setResM(null)} title={t("fichiers_2", { v: resM?.les?.title || "" })} wide>
         {resM && (
           <>
             {/* Ressources existantes */}
             {(resources[resM.lesId] || []).length > 0 && (
               <div className="mb-6">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Fichiers existants ({resources[resM.lesId].length})</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{t("fichiers_existants", { length: resources[resM.lesId].length })}</p>
                 {resources[resM.lesId].map(r => (
                   <div key={r.id} className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-2xl mb-2 border border-slate-100">
-                    <span className="text-lg">{r.file_type === "pdf" ? "📄" : r.file_type === "mp4" ? "🎬" : r.file_type === "zip" ? "🗜" : r.file_type === "pptx" ? "📊" : "📎"}</span>
+                    <span className="text-slate-500"><FileTypeIcon type={r.file_type} className="w-5 h-5" /></span>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-slate-800">{r.title}</p>
                       <a href={r.file_url} target="_blank" rel="noreferrer" className="text-xs text-indigo-500 hover:underline">{(r.file_url || "").slice(0, 70)}</a>
                     </div>
-                    {r.file_size && <Badge color="#64748b">{(r.file_size / 1024 / 1024).toFixed(1)} Mo</Badge>}
+                    {r.file_size && <Badge color="#64748b">{(r.file_size / 1024 / 1024).toFixed(1)}{" "}{t("mo_2")}</Badge>}
                     <button onClick={() => deleteRes(r, resM.lesId)} className="w-7 h-7 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-100 transition"><Trash2 size={12} /></button>
                   </div>
                 ))}
@@ -1368,16 +1355,16 @@ export default function AdminCourses() {
             )}
 
             <div className="border-t border-slate-100 pt-5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4">+ Ajouter un fichier</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4">{t("ajouter_un_fichier")}</p>
               <ResourceUploader
                 token={token}
                 lessonId={resM.lesId}
-                onSuccess={() => { t$("📎 Fichier ajouté !"); loadRes(resM.lesId); }}
+                onSuccess={() => { t$(i18n.t("adminCourses:fichier_ajoute")); loadRes(resM.lesId); }}
               />
             </div>
 
             <div className="mt-5 pt-5 border-t border-slate-100">
-              <button onClick={() => setResM(null)} className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Fermer</button>
+              <button onClick={() => setResM(null)} className="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">{t("fermer")}</button>
             </div>
           </>
         )}

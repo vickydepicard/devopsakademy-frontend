@@ -7,6 +7,8 @@ import {
   ArrowRight, ChevronRight, AlertCircle, BarChart2,
   UserCheck, DollarSign, Radio
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 const KPI = ({ label, value, sub, icon: Icon, color, bg, to }) => (
   <Link to={to || "#"} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 block">
@@ -22,13 +24,14 @@ const KPI = ({ label, value, sub, icon: Icon, color, bg, to }) => (
 );
 
 export default function AdminDashboard() {
+  const { t } = useTranslation("adminDashboard");
   const [stats, setStats] = useState(null);
   const [recentEnrollments, setRecentEnrollments] = useState([]);
   const [pendingItems, setPendingItems] = useState({ enrollments: 0, applications: 0, subscriptions: 0, liveBootcamps: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Dashboard Admin — DevOpsAkademy";
+    document.title = t("dashboard_admin_devopsakademy");
     fetchAll();
   }, []);
 
@@ -86,13 +89,12 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Tableau de bord</h1>
-          <p className="text-gray-500 text-sm mt-1">Vue d'ensemble de la plateforme DevOpsAkademy</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{t("tableau_de_bord")}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t("vue_d_ensemble_de_la_plateforme")}</p>
         </div>
         <Link to="/admin/stats"
           className="inline-flex items-center gap-2 text-sm text-blue-600 font-medium hover:underline">
-          <BarChart2 className="w-4 h-4" /> Statistiques détaillées
-        </Link>
+          <BarChart2 className="w-4 h-4" />{" "}{t("statistiques_detaillees")}</Link>
       </div>
 
       {/* Alertes en attente */}
@@ -100,28 +102,19 @@ export default function AdminDashboard() {
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4 flex-wrap">
           <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
           <p className="text-sm text-amber-800 font-medium flex-1">
-            <strong>{totalPending} action{totalPending > 1 ? "s" : ""}</strong> en attente de votre validation
-          </p>
+            <strong>{i18n.t("adminDashboard:action", { totalPending, s: totalPending > 1 ? "s" : "" })}</strong>{" "}{t("en_attente_de_votre_validation")}</p>
           <div className="flex gap-2 flex-wrap">
             {pendingItems.enrollments > 0 && (
-              <Link to="/admin/enrollments" className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-amber-600 transition">
-                {pendingItems.enrollments} inscription{pendingItems.enrollments > 1 ? "s" : ""}
-              </Link>
+              <Link to="/admin/enrollments" className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-amber-600 transition">{i18n.t("adminDashboard:inscription", { enrollments: pendingItems.enrollments, s: pendingItems.enrollments > 1 ? "s" : "" })}</Link>
             )}
             {pendingItems.applications > 0 && (
-              <Link to="/admin/instructor-applications" className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-blue-600 transition">
-                {pendingItems.applications} candidature{pendingItems.applications > 1 ? "s" : ""}
-              </Link>
+              <Link to="/admin/instructor-applications" className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-blue-600 transition">{i18n.t("adminDashboard:candidature", { applications: pendingItems.applications, s: pendingItems.applications > 1 ? "s" : "" })}</Link>
             )}
             {pendingItems.subscriptions > 0 && (
-              <Link to="/admin/subscriptions" className="text-xs bg-violet-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-violet-600 transition">
-                {pendingItems.subscriptions} abonnement{pendingItems.subscriptions > 1 ? "s" : ""}
-              </Link>
+              <Link to="/admin/subscriptions" className="text-xs bg-violet-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-violet-600 transition">{i18n.t("adminDashboard:abonnement", { subscriptions: pendingItems.subscriptions, s: pendingItems.subscriptions > 1 ? "s" : "" })}</Link>
             )}
             {pendingItems.liveBootcamps > 0 && (
-              <Link to="/admin/bootcamps" className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-red-600 transition animate-pulse">
-                🔴 {pendingItems.liveBootcamps} live en cours
-              </Link>
+              <Link to="/admin/bootcamps" className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-red-600 transition animate-pulse">{t("live_en_cours", { liveBootcamps: pendingItems.liveBootcamps })}</Link>
             )}
           </div>
         </div>
@@ -129,25 +122,25 @@ export default function AdminDashboard() {
 
       {/* KPIs principaux */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPI label="Utilisateurs" value={stats?.users ?? stats?.total_users} sub="Total inscrits"
+        <KPI label={t("utilisateurs")} value={stats?.users ?? stats?.total_users} sub={t("total_inscrits")}
           icon={Users} color="text-blue-600" bg="bg-blue-50" to="/admin/users" />
-        <KPI label="Cours" value={stats?.courses ?? stats?.total_courses} sub={`${stats?.published_courses ?? 0} publiés`}
+        <KPI label={t("cours")} value={stats?.courses ?? stats?.total_courses} sub={t("publies", { v: stats?.published_courses ?? 0 })}
           icon={BookOpen} color="text-emerald-600" bg="bg-emerald-50" to="/admin/courses" />
-        <KPI label="Inscriptions" value={stats?.enrollments ?? stats?.total_enrollments} sub={`${pendingItems.enrollments} en attente`}
+        <KPI label={t("inscriptions")} value={stats?.enrollments ?? stats?.total_enrollments} sub={t("en_attente", { enrollments: pendingItems.enrollments })}
           icon={ClipboardList} color="text-violet-600" bg="bg-violet-50" to="/admin/enrollments" />
-        <KPI label="Completion moy." value={stats?.avgCompletion ? `${Math.round(stats.avgCompletion)}%` : "—"}
+        <KPI label={t("completion_moy")} value={stats?.avgCompletion ? `${Math.round(stats.avgCompletion)}%` : "—"}
           icon={TrendingUp} color="text-orange-500" bg="bg-orange-50" to="/admin/stats" />
       </div>
 
       {/* KPIs secondaires */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPI label="Instructeurs" value={stats?.instructors ?? stats?.total_instructors}
+        <KPI label={t("instructeurs")} value={stats?.instructors ?? stats?.total_instructors}
           icon={UserCheck} color="text-teal-600" bg="bg-teal-50" to="/admin/users" />
-        <KPI label="Certificats" value={stats?.certificates ?? stats?.total_certificates}
+        <KPI label={t("certificats")} value={stats?.certificates ?? stats?.total_certificates}
           icon={Award} color="text-yellow-600" bg="bg-yellow-50" to="/admin/certificates" />
-        <KPI label="Abonnements actifs" value={stats?.active_subscriptions}
+        <KPI label={t("abonnements_actifs")} value={stats?.active_subscriptions}
           icon={CreditCard} color="text-indigo-600" bg="bg-indigo-50" to="/admin/subscriptions" />
-        <KPI label="Bootcamps & Lives" value={pendingItems.liveBootcamps > 0 ? `🔴 ${pendingItems.liveBootcamps} live` : stats?.bootcamps_count ?? "—"}
+        <KPI label={t("bootcamps_lives")} value={pendingItems.liveBootcamps > 0 ? `${pendingItems.liveBootcamps} live` : stats?.bootcamps_count ?? "—"}
           icon={Radio} color="text-rose-500" bg="bg-rose-50" to="/admin/bootcamps" />
       </div>
 
@@ -159,14 +152,13 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5 text-violet-500" />
-              <h3 className="font-bold text-gray-900 text-sm">Inscriptions récentes</h3>
+              <h3 className="font-bold text-gray-900 text-sm">{t("inscriptions_recentes")}</h3>
             </div>
-            <Link to="/admin/enrollments" className="text-xs text-blue-600 hover:underline flex items-center gap-0.5">
-              Tout voir <ChevronRight className="w-3.5 h-3.5" />
+            <Link to="/admin/enrollments" className="text-xs text-blue-600 hover:underline flex items-center gap-0.5">{t("tout_voir")}{" "}<ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           {recentEnrollments.length === 0 ? (
-            <p className="p-8 text-center text-gray-400 text-sm">Aucune inscription récente</p>
+            <p className="p-8 text-center text-gray-400 text-sm">{t("aucune_inscription_recente")}</p>
           ) : (
             <div className="divide-y divide-gray-50">
               {recentEnrollments.map((enr) => (
@@ -181,7 +173,7 @@ export default function AdminDashboard() {
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                     enr.is_approved ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"
                   }`}>
-                    {enr.is_approved ? "Actif" : "En attente"}
+                    {enr.is_approved ? t("actif") : t("en_attente_2")}
                   </span>
                 </div>
               ))}
@@ -191,16 +183,16 @@ export default function AdminDashboard() {
 
         {/* Actions rapides */}
         <div className="bg-white border border-gray-100 rounded-2xl shadow-soft p-6">
-          <h3 className="font-bold text-gray-900 text-sm mb-4">Actions rapides</h3>
+          <h3 className="font-bold text-gray-900 text-sm mb-4">{t("actions_rapides")}</h3>
           <div className="space-y-2">
             {[
-              { to: "/admin/enrollments?filter=pending",    label: "Valider les paiements en attente",       color: "text-amber-600",  bg: "hover:bg-amber-50",  count: pendingItems.enrollments },
-              { to: "/admin/instructor-applications",       label: "Traiter les candidatures instructeurs",  color: "text-blue-600",   bg: "hover:bg-blue-50",   count: pendingItems.applications },
-              { to: "/admin/subscriptions?filter=pending",  label: "Valider les abonnements",                color: "text-violet-600", bg: "hover:bg-violet-50", count: pendingItems.subscriptions },
-              { to: "/admin/bootcamps",                     label: "🎙️ Gérer les bootcamps & lives",         color: "text-indigo-600", bg: "hover:bg-indigo-50", count: pendingItems.liveBootcamps },
-              { to: "/admin/courses",                       label: "Gérer le catalogue de cours",            color: "text-emerald-600",bg: "hover:bg-emerald-50" },
-              { to: "/admin/certificates",                  label: "Émettre des certificats",                color: "text-yellow-600", bg: "hover:bg-yellow-50" },
-              { to: "/admin/settings",                      label: "Paramètres de la plateforme",            color: "text-gray-600",   bg: "hover:bg-gray-50" },
+              { to: "/admin/enrollments?filter=pending",    label: t("valider_les_paiements_en_attente"),       color: "text-amber-600",  bg: "hover:bg-amber-50",  count: pendingItems.enrollments },
+              { to: "/admin/instructor-applications",       label: t("traiter_les_candidatures_instructeurs"),  color: "text-blue-600",   bg: "hover:bg-blue-50",   count: pendingItems.applications },
+              { to: "/admin/subscriptions?filter=pending",  label: t("valider_les_abonnements"),                color: "text-violet-600", bg: "hover:bg-violet-50", count: pendingItems.subscriptions },
+              { to: "/admin/bootcamps",                     label: t("gerer_les_bootcamps_lives"),         color: "text-indigo-600", bg: "hover:bg-indigo-50", count: pendingItems.liveBootcamps },
+              { to: "/admin/courses",                       label: t("gerer_le_catalogue_de_cours"),            color: "text-emerald-600",bg: "hover:bg-emerald-50" },
+              { to: "/admin/certificates",                  label: t("emettre_des_certificats"),                color: "text-yellow-600", bg: "hover:bg-yellow-50" },
+              { to: "/admin/settings",                      label: t("parametres_de_la_plateforme"),            color: "text-gray-600",   bg: "hover:bg-gray-50" },
             ].map(({ to, label, color, bg, count }) => (
               <Link key={to} to={to}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border border-transparent ${bg} transition group`}>

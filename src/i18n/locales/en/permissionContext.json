@@ -1,0 +1,7 @@
+{
+  "usepermissions_must_be_used_within_a": "usePermissions must be used within a PermissionProvider",
+  "impossible_de_charger_vos_inscriptions": "Unable to load your enrollments.",
+  "deja_inscrit_a_ce_cours": "Already enrolled in this course",
+  "erreur_inscription": "Enrollment error",
+  "erreur_upload_preuve": "Proof upload error"
+}

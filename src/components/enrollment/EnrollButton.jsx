@@ -123,7 +123,7 @@ export default function EnrollButton({ course, className = "", size = "md", onEn
         onClick={() => navigate(`/courses/${course.id}/learn`)}
         className={`${sz} rounded-full font-semibold bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm hover:shadow-md ${className}`}
       >
-        ▶ Accéder au cours
+        Accéder au cours
       </button>
     )
   }
@@ -135,7 +135,7 @@ export default function EnrollButton({ course, className = "", size = "md", onEn
         disabled
         className={`${sz} rounded-full font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300 cursor-not-allowed ${className}`}
       >
-        ⏳ En attente de validation
+        En attente de validation
       </button>
     )
   }
@@ -148,7 +148,7 @@ export default function EnrollButton({ course, className = "", size = "md", onEn
           onClick={() => setShowModal(true)}
           className={`${sz} rounded-full font-semibold bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 transition-all ${className}`}
         >
-          ❌ Rejeté — Réessayer
+          Rejeté — Réessayer
         </button>
 
         {showModal && (

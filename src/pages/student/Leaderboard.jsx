@@ -5,12 +5,16 @@ import {
   Trophy, Medal, Star, TrendingUp, Users,
   Crown, Zap, Award, ChevronDown
 } from "lucide-react";
+import { FileText, GraduationCap, Lightbulb } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
-const PERIODS = [
-  { key: "all", label: "Tout temps" },
-  { key: "month", label: "Ce mois" },
-  { key: "week", label: "Cette semaine" },
-];
+const PERIODS = () => ([
+  { key: "all", label: i18n.t("leaderboard:tout_temps") },
+  { key: "month", label: i18n.t("leaderboard:ce_mois") },
+  { key: "week", label: i18n.t("leaderboard:cette_semaine") },
+]);
 
 const RANK_STYLES = {
   1: { bg: "bg-gradient-to-br from-yellow-400 to-amber-500", text: "text-white", icon: <Crown className="w-5 h-5" />, ring: "ring-2 ring-yellow-400" },
@@ -19,6 +23,7 @@ const RANK_STYLES = {
 };
 
 export default function Leaderboard() {
+  const { t } = useTranslation("leaderboard");
   const { user } = useAuth();
   const [data, setData] = useState([]);
   const [myRank, setMyRank] = useState(null);
@@ -26,7 +31,7 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Classement — DevOpsAkademy";
+    document.title = t("classement_devopsakademy");
     fetchLeaderboard();
   }, [period]);
 
@@ -57,18 +62,13 @@ export default function Leaderboard() {
 
         <div className="relative">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/20 border border-accent/30 rounded-full text-accent text-xs font-bold mb-4">
-            <Zap className="w-3.5 h-3.5" /> Points en temps réel
-          </span>
-          <h1 className="text-3xl lg:text-5xl font-extrabold mb-3">
-            🏆 Classement des apprenants
-          </h1>
-          <p className="text-white/70 text-lg max-w-xl mx-auto mb-8">
-            Complétez des quiz et des cours pour gagner des points et grimper dans le classement.
-          </p>
+            <Zap className="w-3.5 h-3.5" />{" "}{t("points_en_temps_reel")}</span>
+          <h1 className="text-3xl lg:text-5xl font-extrabold mb-3">{t("classement_des_apprenants")}</h1>
+          <p className="text-white/70 text-lg max-w-xl mx-auto mb-8">{t("completez_des_quiz_et_des_cours")}</p>
 
           {/* Filtres période */}
           <div className="inline-flex bg-white/10 backdrop-blur-sm border border-white/20 rounded-full p-1 gap-1">
-            {PERIODS.map(({ key, label }) => (
+            {PERIODS().map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setPeriod(key)}
@@ -99,10 +99,10 @@ export default function Leaderboard() {
                 <div className="w-16 h-16 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold shadow-lg">
                   {top3[1].display_name?.[0]?.toUpperCase() || "?"}
                 </div>
-                <div className="text-2xl mb-1">🥈</div>
+                
                 <p className="font-bold truncate text-sm">{top3[1].display_name}</p>
-                <p className="text-accent font-bold text-lg">{top3[1].leaderboard_points?.toLocaleString("fr-FR")}</p>
-                <p className="text-white/50 text-xs">pts</p>
+                <p className="text-accent font-bold text-lg">{top3[1].leaderboard_points?.toLocaleString(getLocale())}</p>
+                <p className="text-white/50 text-xs">{i18n.t("leaderboard:pts")}</p>
               </div>
             )}
 
@@ -115,10 +115,10 @@ export default function Leaderboard() {
                 <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold shadow-lg ring-4 ring-yellow-400/30">
                   {top3[0].display_name?.[0]?.toUpperCase() || "?"}
                 </div>
-                <div className="text-3xl mb-1">🥇</div>
+                
                 <p className="font-bold truncate">{top3[0].display_name}</p>
-                <p className="text-accent font-bold text-2xl">{top3[0].leaderboard_points?.toLocaleString("fr-FR")}</p>
-                <p className="text-white/50 text-xs">points</p>
+                <p className="text-accent font-bold text-2xl">{top3[0].leaderboard_points?.toLocaleString(getLocale())}</p>
+                <p className="text-white/50 text-xs">{i18n.t("leaderboard:points_2")}</p>
               </div>
             )}
 
@@ -128,10 +128,10 @@ export default function Leaderboard() {
                 <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold shadow-lg">
                   {top3[2].display_name?.[0]?.toUpperCase() || "?"}
                 </div>
-                <div className="text-2xl mb-1">🥉</div>
+                
                 <p className="font-bold truncate text-sm">{top3[2].display_name}</p>
-                <p className="text-accent font-bold text-lg">{top3[2].leaderboard_points?.toLocaleString("fr-FR")}</p>
-                <p className="text-white/50 text-xs">pts</p>
+                <p className="text-accent font-bold text-lg">{top3[2].leaderboard_points?.toLocaleString(getLocale())}</p>
+                <p className="text-white/50 text-xs">{i18n.t("leaderboard:pts")}</p>
               </div>
             )}
           </div>
@@ -147,13 +147,13 @@ export default function Leaderboard() {
                 {myRank.rank}
               </div>
               <div>
-                <p className="font-semibold text-sm">Votre position</p>
-                <p className="text-white/60 text-xs">Rang #{myRank.rank} sur {data.length}+</p>
+                <p className="font-semibold text-sm">{t("votre_position")}</p>
+                <p className="text-white/60 text-xs">{t("rang_sur", { rank: myRank.rank, length: data.length })}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-accent font-bold text-xl">{myRank.leaderboard_points?.toLocaleString("fr-FR")}</p>
-              <p className="text-white/50 text-xs">points</p>
+              <p className="text-accent font-bold text-xl">{myRank.leaderboard_points?.toLocaleString(getLocale())}</p>
+              <p className="text-white/50 text-xs">{i18n.t("leaderboard:points_2")}</p>
             </div>
           </div>
         </div>
@@ -165,8 +165,8 @@ export default function Leaderboard() {
           {/* En-tête table */}
           <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
             <div className="col-span-1 text-center">#</div>
-            <div className="col-span-7">Apprenant</div>
-            <div className="col-span-4 text-right">Points</div>
+            <div className="col-span-7">{t("apprenant")}</div>
+            <div className="col-span-4 text-right">{t("points")}</div>
           </div>
 
           {loading ? (
@@ -182,7 +182,7 @@ export default function Leaderboard() {
           ) : rest.length === 0 && data.length === 0 ? (
             <div className="p-12 text-center text-gray-400">
               <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">Aucun classement disponible</p>
+              <p className="font-medium">{t("aucun_classement_disponible")}</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
@@ -211,7 +211,7 @@ export default function Leaderboard() {
                       <div>
                         <p className={`font-semibold text-sm ${isMe ? "text-primary" : "text-gray-800"}`}>
                           {entry.display_name}
-                          {isMe && <span className="ml-2 text-xs bg-primary text-white px-1.5 py-0.5 rounded-full">Vous</span>}
+                          {isMe && <span className="ml-2 text-xs bg-primary text-white px-1.5 py-0.5 rounded-full">{t("vous")}</span>}
                         </p>
                       </div>
                     </div>
@@ -219,8 +219,8 @@ export default function Leaderboard() {
                     {/* Points */}
                     <div className="col-span-4 text-right">
                       <span className={`font-bold text-sm ${isMe ? "text-primary" : "text-gray-700"}`}>
-                        {entry.leaderboard_points?.toLocaleString("fr-FR")}
-                        <span className="text-xs font-normal text-gray-400 ml-1">pts</span>
+                        {entry.leaderboard_points?.toLocaleString(getLocale())}
+                        <span className="text-xs font-normal text-gray-400 ml-1">{i18n.t("leaderboard:pts")}</span>
                       </span>
                     </div>
                   </div>
@@ -233,16 +233,15 @@ export default function Leaderboard() {
         {/* Comment gagner des points */}
         <div className="mt-8 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-white">
           <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-accent" /> Comment gagner des points ?
-          </h3>
+            <Zap className="w-5 h-5 text-accent" />{" "}{t("comment_gagner_des_points")}</h3>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
-              { icon: "📝", title: "Réussir un quiz", pts: "+Variable", desc: "Points selon votre score" },
-              { icon: "🎓", title: "Terminer un cours", pts: "+100 pts", desc: "Certificat inclus" },
-              { icon: "💡", title: "Participer au forum", pts: "Bientôt", desc: "Posts et réponses utiles" },
+              { icon: FileText, title: t("reussir_un_quiz"), pts: "+Variable", desc: t("points_selon_votre_score") },
+              { icon: GraduationCap, title: t("terminer_un_cours"), pts: "+100 pts", desc: t("certificat_inclus") },
+              { icon: Lightbulb, title: t("participer_au_forum"), pts: i18n.t("leaderboard:bientot"), desc: t("posts_et_reponses_utiles") },
             ].map(({ icon, title, pts, desc }) => (
               <div key={title} className="bg-white/10 rounded-xl p-4 text-center">
-                <div className="text-3xl mb-2">{icon}</div>
+                {(() => { const I = icon; return <I className="w-7 h-7 mx-auto mb-2 text-accent" />; })()}
                 <p className="font-semibold text-sm mb-1">{title}</p>
                 <p className="text-accent font-bold text-sm">{pts}</p>
                 <p className="text-white/50 text-xs mt-0.5">{desc}</p>

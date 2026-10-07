@@ -1,0 +1,20 @@
+{
+  "introuvable": "User not found.",
+  "impossible_de_charger_le_profil": "Unable to load this profile.",
+  "profil_indisponible": "Profile unavailable",
+  "retour": "Back",
+  "retour_aux_utilisateurs": "Back to users",
+  "site_web": "Website",
+  "role_admin": "Administrator",
+  "role_instructor": "Instructor",
+  "role_student": "Student",
+  "actif": "Active",
+  "inactif": "Inactive",
+  "suivi_pedagogique": "Learning progress",
+  "inscrit_le": "Joined on",
+  "cours_suivis": "Courses followed",
+  "progression_moyenne": "Average progress",
+  "cours_enseignes": "Courses taught",
+  "publie": "Published",
+  "brouillon": "Draft"
+}

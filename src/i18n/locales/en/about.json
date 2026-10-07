@@ -1,0 +1,61 @@
+{
+  "meta": { "title": "About — DevOpsAkademy" },
+  "hero": {
+    "badge": "Practical, accessible DevOps training",
+    "titleStart": "Training the",
+    "titleEnd": "engineers of tomorrow",
+    "subtitle": "DevOpsAkademy was born from a simple observation: accessible DevOps training too often lacks hands-on depth. We set out to change that.",
+    "explore": "Explore our courses",
+    "becomeInstructor": "Become an instructor"
+  },
+  "stats": {
+    "learners": "Registered learners",
+    "courses": "Courses available",
+    "rating": "Average rating",
+    "countries": "Countries represented"
+  },
+  "mission": {
+    "eyebrow": "Our mission",
+    "title": "Making DevOps skills accessible, in Africa and worldwide",
+    "p1": "Too often, the best DevOps resources are limited to a few markets, locked behind unaffordable paywalls, or disconnected from the reality of African tech teams. DevOpsAkademy bridges that gap.",
+    "p2": "We offer courses built by practitioners, with hands-on labs and an engaged community, at prices adapted to local markets.",
+    "points": [
+      "Courses in French, using the industry's international terminology",
+      "Hands-on labs on real environments",
+      "Verifiable digital certificate",
+      "Pricing adapted to local markets"
+    ],
+    "terminal": {
+      "l1": "Hands-on labs: enabled",
+      "l2": "Verifiable certificates: enabled",
+      "l3": "Community: active",
+      "deploying": "Deployment in progress"
+    }
+  },
+  "values": {
+    "eyebrow": "What sets us apart",
+    "title": "Our founding values",
+    "expertise": { "title": "Field expertise", "desc": "Our instructors are active practitioners. Every course reflects real challenges met in production." },
+    "fast": { "title": "Learning by doing", "desc": "A learn-by-doing method: interactive labs, running projects and quizzes at every step to lock in what you learn." },
+    "cert": { "title": "Verifiable certification", "desc": "Every learning path ends with a digital certificate that recruiters can verify online." },
+    "community": { "title": "Active community", "desc": "Forum, peer support and live sessions. You never learn alone at DevOpsAkademy." }
+  },
+  "tech": {
+    "eyebrow": "Stack",
+    "title": "The technologies you will master",
+    "subtitle": "The stack used in production by tech teams"
+  },
+  "team": {
+    "eyebrow": "The team",
+    "title": "Practitioners, not theorists",
+    "founder": { "name": "Vicky De Picard", "role": "Founder & Lead DevOps", "bio": "10 years of experience in cloud infrastructure. Former SRE at African scale-ups." },
+    "teachers": { "name": "Teaching team", "role": "Certified engineers & trainers", "bio": "AWS, Kubernetes, Terraform, CI/CD: our instructors bring years of production experience." },
+    "support": { "name": "Community support", "role": "Mentors & community managers", "bio": "Available on the forum and in live sessions to unblock every learner." }
+  },
+  "cta": {
+    "title": "Ready to start your DevOps journey?",
+    "subtitle": "Join the learners building their DevOps careers with DevOpsAkademy.",
+    "start": "Create a free account",
+    "pricing": "See pricing"
+  }
+}

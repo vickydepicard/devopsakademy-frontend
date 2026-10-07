@@ -1,0 +1,14 @@
+{
+  "erreur_lors_du_chargement_des_statistiques": "Erreur lors du chargement des statistiques.",
+  "reessayer": "Réessayer",
+  "utilisateurs": "Utilisateurs",
+  "cours": "Cours",
+  "inscriptions": "Inscriptions",
+  "progression_moy": "Progression moy.",
+  "statistiques": "Statistiques",
+  "actualiser": "Actualiser",
+  "cours_par_popularite": "Cours par popularité",
+  "etudiants": "Étudiants",
+  "aucun_cours": "Aucun cours",
+  "cours_2": "{{length}} cours"
+}

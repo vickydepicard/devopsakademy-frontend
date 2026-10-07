@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "../../api/api";
 import {
   BarChart2, TrendingUp, Users, Star, BookOpen,
   Award, Clock, ArrowUp, ArrowDown, ChevronRight,
   Eye, DollarSign, CheckCircle, Loader
 } from "lucide-react";
+import { Video, HelpCircle, MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 const StatCard = ({ label, value, sub, icon: Icon, color, bg, trend, trendLabel }) => (
   <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-soft">
@@ -37,13 +40,16 @@ const MiniBar = ({ label, value, max, color = "bg-primary" }) => (
 );
 
 export default function InstructorAnalytics() {
+  const { t } = useTranslation("instructorAnalytics");
   const [stats, setStats] = useState(null);
-  const [courses, setCourses] = useState([]);
+  const { id: courseId } = useParams();
+  const [allCourses, setCourses] = useState([]);
+  const courses = courseId ? allCourses.filter((c) => String(c.id) === String(courseId)) : allCourses;
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("all");
 
   useEffect(() => {
-    document.title = "Analytics — DevOpsAkademy";
+    document.title = t("analytics_devopsakademy");
     fetchData();
   }, [period]);
 
@@ -72,7 +78,7 @@ export default function InstructorAnalytics() {
       ? (courses.reduce((a, c) => a + parseFloat(c.avg_rating || 0), 0) / courses.filter((c) => c.avg_rating).length || 0).toFixed(1)
       : "—",
     total_completions: courses.reduce((a, c) => a + (c.completion_count || 0), 0),
-    ...stats,
+    ...(courseId ? {} : stats),
   };
 
   // Top 5 cours par inscrits
@@ -86,9 +92,9 @@ export default function InstructorAnalytics() {
     .slice(0, 5);
 
   const PERIODS = [
-    { key: "week", label: "7 jours" },
-    { key: "month", label: "30 jours" },
-    { key: "all", label: "Tout" },
+    { key: "week", label: t("7_jours") },
+    { key: "month", label: t("30_jours") },
+    { key: "all", label: t("tout") },
   ];
 
   if (loading) {
@@ -112,8 +118,8 @@ export default function InstructorAnalytics() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Vue d'ensemble de vos performances d'enseignement</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("analytics")}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">{t("vue_d_ensemble_de_vos_performances")}</p>
         </div>
         {/* Filtre période */}
         <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
@@ -128,13 +134,13 @@ export default function InstructorAnalytics() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Cours créés" value={computed.total_courses} sub={`${computed.published} publiés`}
+        <StatCard label={t("cours_crees")} value={computed.total_courses} sub={t("publies", { published: computed.published })}
           icon={BookOpen} color="text-primary" bg="bg-primary/10" trend={computed.course_growth} />
-        <StatCard label="Étudiants inscrits" value={computed.total_students}
+        <StatCard label={t("etudiants_inscrits")} value={computed.total_students}
           icon={Users} color="text-blue-600" bg="bg-blue-50" trend={computed.student_growth} />
-        <StatCard label="Note moyenne" value={computed.avg_rating ? `${computed.avg_rating}/5` : "—"}
+        <StatCard label={t("note_moyenne")} value={computed.avg_rating ? `${computed.avg_rating}/5` : "—"}
           icon={Star} color="text-yellow-500" bg="bg-yellow-50" />
-        <StatCard label="Cours terminés" value={computed.total_completions || 0}
+        <StatCard label={t("cours_termines")} value={computed.total_completions || 0}
           icon={Award} color="text-violet-600" bg="bg-violet-50" trend={computed.completion_growth} />
       </div>
 
@@ -146,14 +152,13 @@ export default function InstructorAnalytics() {
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-500" />
-              <h3 className="font-bold text-gray-900">Top cours — Inscrits</h3>
+              <h3 className="font-bold text-gray-900">{t("top_cours_inscrits")}</h3>
             </div>
-            <Link to="/instructor/courses" className="text-xs text-primary hover:underline flex items-center gap-0.5">
-              Tout voir <ChevronRight className="w-3.5 h-3.5" />
+            <Link to="/instructor/courses" className="text-xs text-primary hover:underline flex items-center gap-0.5">{t("tout_voir")}{" "}<ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           {topCourses.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-8">Aucune donnée disponible</p>
+            <p className="text-gray-400 text-sm text-center py-8">{t("aucune_donnee_disponible")}</p>
           ) : (
             <div className="space-y-3">
               {topCourses.map((c) => (
@@ -167,10 +172,10 @@ export default function InstructorAnalytics() {
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-5">
             <Star className="w-5 h-5 text-yellow-500" />
-            <h3 className="font-bold text-gray-900">Top cours — Note moyenne</h3>
+            <h3 className="font-bold text-gray-900">{t("top_cours_note_moyenne")}</h3>
           </div>
           {topRated.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-8">Aucune évaluation pour l'instant</p>
+            <p className="text-gray-400 text-sm text-center py-8">{t("aucune_evaluation_pour_l_instant")}</p>
           ) : (
             <div className="space-y-3">
               {topRated.map((c) => (
@@ -193,16 +198,16 @@ export default function InstructorAnalytics() {
       <div className="bg-white border border-gray-100 rounded-2xl shadow-soft overflow-hidden">
         <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
           <BarChart2 className="w-5 h-5 text-primary" />
-          <h3 className="font-bold text-gray-900">Performance par cours</h3>
+          <h3 className="font-bold text-gray-900">{t("performance_par_cours")}</h3>
         </div>
         {courses.length === 0 ? (
-          <p className="text-center py-12 text-gray-400 text-sm">Aucun cours créé</p>
+          <p className="text-center py-12 text-gray-400 text-sm">{t("aucun_cours_cree")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  {["Cours", "Statut", "Étudiants", "Complétions", "Note", ""].map((h) => (
+                  {[i18n.t("instructorAnalytics:cours"), i18n.t("instructorAnalytics:statut"), i18n.t("instructorAnalytics:etudiants"), i18n.t("instructorAnalytics:completions"), i18n.t("instructorAnalytics:note"), ""].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -227,7 +232,7 @@ export default function InstructorAnalytics() {
                       </td>
                       <td className="px-5 py-4">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${course.is_published ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
-                          {course.is_published ? "Publié" : "Brouillon"}
+                          {course.is_published ? t("publie") : t("brouillon")}
                         </span>
                       </td>
                       <td className="px-5 py-4 text-sm font-semibold text-gray-700">{course.enrolled_count || 0}</td>
@@ -249,8 +254,7 @@ export default function InstructorAnalytics() {
                       </td>
                       <td className="px-5 py-4">
                         <Link to={`/instructor/courses/${course.id}/students`}
-                          className="text-xs text-primary hover:underline flex items-center gap-1">
-                          Détails <ChevronRight className="w-3 h-3" />
+                          className="text-xs text-primary hover:underline flex items-center gap-1">{t("details")}{" "}<ChevronRight className="w-3 h-3" />
                         </Link>
                       </td>
                     </tr>
@@ -265,16 +269,15 @@ export default function InstructorAnalytics() {
       {/* Conseils */}
       <div className="bg-gradient-to-br from-primary-dark to-primary rounded-2xl p-6 text-white">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-accent" /> Conseils pour améliorer vos performances
-        </h3>
+          <TrendingUp className="w-5 h-5 text-accent" />{" "}{t("conseils_pour_ameliorer_vos_performances")}</h3>
         <div className="grid sm:grid-cols-3 gap-4">
           {[
-            { icon: "📹", tip: "Ajoutez des vidéos courtes (< 10 min) pour maintenir l'engagement" },
-            { icon: "❓", tip: "Intégrez des quiz à chaque module pour renforcer la mémorisation" },
-            { icon: "💬", tip: "Répondez aux questions du forum pour booster votre note instructeur" },
+            { icon: Video, tip: t("ajoutez_des_videos_courtes_10_min") },
+            { icon: HelpCircle, tip: t("integrez_des_quiz_a_chaque_module") },
+            { icon: MessageSquare, tip: t("repondez_aux_questions_du_forum_pour") },
           ].map(({ icon, tip }) => (
             <div key={tip} className="bg-white/10 rounded-xl p-4 text-sm text-white/80">
-              <span className="text-2xl block mb-2">{icon}</span>
+              {(() => { const I = icon; return <I className="w-6 h-6 mb-2 text-accent" />; })()}
               {tip}
             </div>
           ))}

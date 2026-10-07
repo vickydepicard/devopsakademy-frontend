@@ -1,51 +1,68 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Bell, BellOff, Check, CheckCheck, Trash2,
   BookOpen, Award, AlertCircle, Info, Clock,
-  Filter, RefreshCw
+  Filter, RefreshCw, UserPlus, Mail, CreditCard, GraduationCap, Radio, Star, AlertTriangle
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
-const TYPE_CONFIG = {
-  enrollment_approved: { icon: CheckCheck, color: "text-emerald-500", bg: "bg-emerald-50", label: "Inscription approuvée" },
-  enrollment_rejected: { icon: AlertCircle, color: "text-red-500", bg: "bg-red-50", label: "Inscription rejetée" },
-  course_completed:    { icon: Award, color: "text-violet-500", bg: "bg-violet-50", label: "Cours terminé" },
-  quiz_passed:         { icon: CheckCheck, color: "text-blue-500", bg: "bg-blue-50", label: "Quiz réussi" },
-  new_lesson:          { icon: BookOpen, color: "text-primary", bg: "bg-primary/10", label: "Nouveau contenu" },
-  payment_verified:    { icon: Check, color: "text-emerald-600", bg: "bg-emerald-50", label: "Paiement vérifié" },
-  system:              { icon: Info, color: "text-gray-500", bg: "bg-gray-50", label: "Système" },
-};
+const TYPE_CONFIG = () => ({
+  enrollment_approved: { icon: CheckCheck, color: "text-emerald-500", bg: "bg-emerald-50", label: i18n.t("notifications:inscription_approuvee") },
+  enrollment_rejected: { icon: AlertCircle, color: "text-red-500", bg: "bg-red-50", label: i18n.t("notifications:inscription_rejetee") },
+  course_completed:    { icon: Award, color: "text-violet-500", bg: "bg-violet-50", label: i18n.t("notifications:cours_termine") },
+  quiz_passed:         { icon: CheckCheck, color: "text-blue-500", bg: "bg-blue-50", label: i18n.t("notifications:quiz_reussi") },
+  new_lesson:          { icon: BookOpen, color: "text-primary", bg: "bg-primary/10", label: i18n.t("notifications:nouveau_contenu") },
+  payment_verified:    { icon: Check, color: "text-emerald-600", bg: "bg-emerald-50", label: i18n.t("notifications:paiement_verifie") },
+  system:              { icon: Info, color: "text-gray-500", bg: "bg-gray-50", label: i18n.t("notifications:systeme") },
+  info:                { icon: Info, color: "text-blue-500", bg: "bg-blue-50", label: i18n.t("notifications:information") },
+  success:             { icon: CheckCheck, color: "text-emerald-500", bg: "bg-emerald-50", label: i18n.t("notifications:succes") },
+  warning:             { icon: AlertTriangle, color: "text-amber-500", bg: "bg-amber-50", label: i18n.t("notifications:attention") },
+  // ── Alertes administrateur ──
+  new_user:               { icon: UserPlus, color: "text-indigo-500", bg: "bg-indigo-50", label: i18n.t("notifications:nouvel_utilisateur") },
+  new_contact:            { icon: Mail, color: "text-sky-500", bg: "bg-sky-50", label: i18n.t("notifications:message_de_contact") },
+  payment_proof:          { icon: CreditCard, color: "text-amber-600", bg: "bg-amber-50", label: i18n.t("notifications:preuve_de_paiement") },
+  new_enrollment:         { icon: BookOpen, color: "text-violet-500", bg: "bg-violet-50", label: i18n.t("notifications:inscription") },
+  instructor_application: { icon: GraduationCap, color: "text-fuchsia-500", bg: "bg-fuchsia-50", label: i18n.t("notifications:candidature_instructeur") },
+  bootcamp_registration:  { icon: Radio, color: "text-rose-500", bg: "bg-rose-50", label: i18n.t("notifications:bootcamp") },
+  new_review:             { icon: Star, color: "text-yellow-500", bg: "bg-yellow-50", label: i18n.t("notifications:nouvel_avis") },
+});
 
-const getConfig = (type) => TYPE_CONFIG[type] || TYPE_CONFIG.system;
+const getConfig = (type) => TYPE_CONFIG()[type] || TYPE_CONFIG().system;
 
 const timeAgo = (date) => {
   const diff = Date.now() - new Date(date).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "À l'instant";
-  if (m < 60) return `Il y a ${m} min`;
+  if (m < 1) return i18n.t("notifications:a_l_instant");
+  if (m < 60) return i18n.t("notifications:il_y_a_min", { m });
   const h = Math.floor(m / 60);
   if (h < 24) return `Il y a ${h}h`;
   const d = Math.floor(h / 24);
   if (d < 7) return `Il y a ${d}j`;
-  return new Date(date).toLocaleDateString("fr-FR");
+  return new Date(date).toLocaleDateString(getLocale());
 };
 
-const FILTERS = [
-  { key: "all", label: "Toutes" },
-  { key: "unread", label: "Non lues" },
-  { key: "read", label: "Lues" },
-];
+const FILTERS = () => ([
+  { key: "all", label: i18n.t("notifications:toutes") },
+  { key: "unread", label: i18n.t("notifications:non_lues") },
+  { key: "read", label: i18n.t("notifications:lues") },
+]);
 
 export default function Notifications() {
+  const { t } = useTranslation("notifications");
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [notifs, setNotifs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
-    document.title = "Notifications — DevOpsAkademy";
+    document.title = t("notifications_devopsakademy");
     fetchNotifs();
   }, []);
 
@@ -102,9 +119,9 @@ export default function Notifications() {
               <Bell className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t("notifications")}</h1>
               {unreadCount > 0 && (
-                <p className="text-sm text-gray-500">{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</p>
+                <p className="text-sm text-gray-500">{t("non_lue_p", { unreadCount, s: unreadCount > 1 ? "s" : "" })}</p>
               )}
             </div>
           </div>
@@ -113,7 +130,7 @@ export default function Notifications() {
             <button
               onClick={fetchNotifs}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
-              title="Actualiser"
+              title={t("actualiser")}
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -122,15 +139,14 @@ export default function Notifications() {
                 onClick={markAllRead}
                 className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline"
               >
-                <CheckCheck className="w-4 h-4" /> Tout marquer lu
-              </button>
+                <CheckCheck className="w-4 h-4" />{" "}{t("tout_marquer_lu")}</button>
             )}
           </div>
         </div>
 
         {/* Filtres */}
         <div className="flex gap-2 mb-6">
-          {FILTERS.map(({ key, label }) => (
+          {FILTERS().map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
@@ -168,12 +184,12 @@ export default function Notifications() {
           <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
             <BellOff className="w-14 h-14 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-gray-700 mb-2">
-              {filter === "unread" ? "Aucune notification non lue" : "Aucune notification"}
+              {filter === "unread" ? t("aucune_notification_non_lue") : t("aucune_notification")}
             </h3>
             <p className="text-gray-400 text-sm">
               {filter === "unread"
-                ? "Vous êtes à jour !"
-                : "Vos notifications apparaîtront ici."}
+                ? t("vous_etes_a_jour")
+                : t("vos_notifications_apparaitront_ici")}
             </p>
           </div>
         ) : (
@@ -186,7 +202,8 @@ export default function Notifications() {
               return (
                 <div
                   key={notif.id}
-                  className={`bg-white rounded-2xl border transition-all duration-200 p-5 flex gap-4 group ${
+                  onClick={() => { if (notif.link) { if (isUnread) markRead(notif.id); navigate(notif.link); } }}
+                  className={`bg-white rounded-2xl border transition-all duration-200 p-5 flex gap-4 group ${notif.link ? "cursor-pointer" : ""} ${
                     isUnread
                       ? "border-primary/30 shadow-sm hover:shadow-md"
                       : "border-gray-100 hover:border-gray-200"
@@ -208,7 +225,7 @@ export default function Notifications() {
                           {notif.title || cfg.label}
                         </p>
                         {notif.message && (
-                          <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{notif.message}</p>
+                          <p className="text-sm text-gray-500 mt-0.5 leading-relaxed whitespace-pre-line">{notif.message}</p>
                         )}
                         <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
@@ -217,19 +234,19 @@ export default function Notifications() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         {isUnread && (
                           <button
-                            onClick={() => markRead(notif.id)}
-                            title="Marquer comme lu"
+                            onClick={(e) => { e.stopPropagation(); markRead(notif.id); }}
+                            title={t("marquer_comme_lu")}
                             className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition"
                           >
                             <Check className="w-4 h-4" />
                           </button>
                         )}
                         <button
-                          onClick={() => deleteNotif(notif.id)}
-                          title="Supprimer"
+                          onClick={(e) => { e.stopPropagation(); deleteNotif(notif.id); }}
+                          title={t("supprimer")}
                           disabled={deletingId === notif.id}
                           className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
                         >
@@ -246,9 +263,7 @@ export default function Notifications() {
 
         {/* Info */}
         {!loading && notifs.length > 0 && (
-          <p className="text-center text-xs text-gray-400 mt-6">
-            {notifs.length} notification{notifs.length > 1 ? "s" : ""} au total
-          </p>
+          <p className="text-center text-xs text-gray-400 mt-6">{i18n.t("notifications:notification", { length: notifs.length, s: notifs.length > 1 ? "s" : "" })}{" "}{t("au_total")}</p>
         )}
       </div>
     </div>

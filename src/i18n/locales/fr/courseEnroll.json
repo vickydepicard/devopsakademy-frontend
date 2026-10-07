@@ -1,0 +1,15 @@
+{
+  "cours_introuvable": "Cours introuvable.",
+  "erreur_lors_de_l_inscription": "Erreur lors de l'inscription.",
+  "impossible_de_s_inscrire_reessayez": "Impossible de s'inscrire. Réessayez.",
+  "inscription_confirmee": "Inscription confirmée !",
+  "redirection_vers_le_cours": "Redirection vers le cours…",
+  "confirmer_l_inscription": "Confirmer l'inscription",
+  "bonjour": "Bonjour",
+  "vous_allez_vous_inscrire_a": "vous allez vous inscrire à :",
+  "cher_apprenant": "cher apprenant",
+  "acces_gratuit": "Accès gratuit",
+  "inscription_en_cours": "Inscription en cours…",
+  "retour_au_cours": "← Retour au cours",
+  "deja_inscrit": "déjà inscrit"
+}

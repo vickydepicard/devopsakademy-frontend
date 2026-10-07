@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { askConfirm, askPrompt } from "../../utils/dialog";
 import { Link } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../contexts/AuthContext";
@@ -7,6 +8,9 @@ import {
   CreditCard, Calendar, History, Upload, Shield,
   Star, Zap, AlertCircle, ExternalLink
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
+import { getLocale } from "../../i18n";
 
 const PLAN_COLORS = {
   free:  { gradient: "from-gray-400 to-gray-500",     badge: "bg-gray-100 text-gray-700" },
@@ -14,38 +18,39 @@ const PLAN_COLORS = {
   elite: { gradient: "from-accent to-yellow-500",     badge: "bg-accent/10 text-yellow-700" },
 };
 
-const STATUS_CONFIG = {
-  active:    { label: "Actif",       color: "bg-emerald-100 text-emerald-700", icon: CheckCircle, dot: "bg-emerald-500" },
-  pending:   { label: "En attente",  color: "bg-yellow-100 text-yellow-700",   icon: Clock,        dot: "bg-yellow-500" },
-  cancelled: { label: "Annulé",      color: "bg-gray-100 text-gray-600",       icon: XCircle,      dot: "bg-gray-400"  },
-  expired:   { label: "Expiré",      color: "bg-red-100 text-red-600",         icon: AlertCircle,  dot: "bg-red-500"   },
-};
+const STATUS_CONFIG = () => ({
+  active:    { label: i18n.t("subscriptions:actif"),       color: "bg-emerald-100 text-emerald-700", icon: CheckCircle, dot: "bg-emerald-500" },
+  pending:   { label: i18n.t("subscriptions:en_attente"),  color: "bg-yellow-100 text-yellow-700",   icon: Clock,        dot: "bg-yellow-500" },
+  cancelled: { label: i18n.t("subscriptions:annule"),      color: "bg-gray-100 text-gray-600",       icon: XCircle,      dot: "bg-gray-400"  },
+  expired:   { label: i18n.t("subscriptions:expire"),      color: "bg-red-100 text-red-600",         icon: AlertCircle,  dot: "bg-red-500"   },
+});
 
-const plans = [
+const plans = () => ([
   {
     slug: "pro",
-    name: "Pro",
+    name: i18n.t("subscriptions:pro"),
     priceMonthly: 9900,
     priceYearly: 89000,
-    features: ["Cours premium illimités", "Labs interactifs", "Certificats de complétion"],
+    features: [i18n.t("subscriptions:cours_premium_illimites"), i18n.t("subscriptions:labs_interactifs"), i18n.t("subscriptions:certificats_de_completion")],
     icon: Zap,
     color: "from-primary to-primary-light",
   },
   {
     slug: "elite",
-    name: "Élite",
+    name: i18n.t("subscriptions:elite"),
     priceMonthly: 19900,
     priceYearly: 179000,
-    features: ["Tout du plan Pro", "Support prioritaire", "Téléchargement des ressources"],
+    features: [i18n.t("subscriptions:tout_du_plan_pro"), i18n.t("subscriptions:support_prioritaire"), i18n.t("subscriptions:telechargement_des_ressources")],
     icon: Crown,
     color: "from-accent to-yellow-500",
     recommended: true,
   },
-];
+]);
 
-const fmt = (n) => n ? new Intl.NumberFormat("fr-FR").format(n) + " FCFA" : "Gratuit";
+const fmt = (n) => n ? new Intl.NumberFormat(getLocale()).format(n) + " FCFA" : i18n.t("subscriptions:gratuit");
 
 export default function Subscriptions() {
+  const { t } = useTranslation("subscriptions");
   const { user } = useAuth();
   const [sub, setSub] = useState(null);
   const [history, setHistory] = useState([]);
@@ -58,7 +63,7 @@ export default function Subscriptions() {
   const [uploadingProof, setUploadingProof] = useState(false);
 
   useEffect(() => {
-    document.title = "Mes abonnements — DevOpsAkademy";
+    document.title = t("mes_abonnements_devopsakademy");
     fetchData();
   }, []);
 
@@ -91,28 +96,28 @@ export default function Subscriptions() {
       });
       await fetchData();
       setTab("current");
-      alert("✅ Souscription enregistrée ! Un administrateur validera votre paiement sous 24h.");
+      alert(t("souscription_enregistree_un_administrateur_valid"));
     } catch (err) {
-      alert("❌ Erreur lors de la souscription. Veuillez réessayer.");
+      alert(t("erreur_lors_de_la_souscription_veuillez"));
     } finally {
       setSubscribing(null);
     }
   };
 
   const handleCancel = async () => {
-    if (!sub || !window.confirm("Annuler votre abonnement ? L'accès reste actif jusqu'à la fin de la période.")) return;
+    if (!sub || !(await askConfirm(t("annuler_votre_abonnement_l_acces_reste")))) return;
     setCancelling(true);
     try {
       await api.post(`/subscriptions/${sub.id}/cancel`);
       await fetchData();
     } catch {
-      alert("Erreur lors de l'annulation.");
+      alert(t("erreur_lors_de_l_annulation"));
     } finally {
       setCancelling(false);
     }
   };
 
-  const statusCfg = sub ? (STATUS_CONFIG[sub.status] || STATUS_CONFIG.expired) : null;
+  const statusCfg = sub ? (STATUS_CONFIG()[sub.status] || STATUS_CONFIG().expired) : null;
 
   if (loading) {
     return (
@@ -136,20 +141,19 @@ export default function Subscriptions() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mes abonnements</h1>
-            <p className="text-gray-500 mt-1">Gérez votre plan et votre historique de paiements</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t("mes_abonnements")}</h1>
+            <p className="text-gray-500 mt-1">{t("gerez_votre_plan_et_votre_historique")}</p>
           </div>
-          <Link to="/pricing" className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline">
-            Voir tous les tarifs <ExternalLink className="w-3.5 h-3.5" />
+          <Link to="/pricing" className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline">{t("voir_tous_les_tarifs")}{" "}<ExternalLink className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-full p-1 mb-8 w-fit">
           {[
-            { key: "current", label: "Mon plan" },
-            { key: "plans", label: "Changer de plan" },
-            { key: "history", label: "Historique" },
+            { key: "current", label: t("mon_plan") },
+            { key: "plans", label: t("changer_de_plan") },
+            { key: "history", label: t("historique") },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -172,13 +176,13 @@ export default function Subscriptions() {
                 <div className={`bg-gradient-to-r ${PLAN_COLORS[sub.plan_slug]?.gradient || "from-primary to-primary-light"} p-6 text-white`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-white/70 text-sm mb-1">Plan actuel</p>
-                      <h2 className="text-2xl font-bold">{sub.plan_name || "Pro"}</h2>
+                      <p className="text-white/70 text-sm mb-1">{t("plan_actuel")}</p>
+                      <h2 className="text-2xl font-bold">{sub.plan_name || t("pro")}</h2>
                     </div>
                     <div className={`px-3 py-1.5 rounded-full text-xs font-bold border ${statusCfg?.color || ""}`}>
                       <div className="flex items-center gap-1.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${statusCfg?.dot || ""}`} />
-                        {statusCfg?.label || "Inconnu"}
+                        {statusCfg?.label || t("inconnu")}
                       </div>
                     </div>
                   </div>
@@ -187,21 +191,21 @@ export default function Subscriptions() {
                 {/* Détails */}
                 <div className="p-6 grid sm:grid-cols-3 gap-5">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Début</p>
+                    <p className="text-xs text-gray-400 uppercase font-semibold mb-1">{t("debut")}</p>
                     <p className="font-semibold text-gray-900">
-                      {sub.start_date ? new Date(sub.start_date).toLocaleDateString("fr-FR") : "—"}
+                      {sub.start_date ? new Date(sub.start_date).toLocaleDateString(getLocale()) : "—"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Fin</p>
+                    <p className="text-xs text-gray-400 uppercase font-semibold mb-1">{t("fin")}</p>
                     <p className="font-semibold text-gray-900">
-                      {sub.end_date ? new Date(sub.end_date).toLocaleDateString("fr-FR") : "—"}
+                      {sub.end_date ? new Date(sub.end_date).toLocaleDateString(getLocale()) : "—"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Renouvellement</p>
+                    <p className="text-xs text-gray-400 uppercase font-semibold mb-1">{t("renouvellement")}</p>
                     <p className={`font-semibold ${sub.auto_renew ? "text-emerald-600" : "text-gray-400"}`}>
-                      {sub.auto_renew ? "Automatique" : "Manuel"}
+                      {sub.auto_renew ? t("automatique") : t("manuel")}
                     </p>
                   </div>
                 </div>
@@ -211,10 +215,8 @@ export default function Subscriptions() {
                   <div className="mx-6 mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex gap-3">
                     <Clock className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-semibold text-yellow-800">Validation en cours</p>
-                      <p className="text-xs text-yellow-600 mt-0.5">
-                        Notre équipe vérifie votre paiement. Accès activé sous 24h.
-                      </p>
+                      <p className="text-sm font-semibold text-yellow-800">{t("validation_en_cours")}</p>
+                      <p className="text-xs text-yellow-600 mt-0.5">{t("notre_equipe_verifie_votre_paiement_acces")}</p>
                     </div>
                   </div>
                 )}
@@ -225,8 +227,7 @@ export default function Subscriptions() {
                     onClick={() => setTab("plans")}
                     className="flex items-center gap-2 bg-primary text-white font-semibold py-2.5 px-5 rounded-xl hover:-translate-y-0.5 transition text-sm shadow-md"
                   >
-                    <Crown className="w-4 h-4" /> Changer de plan
-                  </button>
+                    <Crown className="w-4 h-4" />{" "}{t("changer_de_plan")}</button>
                   {sub.status === "active" && (
                     <button
                       onClick={handleCancel}
@@ -234,7 +235,7 @@ export default function Subscriptions() {
                       className="flex items-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 font-medium py-2.5 px-5 rounded-xl transition text-sm"
                     >
                       <XCircle className="w-4 h-4" />
-                      {cancelling ? "Annulation…" : "Annuler l'abonnement"}
+                      {cancelling ? t("annulation") : t("annuler_l_abonnement")}
                     </button>
                   )}
                 </div>
@@ -245,15 +246,13 @@ export default function Subscriptions() {
                 <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Shield className="w-8 h-8 text-gray-400" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Plan Gratuit</h2>
-                <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-                  Vous utilisez le plan gratuit. Passez à Pro ou Élite pour accéder aux cours premium.
-                </p>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">{t("plan_gratuit")}</h2>
+                <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">{t("vous_utilisez_le_plan_gratuit_passez")}</p>
                 <button
                   onClick={() => setTab("plans")}
                   className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-light text-white font-bold py-3 px-8 rounded-full hover:-translate-y-0.5 transition shadow-md"
                 >
-                  <Crown className="w-4 h-4" /> Passer à Premium <ArrowRight className="w-4 h-4" />
+                  <Crown className="w-4 h-4" />{" "}{t("passer_a_premium")}{" "}<ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -274,7 +273,7 @@ export default function Subscriptions() {
                       billing === b ? "bg-white shadow-md text-primary" : "text-gray-500"
                     }`}
                   >
-                    {b === "monthly" ? "Mensuel" : "Annuel"}
+                    {b === "monthly" ? t("mensuel") : t("annuel")}
                     {b === "yearly" && (
                       <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs px-1.5 py-0.5 rounded-full">-25%</span>
                     )}
@@ -287,8 +286,8 @@ export default function Subscriptions() {
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
               <Upload className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-blue-800">Preuve de paiement (optionnel)</p>
-                <p className="text-xs text-blue-600 mb-2">Si vous avez déjà effectué un virement, joignez la capture ici.</p>
+                <p className="text-sm font-semibold text-blue-800">{t("preuve_de_paiement_optionnel")}</p>
+                <p className="text-xs text-blue-600 mb-2">{t("si_vous_avez_deja_effectue_un")}</p>
                 <input
                   type="file"
                   accept="image/*,.pdf"
@@ -300,7 +299,7 @@ export default function Subscriptions() {
 
             {/* Cards plans */}
             <div className="grid sm:grid-cols-2 gap-6">
-              {plans.map((plan) => {
+              {plans().map((plan) => {
                 const price = billing === "yearly" ? plan.priceYearly : plan.priceMonthly;
                 const Icon = plan.icon;
                 const isCurrent = sub?.plan_slug === plan.slug && sub?.status === "active";
@@ -312,9 +311,7 @@ export default function Subscriptions() {
                     }`}
                   >
                     {plan.recommended && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-primary-dark text-xs font-bold px-4 py-1 rounded-full">
-                        ⭐ Recommandé
-                      </div>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-primary-dark text-xs font-bold px-4 py-1 rounded-full">{t("recommande")}</div>
                     )}
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4`}>
                       <Icon className="w-6 h-6 text-white" />
@@ -345,9 +342,9 @@ export default function Subscriptions() {
                       {subscribing === plan.slug ? (
                         <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                       ) : isCurrent ? (
-                        "Plan actuel"
+                        t("plan_actuel")
                       ) : (
-                        <><Crown className="w-4 h-4" /> Souscrire</>
+                        <><Crown className="w-4 h-4" />{" "}{t("souscrire")}</>
                       )}
                     </button>
                   </div>
@@ -355,9 +352,7 @@ export default function Subscriptions() {
               })}
             </div>
 
-            <p className="text-center text-xs text-gray-400 mt-4">
-              Paiement vérifié manuellement sous 24h · Accès annulable à tout moment
-            </p>
+            <p className="text-center text-xs text-gray-400 mt-4">{t("paiement_verifie_manuellement_sous_24h_acces")}</p>
           </div>
         )}
 
@@ -367,13 +362,13 @@ export default function Subscriptions() {
             {history.length === 0 ? (
               <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
                 <History className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Aucun paiement enregistré</p>
+                <p className="text-gray-500">{t("aucun_paiement_enregistre")}</p>
               </div>
             ) : (
               <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-soft">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
                   <CreditCard className="w-5 h-5 text-gray-400" />
-                  <h3 className="font-semibold text-gray-900">Historique des paiements</h3>
+                  <h3 className="font-semibold text-gray-900">{t("historique_des_paiements")}</h3>
                 </div>
                 <div className="divide-y divide-gray-100">
                   {history.map((payment) => (
@@ -390,10 +385,10 @@ export default function Subscriptions() {
                           }
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900 text-sm">{payment.plan_name || "Abonnement"}</p>
+                          <p className="font-semibold text-gray-900 text-sm">{payment.plan_name || t("abonnement")}</p>
                           <p className="text-xs text-gray-400">
-                            {payment.billing_period === "yearly" ? "Annuel" : "Mensuel"} ·{" "}
-                            {new Date(payment.created_at).toLocaleDateString("fr-FR")}
+                            {payment.billing_period === "yearly" ? t("annuel") : t("mensuel")} ·{" "}
+                            {new Date(payment.created_at).toLocaleDateString(getLocale())}
                           </p>
                         </div>
                       </div>
@@ -406,7 +401,7 @@ export default function Subscriptions() {
                             ? "bg-yellow-100 text-yellow-700"
                             : "bg-gray-100 text-gray-500"
                         }`}>
-                          {payment.status === "verified" ? "Vérifié" : payment.status === "pending" ? "En attente" : "Rejeté"}
+                          {payment.status === "verified" ? t("verifie") : payment.status === "pending" ? t("en_attente") : t("rejete")}
                         </span>
                       </div>
                     </div>

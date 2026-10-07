@@ -1,0 +1,19 @@
+{
+  "vue_d_ensemble": "Overview",
+  "en_cours": "In progress",
+  "termines": "Completed",
+  "en_attente": "Pending",
+  "mon_profil": "My profile",
+  "mes_certificats": "My certificates",
+  "paiements": "Payments",
+  "classement": "Leaderboard",
+  "explorer_les_cours": "Explore courses",
+  "devops": "DevOps",
+  "akademy": "Akademy",
+  "etudiant": "Student",
+  "notifications": "Notifications",
+  "deconnexion": "Log out",
+  "mon_espace": "My space",
+  "formation": "Learning",
+  "catalogue": "Catalog"
+}

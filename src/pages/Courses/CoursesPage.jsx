@@ -51,7 +51,7 @@ function CourseCard({ course, onEnrolled }) {
           )}
           {course.is_featured === 1 && (
             <span className="px-2 py-0.5 bg-yellow-400 text-indigo-900 text-xs font-bold rounded-full shadow">
-              ⭐ Featured
+              Featured
             </span>
           )}
         </div>
@@ -81,9 +81,9 @@ function CourseCard({ course, onEnrolled }) {
 
         {/* Meta */}
         <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
-          {course.duration_hours && <span>⏱ {course.duration_hours}h</span>}
-          {course.student_count > 0 && <span>👥 {course.student_count.toLocaleString()}</span>}
-          {course.language && <span>🌐 {course.language.toUpperCase()}</span>}
+          {course.duration_hours && <span>{course.duration_hours}h</span>}
+          {course.student_count > 0 && <span>{course.student_count.toLocaleString()}</span>}
+          {course.language && <span>{course.language.toUpperCase()}</span>}
         </div>
 
         {course.rating > 0 && <StarRating rating={course.rating} />}
@@ -222,7 +222,7 @@ export default function CoursesPage() {
               placeholder="Rechercher une formation..."
               className="w-full bg-white/10 backdrop-blur border border-white/20 text-white placeholder-indigo-300 rounded-full px-5 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-300">🔍</span>
+            
           </div>
         </div>
       </div>
@@ -238,8 +238,8 @@ export default function CoursesPage() {
               <h3 className="font-semibold text-gray-700 text-sm mb-3">Prix</h3>
               <div className="space-y-2">
                 {[
-                  { key: "free", label: "🆓 Gratuit" },
-                  { key: "paid", label: "💳 Payant" },
+                  { key: "free", label: "Gratuit" },
+                  { key: "paid", label: "Payant" },
                 ].map(opt => (
                   <label key={opt.key} className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -294,7 +294,7 @@ export default function CoursesPage() {
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
               <h3 className="font-semibold text-gray-700 text-sm mb-3">Langue</h3>
               <div className="space-y-2">
-                {[{ key: "fr", label: "🇫🇷 Français" }, { key: "en", label: "🇬🇧 Anglais" }].map(l => (
+                {[{ key: "fr", label: "Français" }, { key: "en", label: "Anglais" }].map(l => (
                   <label key={l.key} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -341,7 +341,7 @@ export default function CoursesPage() {
 
             {filtered.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-100 py-20 text-center">
-                <div className="text-5xl mb-4">🔍</div>
+                
                 <p className="font-semibold text-gray-700">Aucune formation trouvée</p>
                 <p className="text-gray-400 text-sm mt-1">Essayez de modifier vos filtres</p>
                 <button

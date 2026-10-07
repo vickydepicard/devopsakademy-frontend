@@ -12,9 +12,11 @@ import {
   RefreshCw, ChevronRight, Search, CheckCircle,
   GraduationCap, ShieldCheck, Lock, XCircle
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 /* ── Labels niveaux ── */
-const LEVEL_LABELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced: "Avancé" }
+const LEVEL_LABELS = () => ({ beginner: i18n.t("studentDashboard:debutant"), intermediate: i18n.t("studentDashboard:intermediaire"), advanced: i18n.t("studentDashboard:avance") })
 const LEVEL_COLORS = {
   beginner:     "bg-green-100 text-green-700",
   intermediate: "bg-blue-100 text-blue-700",
@@ -63,17 +65,17 @@ const C = {
 };
 
 /* ── Helpers ── */
-const STAT = {
-  free:     { label:"Actif",       dot:"bg-emerald-400", tx:"text-emerald-700", bg:"bg-emerald-50",  bd:"border-emerald-200" },
-  verified: { label:"Actif",       dot:"bg-emerald-400", tx:"text-emerald-700", bg:"bg-emerald-50",  bd:"border-emerald-200" },
-  pending:  { label:"En attente",  dot:"bg-amber-400",   tx:"text-amber-700",   bg:"bg-amber-50",    bd:"border-amber-200"   },
-  rejected: { label:"Rejeté",      dot:"bg-red-400",     tx:"text-red-700",     bg:"bg-red-50",      bd:"border-red-200"     },
-  default:  { label:"Non payé",    dot:"bg-gray-400",    tx:"text-gray-600",    bg:"bg-gray-50",     bd:"border-gray-200"    },
-};
-const LEVELS = { beginner:"Débutant", intermediate:"Intermédiaire", advanced:"Avancé" };
+const STAT = () => ({
+  free:     { label:i18n.t("studentDashboard:actif"),       dot:"bg-emerald-400", tx:"text-emerald-700", bg:"bg-emerald-50",  bd:"border-emerald-200" },
+  verified: { label:i18n.t("studentDashboard:actif"),       dot:"bg-emerald-400", tx:"text-emerald-700", bg:"bg-emerald-50",  bd:"border-emerald-200" },
+  pending:  { label:i18n.t("studentDashboard:en_attente"),  dot:"bg-amber-400",   tx:"text-amber-700",   bg:"bg-amber-50",    bd:"border-amber-200"   },
+  rejected: { label:i18n.t("studentDashboard:rejete"),      dot:"bg-red-400",     tx:"text-red-700",     bg:"bg-red-50",      bd:"border-red-200"     },
+  default:  { label:i18n.t("studentDashboard:non_paye"),    dot:"bg-gray-400",    tx:"text-gray-600",    bg:"bg-gray-50",     bd:"border-gray-200"    },
+});
+const LEVELS = () => ({ beginner:i18n.t("studentDashboard:debutant"), intermediate:i18n.t("studentDashboard:intermediaire"), advanced:i18n.t("studentDashboard:avance") });
 const LCLR   = { beginner:"bg-emerald-50 text-emerald-700", intermediate:"bg-sky-50 text-sky-700", advanced:"bg-violet-50 text-violet-700" };
 
-const getSt   = c => STAT[c.payment_status] || STAT.default;
+const getSt   = c => STAT()[c.payment_status] || STAT().default;
 const hasAcc  = c => c.is_approved && ["free","verified"].includes(c.payment_status);
 const getPct  = c => Number(c.total_lessons)>0
   ? Math.round(((c.completed_lessons||0)/Number(c.total_lessons))*100)
@@ -105,6 +107,7 @@ function ProgressBar({ pct, done=false }) {
 
 /* ── Course Card — light, minimal ── */
 function CourseCard({ c, onUpload, uploading, onGo }) {
+  const { t } = useTranslation("studentDashboard");
   const st  = getSt(c);
   const pct = getPct(c);
   const done= isDone(c);
@@ -134,7 +137,7 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
         {c.level && (
           <div className="absolute top-2 left-2">
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${LCLR[c.level]||"bg-gray-50 text-gray-600"}`}>
-              {LEVELS[c.level]||c.level}
+              {LEVELS()[c.level]||c.level}
             </span>
           </div>
         )}
@@ -157,14 +160,14 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
         <div className="flex items-center gap-3 text-xs text-slate-400 flex-wrap">
           {c.category_name && <span className="text-indigo-500 font-medium">{c.category_name}</span>}
           {c.duration_hours && <span className="flex items-center gap-1"><Clock className="w-3 h-3"/>{c.duration_hours}h</span>}
-          {c.total_lessons  && <span className="flex items-center gap-1"><BookOpen className="w-3 h-3"/>{c.total_lessons} leçons</span>}
+          {c.total_lessons  && <span className="flex items-center gap-1"><BookOpen className="w-3 h-3"/>{t("lecons", { total_lessons: c.total_lessons })}</span>}
         </div>
 
         {/* Progress */}
         {acc && (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-medium">{c.completed_lessons||0}/{c.total_lessons||0} leçons</span>
+              <span className="text-slate-400 font-medium">{c.completed_lessons||0}/{c.total_lessons||0}{" "}{t("lecons_2")}</span>
               <span className="font-bold px-1.5 py-0.5 rounded-md text-[10px]"
                 style={{ background: done?"#ede9fe":pct>=50?"#d1fae5":"#eff6ff", color: done?"#5653e1":pct>=50?"#059669":"#2d287f" }}>
                 {pct}%
@@ -177,13 +180,11 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
         {/* Alerts */}
         {isPend(c) && !acc && (
           <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 rounded-lg px-2.5 py-2 border border-amber-200">
-            <Clock className="w-3 h-3 flex-shrink-0" /> Vérification en cours
-          </div>
+            <Clock className="w-3 h-3 flex-shrink-0" />{" "}{t("verification_en_cours")}</div>
         )}
         {isRej(c) && !acc && (
           <div className="flex items-center gap-1.5 text-xs text-red-700 bg-red-50 rounded-lg px-2.5 py-2 border border-red-200">
-            <AlertCircle className="w-3 h-3 flex-shrink-0" /> Preuve rejetée
-          </div>
+            <AlertCircle className="w-3 h-3 flex-shrink-0" />{" "}{t("preuve_rejetee")}</div>
         )}
 
         {/* CTA */}
@@ -192,14 +193,10 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
             <div className="flex gap-1.5">
               <button onClick={() => onGo(`/courses/${c.course_id}/learn`)}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold border transition hover:opacity-90"
-                style={{ borderColor:"#5653e1", color:"#5653e1", background:"#f0efff" }}>
-                Revoir
-              </button>
+                style={{ borderColor:"#5653e1", color:"#5653e1", background:"#f0efff" }}>{t("revoir")}</button>
               <button onClick={() => onGo("/student/certificates")}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold transition hover:opacity-90"
-                style={{ background:"#facc15", color:"#2d287f" }}>
-                Certificat
-              </button>
+                style={{ background:"#facc15", color:"#2d287f" }}>{t("certificat")}</button>
             </div>
           ) : acc ? (
             <div className="flex gap-1.5">
@@ -207,26 +204,25 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
                 className="flex-1 py-2 rounded-xl text-xs font-semibold text-white transition hover:opacity-90 flex items-center justify-center gap-1"
                 style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
                 <PlayCircle className="w-3.5 h-3.5" />
-                {(c.completed_lessons || 0) > 0 ? "Continuer" : "Commencer"}
+                {(c.completed_lessons || 0) > 0 ? t("continuer") : t("commencer")}
               </button>
               <button onClick={() => onGo(`/courses/${c.course_id}/progress`)}
                 className="py-2 px-2.5 border border-slate-200 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition"
-                title="Détails">
+                title={t("details")}>
                 <BarChart2 className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : isRej(c) ? (
             <label className="block cursor-pointer">
               <div className={`w-full py-2 rounded-xl text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 flex items-center justify-center gap-1 transition hover:bg-emerald-100 ${uploading?"opacity-60":""}`}>
-                <Upload className="w-3 h-3" /> {uploading ? "Envoi…" : "Renvoyer la preuve"}
+                <Upload className="w-3 h-3" /> {uploading ? t("envoi") : t("renvoyer_la_preuve")}
               </div>
               <input type="file" accept="image/*,.pdf" className="hidden" disabled={uploading} onChange={e => onUpload(c.id, e)} />
             </label>
           ) : (
             <button onClick={() => { if (c.course_id && (c.is_approved || c.payment_status === "free" || c.payment_status === "verified")) { onGo(`/courses/${c.course_id}/learn`); } else { onGo(`/courses/${c.course_id || c.id}`); } }}
               className="w-full py-2 border border-slate-200 rounded-xl text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition flex items-center justify-center gap-1">
-              <Eye className="w-3 h-3" /> Voir le cours
-            </button>
+              <Eye className="w-3 h-3" />{" "}{t("voir_le_cours")}</button>
           )}
         </div>
       </div>
@@ -272,12 +268,12 @@ function SectionHeader({ icon: Icon, color, title, count, action }) {
 
 /* ── SeeAll button ── */
 function SeeAll({ to }) {
+  const { t } = useTranslation("studentDashboard");
   const navigate = useNavigate();
   return (
     <button onClick={() => navigate(to)}
       className="flex items-center gap-1 text-xs font-semibold hover:opacity-70 transition"
-      style={{ color: C.light }}>
-      Voir tout <ChevronRight className="w-3.5 h-3.5" />
+      style={{ color: C.light }}>{t("voir_tout")}{" "}<ChevronRight className="w-3.5 h-3.5" />
     </button>
   );
 }
@@ -299,16 +295,17 @@ function CourseGrid({ list, onUpload, uploading, onGo, empty }) {
 
 /* ── Sort / search toolbar ── */
 function Toolbar({ search, setSearch, sortBy, setSortBy }) {
+  const { t } = useTranslation("studentDashboard");
   return (
     <div className="flex items-center gap-2 mb-5">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Rechercher un cours…"
+          placeholder={t("rechercher_un_cours")}
           className="pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-300 w-48 transition-all focus:w-60" />
       </div>
       <div className="flex bg-white border border-slate-200 rounded-xl overflow-hidden">
-        {[{k:"recent",l:"Récents"},{k:"progress",l:"Progression"},{k:"name",l:"Nom"}].map(s => (
+        {[{k:"recent",l:i18n.t("studentDashboard:recents")},{k:"progress",l:i18n.t("studentDashboard:progression")},{k:"name",l:i18n.t("studentDashboard:nom")}].map(s => (
           <button key={s.k} onClick={() => setSortBy(s.k)}
             className="px-3 py-2 text-xs font-semibold transition-all"
             style={sortBy===s.k ? { background:C.primary, color:"white" } : { color:"#6b7280" }}>
@@ -322,6 +319,7 @@ function Toolbar({ search, setSearch, sortBy, setSortBy }) {
 
 /* ═══════════════════════════════ MAIN ═══════════════════════════════ */
 export default function StudentDashboard() {
+  const { t } = useTranslation("studentDashboard");
   const { user }   = useAuth();
   const navigate   = useNavigate();
   const location   = useLocation();
@@ -349,16 +347,16 @@ export default function StudentDashboard() {
   const doUpload = async (eid, e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!["image/jpeg","image/png","image/jpg","application/pdf"].includes(file.type)) { alert("❌ JPG/PNG/PDF"); return; }
-    if (file.size > 5*1024*1024) { alert("❌ Max 5MB"); return; }
+    if (!["image/jpeg","image/png","image/jpg","application/pdf"].includes(file.type)) { alert(t("jpg_png_pdf")); return; }
+    if (file.size > 5*1024*1024) { alert(t("max_5mb")); return; }
     const fd = new FormData();
     fd.append("payment_proof", file);
     try {
       setUploadId(eid);
       await api.post(`/enrollments/${eid}/upload-proof`, fd, { headers:{"Content-Type":"multipart/form-data"} });
       await load();
-      alert("✅ Preuve envoyée !");
-    } catch(err) { alert(err.response?.data?.message||"❌ Erreur"); }
+      alert(t("preuve_envoyee"));
+    } catch(err) { alert(err.response?.data?.message||t("erreur")); }
     finally { setUploadId(null); }
   };
 
@@ -378,7 +376,7 @@ export default function StudentDashboard() {
   const avgPct = g.active.length > 0
     ? Math.round(g.active.reduce((s,c) => s+getPct(c),0) / g.active.length) : 0;
 
-  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Étudiant";
+  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || i18n.t("studentDashboard:etudiant");
 
   const sorted = (list) => {
     const f = search ? list.filter(c => (c.title||"").toLowerCase().includes(search.toLowerCase())) : list;
@@ -391,7 +389,7 @@ export default function StudentDashboard() {
     <div className="h-full flex items-center justify-center" style={{ background:C.bg }}>
       <div className="text-center">
         <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" style={{ color:C.light }} />
-        <p className="text-sm text-slate-400">Chargement…</p>
+        <p className="text-sm text-slate-400">{t("chargement")}</p>
       </div>
     </div>
   );
@@ -415,34 +413,33 @@ export default function StudentDashboard() {
     <Panel header={
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-400 mb-0.5">Bonjour 👋</p>
+          <p className="text-sm text-slate-400 mb-0.5">{t("bonjour")}</p>
           <h1 className="text-xl font-black" style={{ color: C.primary }}>{fullName}</h1>
         </div>
         <Link to="/courses"
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition hover:opacity-90 shadow-sm"
           style={{ background:C.accent, color:C.primary }}>
-          <Zap className="w-4 h-4" /> Explorer
-        </Link>
+          <Zap className="w-4 h-4" />{" "}{t("explorer")}</Link>
       </div>
     }>
       <div className="max-w-5xl space-y-8">
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard icon={Flame}    label="En cours"   value={g.active.length}
-            sub={g.active.length>0 ? `${avgPct}% de progression` : "Commencer un cours"}
+          <StatCard icon={Flame}    label={t("en_cours")}   value={g.active.length}
+            sub={g.active.length>0 ? t("de_progression", { avgPct }) : t("commencer_un_cours")}
             color="text-orange-500" bg="bg-orange-50" border="#fed7aa"
             onClick={() => navigate("/student/active")} />
-          <StatCard icon={Trophy}   label="Terminés"   value={g.completed.length}
-            sub={g.completed.length>0 ? "Certificats disponibles" : undefined}
+          <StatCard icon={Trophy}   label={t("termines")}   value={g.completed.length}
+            sub={g.completed.length>0 ? t("certificats_disponibles") : undefined}
             color="text-violet-600" bg="bg-violet-50" border="#c4b5fd"
             onClick={() => navigate("/student/completed")} />
-          <StatCard icon={Clock}    label="En attente" value={g.pending.length}
-            sub={g.pending.length>0 ? "Vérification en cours" : "Tout est en ordre"}
+          <StatCard icon={Clock}    label={t("en_attente")} value={g.pending.length}
+            sub={g.pending.length>0 ? t("verification_en_cours") : t("tout_est_en_ordre")}
             color="text-amber-600" bg="bg-amber-50" border="#fde68a"
             onClick={() => navigate("/student/pending")} />
-          <StatCard icon={BookOpen} label="Formations" value={courses.length}
-            sub={`${courses.length} cours inscrits`}
+          <StatCard icon={BookOpen} label={t("formations")} value={courses.length}
+            sub={t("cours_inscrits", { length: courses.length })}
             color="text-blue-600" bg="bg-blue-50" border="#bfdbfe"
             onClick={() => navigate("/courses")} />
         </div>
@@ -455,7 +452,7 @@ export default function StudentDashboard() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <TrendingUp className="w-3.5 h-3.5" style={{ color:C.light }} />
-                <p className="text-xs font-bold uppercase tracking-wider" style={{ color:C.light }}>Reprendre où vous en étiez</p>
+                <p className="text-xs font-bold uppercase tracking-wider" style={{ color:C.light }}>{t("reprendre_ou_vous_en_etiez")}</p>
               </div>
               <p className="font-bold text-sm truncate mb-2" style={{ color:C.text }}>{lastAcc.title}</p>
               <div className="flex items-center gap-3">
@@ -470,7 +467,7 @@ export default function StudentDashboard() {
               className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 shadow-sm"
               style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
               <PlayCircle className="w-4 h-4" />
-              {(lastAcc.completed_lessons || 0) > 0 ? "Continuer" : "Commencer"}
+              {(lastAcc.completed_lessons || 0) > 0 ? t("continuer") : t("commencer")}
             </button>
           </div>
         )}
@@ -478,7 +475,7 @@ export default function StudentDashboard() {
         {/* En cours preview */}
         {g.active.length > 0 && (
           <div>
-            <SectionHeader icon={Flame} color="text-orange-500" title="En cours"
+            <SectionHeader icon={Flame} color="text-orange-500" title={t("en_cours")}
               count={g.active.length} action={<SeeAll to="/student/active" />} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {g.active.slice(0,5).map(c => (
@@ -489,7 +486,7 @@ export default function StudentDashboard() {
                   className="bg-white border rounded-2xl flex flex-col items-center justify-center gap-2 p-6 transition hover:bg-slate-50"
                   style={{ border:`1px dashed ${C.border}`, minHeight:180 }}>
                   <ArrowRight className="w-5 h-5 text-slate-300" />
-                  <p className="text-xs text-slate-400 font-medium text-center">+{g.active.length-5} cours</p>
+                  <p className="text-xs text-slate-400 font-medium text-center">+{g.active.length-5}{" "}{i18n.t("studentDashboard:cours")}</p>
                 </button>
               )}
             </div>
@@ -499,15 +496,14 @@ export default function StudentDashboard() {
         {/* Terminés preview */}
         {g.completed.length > 0 && (
           <div>
-            <SectionHeader icon={Trophy} color="text-violet-600" title="Cours terminés"
+            <SectionHeader icon={Trophy} color="text-violet-600" title={t("cours_termines")}
               count={g.completed.length}
               action={
                 <div className="flex items-center gap-3">
                   <button onClick={() => navigate("/student/certificates")}
                     className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-90"
                     style={{ background:"#facc15", color:C.primary }}>
-                    <Award className="w-3.5 h-3.5" /> Certificats
-                  </button>
+                    <Award className="w-3.5 h-3.5" />{" "}{t("certificats")}</button>
                   <SeeAll to="/student/completed" />
                 </div>
               } />
@@ -527,15 +523,12 @@ export default function StudentDashboard() {
                 <Clock className="w-4.5 h-4.5 text-amber-600 w-[18px] h-[18px]" />
               </div>
               <div>
-                <p className="text-sm font-bold text-amber-800">
-                  {g.pending.length} paiement{g.pending.length>1?"s":""} en cours de vérification
-                </p>
-                <p className="text-xs text-amber-600 mt-0.5">Délai habituel : 24 à 48h ouvrées</p>
+                <p className="text-sm font-bold text-amber-800">{i18n.t("studentDashboard:paiement", { length: g.pending.length, s: g.pending.length>1?"s":"" })}{" "}{t("en_cours_de_verification")}</p>
+                <p className="text-xs text-amber-600 mt-0.5">{t("delai_habituel_24_a_48h_ouvrees")}</p>
               </div>
             </div>
             <button onClick={() => navigate("/student/pending")}
-              className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-900 transition">
-              Voir <ChevronRight className="w-3.5 h-3.5" />
+              className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-900 transition">{t("voir")}{" "}<ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -545,10 +538,9 @@ export default function StudentDashboard() {
           <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-5 py-4">
             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
             <div>
-              <p className="text-sm font-bold text-red-800">
-                {g.rejected.length} preuve{g.rejected.length>1?"s":""} de paiement refusée{g.rejected.length>1?"s":""}
+              <p className="text-sm font-bold text-red-800">{i18n.t("studentDashboard:preuve", { length: g.rejected.length, s: g.rejected.length>1?"s":"" })}{" "}{t("de_paiement_refusee_p", { s: g.rejected.length>1?"s":"" })}
               </p>
-              <p className="text-xs text-red-600 mt-0.5">Veuillez renvoyer une preuve valide depuis la carte du cours concerné.</p>
+              <p className="text-xs text-red-600 mt-0.5">{t("veuillez_renvoyer_une_preuve_valide_depuis")}</p>
             </div>
           </div>
         )}
@@ -560,15 +552,12 @@ export default function StudentDashboard() {
               style={{ background:"#eeeeff" }}>
               <GraduationCap className="w-8 h-8" style={{ color:C.light }} />
             </div>
-            <h3 className="text-base font-bold mb-2" style={{ color:C.text }}>
-              Démarrez votre parcours DevOps
-            </h3>
-            <p className="text-sm text-slate-400 mb-6">Inscrivez-vous à votre première formation.</p>
+            <h3 className="text-base font-bold mb-2" style={{ color:C.text }}>{t("demarrez_votre_parcours_devops")}</h3>
+            <p className="text-sm text-slate-400 mb-6">{t("inscrivez_vous_a_votre_premiere_formation")}</p>
             <Link to="/courses"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
               style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.light})` }}>
-              <Zap className="w-4 h-4" /> Explorer les formations
-            </Link>
+              <Zap className="w-4 h-4" />{" "}{t("explorer_les_formations")}</Link>
           </div>
         )}
       </div>
@@ -582,16 +571,16 @@ export default function StudentDashboard() {
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <Flame className="w-5 h-5 text-orange-500" />
-            <h1 className="text-lg font-black" style={{ color:C.primary }}>Cours en cours</h1>
+            <h1 className="text-lg font-black" style={{ color:C.primary }}>{t("cours_en_cours")}</h1>
             <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600">{g.active.length}</span>
           </div>
         </div>
-        <p className="text-xs text-slate-400">Progression moyenne · {avgPct}%</p>
+        <p className="text-xs text-slate-400">{t("progression_moyenne", { avgPct })}</p>
       </div>
     }>
       <Toolbar search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} />
       <CourseGrid list={sorted(g.active)} onUpload={doUpload} uploading={uploadId} onGo={navigate}
-        empty="Aucun cours en cours — explorez le catalogue pour commencer !" />
+        empty={i18n.t("studentDashboard:aucun_cours_en_cours_explorez_le")} />
     </Panel>
   );
 
@@ -601,29 +590,26 @@ export default function StudentDashboard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Trophy className="w-5 h-5 text-violet-600" />
-          <h1 className="text-lg font-black" style={{ color:C.primary }}>Cours terminés</h1>
+          <h1 className="text-lg font-black" style={{ color:C.primary }}>{t("cours_termines")}</h1>
           <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700">{g.completed.length}</span>
         </div>
         {g.completed.length > 0 && (
           <button onClick={() => navigate("/student/certificates")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition hover:opacity-90"
             style={{ background:"#facc15", color:C.primary }}>
-            <Award className="w-4 h-4" /> Mes certificats
-          </button>
+            <Award className="w-4 h-4" />{" "}{t("mes_certificats")}</button>
         )}
       </div>
     }>
       {g.completed.length > 0 && (
         <div className="flex items-center gap-2.5 bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 mb-5">
           <CheckCircle className="w-4 h-4 text-violet-600 flex-shrink-0" />
-          <p className="text-sm text-violet-700">
-            🎉 Félicitations ! <strong>{g.completed.length} cours</strong> terminé{g.completed.length>1?"s":""}. Vos certificats sont prêts.
-          </p>
+          <p className="text-sm text-violet-700">{t("felicitations")}{" "}<strong>{i18n.t("studentDashboard:cours_2", { length: g.completed.length })}</strong>{" "}{t("termine_p", { s: g.completed.length>1?"s":"" })}{t("vos_certificats_sont_prets")}</p>
         </div>
       )}
       <Toolbar search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} />
       <CourseGrid list={sorted(g.completed)} onUpload={doUpload} uploading={uploadId} onGo={navigate}
-        empty="Aucun cours terminé pour l'instant — continuez vos formations !" />
+        empty={i18n.t("studentDashboard:aucun_cours_termine_pour_l_instant")} />
     </Panel>
   );
 
@@ -634,7 +620,7 @@ export default function StudentDashboard() {
       <Panel header={
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5 text-amber-500" />
-          <h1 className="text-lg font-black" style={{ color:C.primary }}>Paiements & Vérifications</h1>
+          <h1 className="text-lg font-black" style={{ color:C.primary }}>{t("paiements_verifications")}</h1>
           <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">{all.length}</span>
         </div>
       }>
@@ -643,23 +629,19 @@ export default function StudentDashboard() {
             <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
               <Clock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-amber-700">
-                <strong>{g.pending.length} paiement{g.pending.length>1?"s":""}</strong> en cours d'examen par l'équipe.
-                Délai habituel : <strong>24 à 48h ouvrées</strong>. Accès immédiat après validation.
-              </p>
+                <strong>{i18n.t("studentDashboard:paiement", { length: g.pending.length, s: g.pending.length>1?"s":"" })}</strong>{" "}{t("en_cours_d_examen_par_l")}{" "}<strong>{t("24_a_48h_ouvrees")}</strong>{t("acces_immediat_apres_validation")}</p>
             </div>
           )}
           {g.rejected.length > 0 && (
             <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
               <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700">
-                <strong>{g.rejected.length} preuve{g.rejected.length>1?"s":""}</strong> refusée{g.rejected.length>1?"s":""}.
-                Cliquez sur "Renvoyer la preuve" dans la carte du cours concerné.
-              </p>
+                <strong>{i18n.t("studentDashboard:preuve", { length: g.rejected.length, s: g.rejected.length>1?"s":"" })}</strong>{" "}{t("refusee_p", { s: g.rejected.length>1?"s":"" })}{t("cliquez_sur_renvoyer_la_preuve_dans")}</p>
             </div>
           )}
         </div>
         <CourseGrid list={sorted(all)} onUpload={doUpload} uploading={uploadId} onGo={navigate}
-          empty="Aucun paiement en attente — tout est en ordre ✓" />
+          empty={i18n.t("studentDashboard:aucun_paiement_en_attente_tout_est")} />
       </Panel>
     );
   }

@@ -1,0 +1,14 @@
+{
+  "erreur_lors_du_chargement_des_statistiques": "Error while loading statistics.",
+  "reessayer": "Try again",
+  "utilisateurs": "Users",
+  "cours": "Courses",
+  "inscriptions": "Enrollments",
+  "progression_moy": "Avg. progress",
+  "statistiques": "Statistics",
+  "actualiser": "Refresh",
+  "cours_par_popularite": "Courses by popularity",
+  "etudiants": "Students",
+  "aucun_cours": "No courses",
+  "cours_2": "{{length}} courses"
+}

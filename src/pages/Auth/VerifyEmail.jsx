@@ -11,10 +11,13 @@
 import { useEffect, useState } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
 import { CheckCircle, XCircle, Loader, Mail, Clock, RefreshCw } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" }
 
 export default function VerifyEmail() {
+  const { t, i18n } = useTranslation("auth")
+  const lang = (i18n.resolvedLanguage || "fr").slice(0, 2)
   const { token }  = useParams()
   const navigate   = useNavigate()
 
@@ -30,37 +33,37 @@ export default function VerifyEmail() {
   useEffect(() => {
     if (!token) {
       setStatus("error")
-      setMessage("Lien de vérification manquant.")
+      setMessage(t("verify.missing"))
       return
     }
 
     const verify = async () => {
       try {
-        const res  = await fetch(`/api/auth/verify-email/${token}`)
+        const res  = await fetch(`/api/auth/verify-email/${token}`, { headers: { "Accept-Language": lang } })
         const data = await res.json()
 
         if (data.success) {
           if (data.already_active) {
             // Compte déjà activé → on affiche un succès clair
             setStatus("already_active")
-            setMessage(data.message || "Votre compte est déjà activé !")
+            setMessage(data.message || t("verify.alreadyActiveMsg"))
           } else {
             // Activation fraîche réussie
             setStatus("success")
-            setMessage(data.message || "Compte activé avec succès !")
+            setMessage(data.message || t("verify.successMsg"))
           }
         } else {
           if (data.expired) {
             setStatus("expired")
-            setMessage(data.message || "Ce lien a expiré.")
+            setMessage(data.message || t("verify.expiredMsg"))
           } else {
             setStatus("error")
-            setMessage(data.message || "Lien invalide ou déjà utilisé.")
+            setMessage(data.message || t("verify.invalidMsg"))
           }
         }
       } catch {
         setStatus("error")
-        setMessage("Erreur de connexion au serveur. Vérifiez votre connexion.")
+        setMessage(t("verify.networkError"))
       }
     }
 
@@ -76,7 +79,7 @@ export default function VerifyEmail() {
         if (p <= 1) {
           clearInterval(t)
           navigate("/login", {
-            state: { message: "✅ Compte activé ! Connectez-vous maintenant." }
+            state: { notice: "accountActivated" }
           })
           return 0
         }
@@ -94,8 +97,8 @@ export default function VerifyEmail() {
     try {
       await fetch("/api/auth/resend-verification", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: resendEmail }),
+        headers: { "Content-Type": "application/json", "Accept-Language": lang },
+        body: JSON.stringify({ email: resendEmail, language: lang }),
       })
       setResendOk(true)
     } catch { /* silencieux */ } finally {
@@ -117,8 +120,8 @@ export default function VerifyEmail() {
         {status === "loading" && (
           <>
             <Loader className="w-14 h-14 animate-spin mx-auto mb-5" style={{ color: C.light }} />
-            <h2 className="text-xl font-black text-gray-900">Vérification en cours...</h2>
-            <p className="text-gray-500 text-sm mt-2">Activation de votre compte</p>
+            <h2 className="text-xl font-black text-gray-900">{t("verify.loadingTitle")}</h2>
+            <p className="text-gray-500 text-sm mt-2">{t("verify.loadingText")}</p>
           </>
         )}
 
@@ -128,19 +131,19 @@ export default function VerifyEmail() {
             <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
               <CheckCircle className="w-10 h-10 text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Compte activé ! 🎉</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">{t("verify.successTitle")}</h2>
             <p className="text-gray-500 text-sm mb-2">{message}</p>
             <p className="text-gray-400 text-xs mb-6 flex items-center justify-center gap-1">
               <Clock className="w-3 h-3" />
-              Redirection dans <span className="font-black text-indigo-600 tabular-nums mx-1">{countdown}s</span>
+              {t("verify.redirectIn")} <span className="font-black text-indigo-600 tabular-nums mx-1">{countdown}s</span>
             </p>
             <Link
               to="/login"
-              state={{ message: "✅ Compte activé ! Connectez-vous maintenant." }}
+              state={{ notice: "accountActivated" }}
               className="block w-full py-3.5 rounded-xl font-black text-white text-sm hover:opacity-90 transition"
               style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}
             >
-              → Se connecter maintenant
+              {t("verify.loginNow")}
             </Link>
           </>
         )}
@@ -153,21 +156,21 @@ export default function VerifyEmail() {
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-3"
               style={{ background: "#dbeafe", color: "#1d4ed8" }}>
-              <CheckCircle className="w-3.5 h-3.5" /> Déjà activé
+              <CheckCircle className="w-3.5 h-3.5" /> {t("verify.alreadyBadge")}
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Compte déjà actif ✅</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">{t("verify.alreadyTitle")}</h2>
             <p className="text-gray-500 text-sm mb-2">{message}</p>
             <p className="text-gray-400 text-xs mb-6 flex items-center justify-center gap-1">
               <Clock className="w-3 h-3" />
-              Redirection dans <span className="font-black text-indigo-600 tabular-nums mx-1">{countdown}s</span>
+              {t("verify.redirectIn")} <span className="font-black text-indigo-600 tabular-nums mx-1">{countdown}s</span>
             </p>
             <Link
               to="/login"
-              state={{ message: "✅ Votre compte est actif. Connectez-vous !" }}
+              state={{ notice: "accountActive" }}
               className="block w-full py-3.5 rounded-xl font-black text-white text-sm hover:opacity-90 transition"
               style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}
             >
-              → Se connecter
+              {t("verify.login")}
             </Link>
           </>
         )}
@@ -180,9 +183,9 @@ export default function VerifyEmail() {
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-3"
               style={{ background: "#fef3c7", color: "#92400e" }}>
-              <Clock className="w-3.5 h-3.5" /> Lien expiré
+              <Clock className="w-3.5 h-3.5" /> {t("verify.expiredBadge")}
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Votre lien a expiré</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">{t("verify.expiredTitle")}</h2>
             <p className="text-gray-500 text-sm mb-6">{message}</p>
 
             {/* Formulaire renvoi */}
@@ -190,7 +193,7 @@ export default function VerifyEmail() {
               <div className="rounded-xl px-4 py-3 mb-4 flex items-center justify-center gap-2"
                 style={{ background: "#ecfdf5", border: "1px solid #a7f3d0" }}>
                 <CheckCircle className="w-4 h-4 text-emerald-500" />
-                <p className="text-emerald-700 text-sm font-semibold">Email renvoyé ! Vérifiez vos spams.</p>
+                <p className="text-emerald-700 text-sm font-semibold">{t("verify.resent")}</p>
               </div>
             ) : (
               <div className="space-y-2 mb-4">
@@ -198,7 +201,7 @@ export default function VerifyEmail() {
                   type="email"
                   value={resendEmail}
                   onChange={e => setResendEmail(e.target.value)}
-                  placeholder="Votre adresse email"
+                  placeholder={t("verify.emailPlaceholder")}
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-400 focus:outline-none text-sm"
                 />
                 <button
@@ -211,7 +214,7 @@ export default function VerifyEmail() {
                     ? <Loader className="w-4 h-4 animate-spin" />
                     : <RefreshCw className="w-4 h-4" />
                   }
-                  {resending ? "Envoi..." : "Renvoyer le lien"}
+                  {resending ? t("verify.sending") : t("verify.resend")}
                 </button>
               </div>
             )}
@@ -219,7 +222,7 @@ export default function VerifyEmail() {
             <Link to="/login"
               className="block w-full py-3 rounded-xl border-2 font-bold text-sm text-center transition hover:bg-gray-50"
               style={{ borderColor: C.light, color: C.light }}>
-              Retour à la connexion
+              {t("verify.backToLogin")}
             </Link>
           </>
         )}
@@ -232,9 +235,9 @@ export default function VerifyEmail() {
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-3"
               style={{ background: "#fee2e2", color: "#991b1b" }}>
-              <XCircle className="w-3.5 h-3.5" /> Lien invalide
+              <XCircle className="w-3.5 h-3.5" /> {t("verify.invalidBadge")}
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Lien invalide</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">{t("verify.invalidTitle")}</h2>
             <p className="text-gray-500 text-sm mb-6">{message}</p>
             <div className="space-y-3">
               <Link
@@ -242,14 +245,14 @@ export default function VerifyEmail() {
                 className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-black text-white text-sm hover:opacity-90 transition"
                 style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}
               >
-                → Se connecter
+                {t("verify.login")}
               </Link>
               <Link
                 to="/register"
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 font-bold text-sm transition hover:bg-gray-50"
                 style={{ borderColor: "#e5e7eb", color: "#6b7280" }}
               >
-                <Mail className="w-4 h-4" /> Créer un nouveau compte
+                <Mail className="w-4 h-4" /> {t("verify.createAccount")}
               </Link>
             </div>
           </>

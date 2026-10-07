@@ -1,0 +1,20 @@
+{
+  "verification_de_certificat": "Vérification de certificat",
+  "entrez_le_numero_de_certificat_pour": "Entrez le numéro de certificat pour confirmer son authenticité.",
+  "ex_dak_1717000000_abc123": "Ex. : DAK-1717000000-abc123",
+  "verifier": "Vérifier",
+  "certificat_authentique": "Certificat authentique",
+  "ce_certificat_est_valide_et_a": "Ce certificat est valide et a été émis par DevOpsAkademy",
+  "a_complete_avec_succes": "a complété avec succès",
+  "formation": "Formation",
+  "delivre_le": "Délivré le",
+  "numero_de_certificat": "Numéro de certificat",
+  "emis_par_devopsakademy_plateforme_de_formation": "Émis par DevOpsAkademy — Plateforme de formation DevOps",
+  "voir_nos_cours": "Voir nos cours",
+  "certificat_introuvable": "Certificat introuvable",
+  "ce_numero_ne_correspond_a_aucun": "Ce numéro ne correspond à aucun certificat valide",
+  "verifiez_que_le_numero_est_correct": "Vérifiez que le numéro est correct et complet. Les certificats sont au format",
+  "un_probleme": "Un problème ?",
+  "contactez_notre_support": "Contactez notre support",
+  "entrez_un_numero_de_certificat_pour": "Entrez un numéro de certificat pour commencer la vérification."
+}

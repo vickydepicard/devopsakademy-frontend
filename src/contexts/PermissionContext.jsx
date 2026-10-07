@@ -2,16 +2,19 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import api from '../api/api';
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 
 const PermissionContext = createContext();
 
 export const usePermissions = () => {
   const context = useContext(PermissionContext);
-  if (!context) throw new Error('usePermissions must be used within a PermissionProvider');
+  if (!context) throw new Error(i18n.t("permissionContext:usepermissions_must_be_used_within_a"));
   return context;
 };
 
 export const PermissionProvider = ({ children }) => {
+  const { t } = useTranslation("permissionContext");
   const { user, isAuthenticated } = useAuth();
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +37,7 @@ export const PermissionProvider = ({ children }) => {
       setEnrollments(data);
     } catch (err) {
       console.error('Erreur chargement inscriptions:', err.response?.data || err.message);
-      setError('Impossible de charger vos inscriptions.');
+      setError(t("impossible_de_charger_vos_inscriptions"));
       setEnrollments([]);
     } finally {
       setLoading(false);
@@ -65,7 +68,7 @@ export const PermissionProvider = ({ children }) => {
         || e.status === 'approved';
   };
 
-  // ✅ FONCTION MANQUANTE — ajoutée ici
+  // FONCTION MANQUANTE — ajoutée ici
   const canAccessCourseContent = (courseId) => {
     if (!user) return false;
     if (isAdmin() || isInstructor()) return true;
@@ -103,8 +106,8 @@ export const PermissionProvider = ({ children }) => {
       await loadUserEnrollments();
       return res.data;
     } catch (err) {
-      if (err.response?.status === 409) throw new Error('Déjà inscrit à ce cours');
-      throw new Error(err.response?.data?.message || 'Erreur inscription');
+      if (err.response?.status === 409) throw new Error(t("deja_inscrit_a_ce_cours"));
+      throw new Error(err.response?.data?.message || t("erreur_inscription"));
     }
   };
 
@@ -118,7 +121,7 @@ export const PermissionProvider = ({ children }) => {
       await loadUserEnrollments();
       return res.data;
     } catch (err) {
-      throw new Error(err.response?.data?.message || 'Erreur upload preuve');
+      throw new Error(err.response?.data?.message || t("erreur_upload_preuve"));
     }
   };
 
@@ -126,7 +129,7 @@ export const PermissionProvider = ({ children }) => {
     enrollments, loading, error,
     isAdmin, isInstructor, isStudent,
     isUserEnrolled, isEnrollmentApproved,
-    canAccessCourseContent,           // ✅ exportée
+    canAccessCourseContent,           // exportée
     getEnrollmentStatus, getCourseProgress, canManageCourse,
     enrollInCourse, uploadPaymentProof,
     refreshEnrollments: loadUserEnrollments,

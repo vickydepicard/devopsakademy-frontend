@@ -27,6 +27,8 @@ import AdminBootcamps  from './pages/Admin/AdminBootcamps';
 import CoursesList from './pages/Courses/CoursesList';
 import ForumList from './pages/Forum/ForumList';
 import ForumThread from './pages/Forum/ForumThread';
+import ForumNew from './pages/Forum/ForumNew';
+import TawkTo from './components/Common/TawkTo';
 
 // Pages de cours
 import CourseDetails from './pages/Courses/CourseDetails';
@@ -36,7 +38,7 @@ import CourseEnroll from './pages/Courses/CourseEnroll';
 import CoursePreview from './pages/Courses/CoursePreview';
 import LessonDetail from './pages/Courses/LessonDetail';
 
-// 🆕 Espace étudiant avec sidebar
+// Espace étudiant avec sidebar
 import StudentLayout from './pages/student/StudentLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentCertificates from './pages/student/StudentCertificates';
@@ -71,6 +73,10 @@ import AdminEnrollments from "./pages/Admin/AdminEnrollments";
 import AdminStats from "./pages/Admin/AdminStats";
 import AdminMessages from "./pages/Admin/AdminMessages";
 import AdminStudentDetail from "./pages/Admin/AdminStudentDetail";
+import InstructorBootcamps from './pages/Instructors/InstructorBootcamps';
+import InstructorEarnings from "./pages/Instructors/InstructorEarnings";
+import AdminCourseReviews from "./pages/Admin/AdminCourseReviews";
+import AdminInstructors from "./pages/Admin/AdminInstructors";
 import AdminInstructorApplications from "./pages/Admin/AdminInstructorApplications";
 import AdminSubscriptions from "./pages/Admin/AdminSubscriptions";
 import AdminCertificates from "./pages/Admin/AdminCertificates";
@@ -84,18 +90,21 @@ import AdminSubmissionReview from "./pages/Admin/AdminSubmissionReview";
 
 // Guards
 import ProtectedRoute from './components/Common/ProtectedRoute';
+import { Faq, Privacy, Terms, NotFound } from './pages/Legal/StaticPages';
 import CourseContentRoute from './components/Common/CourseContentRoute';
 
 import './App.css';
+import { useTranslation } from "react-i18next";
 
 function App() {
+  const { i18n } = useTranslation();
   return (
     <AuthProvider>
       <ProfileProvider>
         <PermissionProvider>
           <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
-            <main className="flex-1">
+            <main key={i18n.resolvedLanguage || i18n.language} className="flex-1">
               <Routes>
 
                 {/* ── PAGES PUBLIQUES ── */}
@@ -117,7 +126,11 @@ function App() {
                 <Route path="/bootcamps"                 element={<BootcampsPage />} />
                 <Route path="/bootcamps/:id"             element={<BootcampLive />} />
                 <Route path="/courses"                   element={<CoursesList />} />
+                <Route path="/faq"                       element={<Faq />} />
+                <Route path="/privacy-policy"            element={<Privacy />} />
+                <Route path="/terms"                     element={<Terms />} />
                 <Route path="/forum"                     element={<ForumList />} />
+                <Route path="/forum/new"                 element={<ProtectedRoute allowedRoles={['student','instructor','admin']}><ForumNew /></ProtectedRoute>} />
                 <Route path="/forum/thread/:id"          element={<ForumThread />} />
 
                 {/* ── COURS ── */}
@@ -161,7 +174,7 @@ function App() {
 
                 {/* ── INSTRUCTEUR ── */}
                 <Route path="/instructor"
-                  element={<ProtectedRoute allowedRoles={['instructor','admin']}><InstructorLayout /></ProtectedRoute>}
+                  element={<ProtectedRoute allowedRoles={['instructor','admin','superadmin']}><InstructorLayout /></ProtectedRoute>}
                 >
                   <Route index                        element={<InstructorDashboard />} />
                   <Route path="courses"               element={<InstructorCourses />} />
@@ -172,11 +185,14 @@ function App() {
                   <Route path="courses/:id/students"  element={<CourseStudents />} />
                   <Route path="submissions"           element={<InstructorSubmissions />} />
                   <Route path="analytics"             element={<InstructorAnalytics />} />
+                  <Route path="courses/:id/analytics" element={<InstructorAnalytics />} />
+                  <Route path="earnings"              element={<InstructorEarnings />} />
+                  <Route path="bootcamps"             element={<InstructorBootcamps />} />
                 </Route>
 
                 {/* ── ADMIN ── */}
                 <Route path="/admin"
-                  element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}
+                  element={<ProtectedRoute allowedRoles={['admin','superadmin']}><AdminLayout /></ProtectedRoute>}
                 >
                   <Route index                            element={<AdminDashboard />} />
                   <Route path="stats"                    element={<AdminStats />} />
@@ -188,6 +204,8 @@ function App() {
                   <Route path="enrollments"              element={<AdminEnrollments />} />
                   <Route path="submissions"              element={<AdminSubmissionReview />} />
                   <Route path="submissions/:id"          element={<AdminSubmissionReview />} />
+                  <Route path="instructors"              element={<AdminInstructors />} />
+                  <Route path="course-reviews"           element={<AdminCourseReviews />} />
                   <Route path="instructor-applications"  element={<AdminInstructorApplications />} />
                   <Route path="bootcamps"                element={<AdminBootcamps />} />
                   <Route path="subscriptions"            element={<AdminSubscriptions />} />
@@ -195,11 +213,14 @@ function App() {
                   <Route path="leaderboard"              element={<AdminLeaderboard />} />
                   <Route path="messages"                 element={<AdminMessages />} />
                   <Route path="settings"                 element={<AdminSettings />} />
+                  <Route path="notifications"            element={<Notifications />} />
                 </Route>
 
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
             <Footer />
+            <TawkTo />
           </div>
         </PermissionProvider>
       </ProfileProvider>

@@ -1,7 +1,9 @@
 // src/pages/dashboard/StudentDashboard.jsx
 import { useState, useEffect } from "react"
+import { initialsAvatar, coverPlaceholder, onAvatarError } from "../../utils/avatar";
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
+import { Search, User, Award, Settings } from "lucide-react";
 
 const LEVEL_LABELS = { beginner: "Débutant", intermediate: "Intermédiaire", advanced: "Avancé" }
 const LEVEL_COLORS = {
@@ -10,10 +12,10 @@ const LEVEL_COLORS = {
   advanced: "bg-purple-100 text-purple-700",
 }
 const STATUS_CONFIG = {
-  free:     { label: "Accès actif",             color: "bg-emerald-100 text-emerald-700", icon: "✓" },
-  verified: { label: "Accès actif",             color: "bg-emerald-100 text-emerald-700", icon: "✓" },
-  pending:  { label: "En attente de validation",color: "bg-yellow-100 text-yellow-700",   icon: "⏳" },
-  rejected: { label: "Paiement rejeté",         color: "bg-red-100 text-red-700",         icon: "✗" },
+  free:     { label: "Accès actif",             color: "bg-emerald-100 text-emerald-700" },
+  verified: { label: "Accès actif",             color: "bg-emerald-100 text-emerald-700" },
+  pending:  { label: "En attente de validation",color: "bg-yellow-100 text-yellow-700" },
+  rejected: { label: "Paiement rejeté",         color: "bg-red-100 text-red-700" },
 }
 
 export default function StudentDashboard() {
@@ -71,7 +73,7 @@ export default function StudentDashboard() {
     .sort((a, b) => new Date(b.last_accessed_at) - new Date(a.last_accessed_at))[0]
 
   const avatar = user?.avatar_url ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(getFullName())}&background=4F46E5&color=fff&size=80`
+    initialsAvatar(getFullName())
 
   if (loading) {
     return (
@@ -90,7 +92,7 @@ export default function StudentDashboard() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <img src={avatar} alt="avatar" className="w-16 h-16 rounded-full border-2 border-white/30 shadow-lg object-contain" />
             <div className="flex-1">
-              <p className="text-indigo-300 text-sm">Bonjour 👋</p>
+              <p className="text-indigo-300 text-sm">Bonjour</p>
               <h1 className="text-2xl font-bold mt-0.5">{getFullName()}</h1>
               <p className="text-indigo-300 text-sm capitalize mt-0.5">{user?.role}</p>
             </div>
@@ -105,10 +107,10 @@ export default function StudentDashboard() {
           {/* Stats row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
             {[
-              { label: "Cours inscrits",  value: stats.total,     icon: "📚", color: "text-blue-300" },
-              { label: "Cours actifs",    value: stats.active,    icon: "▶️",  color: "text-green-300" },
-              { label: "En attente",      value: stats.pending,   icon: "⏳", color: "text-yellow-300" },
-              { label: "Terminés",        value: stats.completed, icon: "🏆", color: "text-purple-300" },
+              { label: "Cours inscrits",  value: stats.total, color: "text-blue-300" },
+              { label: "Cours actifs",    value: stats.active,  color: "text-green-300" },
+              { label: "En attente",      value: stats.pending, color: "text-yellow-300" },
+              { label: "Terminés",        value: stats.completed, color: "text-purple-300" },
             ].map(s => (
               <div key={s.label} className="bg-white/10 backdrop-blur rounded-xl px-4 py-3">
                 <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
@@ -129,7 +131,7 @@ export default function StudentDashboard() {
               <div className="w-full sm:w-32 h-20 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {lastAccessed.thumbnail_url
                   ? <img src={lastAccessed.thumbnail_url} alt="" className="w-full h-full object-contain" onError={e => e.target.style.display="none"} />
-                  : <span className="text-3xl">📖</span>}
+                  : null}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-gray-800 text-base truncate">{lastAccessed.title}</h3>
@@ -151,7 +153,7 @@ export default function StudentDashboard() {
                 onClick={() => navigate(`/courses/${lastAccessed.slug}/learn`)}
                 className="w-full sm:w-auto px-5 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-full font-semibold text-sm transition flex-shrink-0"
               >
-                ▶ Continuer
+                Continuer
               </button>
             </div>
           </div>
@@ -179,7 +181,7 @@ export default function StudentDashboard() {
           {/* Liste cours */}
           {filtered.length === 0 ? (
             <div className="py-16 text-center">
-              <div className="text-5xl mb-3">📭</div>
+              
               <p className="text-gray-500 font-medium">Aucun cours dans cette catégorie</p>
               <Link to="/courses" className="mt-3 inline-block text-indigo-600 hover:underline text-sm">
                 Explorer le catalogue →
@@ -196,7 +198,7 @@ export default function StudentDashboard() {
                     <div className="w-full sm:w-24 h-16 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
                       {e.thumbnail_url
                         ? <img src={e.thumbnail_url} alt="" className="w-full h-full object-contain" onError={ev => ev.target.style.display="none"} />
-                        : <span className="text-2xl">📚</span>}
+                        : null}
                     </div>
 
                     {/* Infos */}
@@ -209,9 +211,9 @@ export default function StudentDashboard() {
                       </div>
 
                       <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                        <span>📅 Inscrit le {new Date(e.enrolled_at).toLocaleDateString("fr-FR")}</span>
-                        {e.duration_hours && <span>⏱ {e.duration_hours}h</span>}
-                        {e.category_name && <span>🏷 {e.category_name}</span>}
+                        <span>Inscrit le {new Date(e.enrolled_at).toLocaleDateString("fr-FR")}</span>
+                        {e.duration_hours && <span>{e.duration_hours}h</span>}
+                        {e.category_name && <span>{e.category_name}</span>}
                       </div>
 
                       {/* Barre de progression si accès */}
@@ -232,7 +234,7 @@ export default function StudentDashboard() {
 
                       {/* Message preuve si pending */}
                       {e.payment_status === "pending" && (
-                        <p className="text-xs text-yellow-600 mt-1">📎 Preuve soumise — validation sous 24h</p>
+                        <p className="text-xs text-yellow-600 mt-1">Preuve soumise — validation sous 24h</p>
                       )}
                       {e.payment_status === "rejected" && (
                         <p className="text-xs text-red-500 mt-1">Votre paiement a été rejeté. Veuillez soumettre une nouvelle preuve.</p>
@@ -242,14 +244,14 @@ export default function StudentDashboard() {
                     {/* Actions */}
                     <div className="flex flex-col gap-2 items-end flex-shrink-0">
                       <span className={`text-xs px-3 py-1 rounded-full font-semibold ${cfg.color}`}>
-                        {cfg.icon} {cfg.label}
+                        {cfg.label}
                       </span>
                       {hasAccess ? (
                         <button
                           onClick={() => navigate(`/courses/${e.slug}/learn`)}
                           className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-semibold transition"
                         >
-                          ▶ Accéder
+                          Accéder
                         </button>
                       ) : (
                         <Link
@@ -270,17 +272,17 @@ export default function StudentDashboard() {
         {/* ── Accès rapides ─────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { to: "/courses",       icon: "🔍", label: "Explorer les cours" },
-            { to: "/profile",       icon: "👤", label: "Mon profil" },
-            { to: "/certificates",  icon: "🏆", label: "Mes certificats" },
-            { to: "/settings",      icon: "⚙️",  label: "Paramètres" },
+            { to: "/courses",       icon: Search, label: "Explorer les cours" },
+            { to: "/profile",       icon: User, label: "Mon profil" },
+            { to: "/certificates",  icon: Award, label: "Mes certificats" },
+            { to: "/settings",      icon: Settings,  label: "Paramètres" },
           ].map(item => (
             <Link
               key={item.to}
               to={item.to}
               className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition text-center group"
             >
-              <div className="text-2xl mb-2">{item.icon}</div>
+              <item.icon className="w-6 h-6 mx-auto mb-2 text-indigo-600" />
               <p className="text-sm font-medium text-gray-700 group-hover:text-indigo-700 transition">{item.label}</p>
             </Link>
           ))}

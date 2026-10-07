@@ -5,115 +5,78 @@ import {
   Check, X, Zap, Crown, Star, ArrowRight,
   Shield, Clock, Users, Award, ChevronDown
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const plans = [
   {
     id: "free",
-    name: "Gratuit",
-    slug: "free",
-    badge: null,
     priceMonthly: 0,
     priceYearly: 0,
-    description: "Pour découvrir DevOpsAkademy et débuter votre parcours DevOps.",
     color: "from-gray-400 to-gray-500",
     borderColor: "border-gray-200",
     features: [
-      { text: "Accès aux cours gratuits", included: true },
-      { text: "Forum communautaire", included: true },
-      { text: "Certificats de complétion", included: false },
-      { text: "Cours premium illimités", included: false },
-      { text: "Labs interactifs", included: false },
-      { text: "Support prioritaire", included: false },
-      { text: "Téléchargement des ressources", included: false },
+      { key: "freeCourses", included: true },
+      { key: "forum", included: true },
+      { key: "certificates", included: false },
+      { key: "premium", included: false },
+      { key: "labs", included: false },
+      { key: "support", included: false },
+      { key: "downloads", included: false },
     ],
-    cta: "Commencer gratuitement",
     ctaLink: "/register",
     ctaStyle: "border-2 border-gray-300 text-gray-700 hover:bg-gray-50",
   },
   {
     id: "pro",
-    name: "Pro",
-    slug: "pro",
-    badge: "Populaire",
+    badge: "popular",
     priceMonthly: 9900,
     priceYearly: 89000,
-    description: "L'essentiel pour progresser rapidement et obtenir vos certifications.",
     color: "from-primary to-primary-light",
     borderColor: "border-primary",
     features: [
-      { text: "Accès aux cours gratuits", included: true },
-      { text: "Forum communautaire", included: true },
-      { text: "Certificats de complétion", included: true },
-      { text: "Cours premium illimités", included: true },
-      { text: "Labs interactifs", included: true },
-      { text: "Support prioritaire", included: false },
-      { text: "Téléchargement des ressources", included: false },
+      { key: "freeCourses", included: true },
+      { key: "forum", included: true },
+      { key: "certificates", included: true },
+      { key: "premium", included: true },
+      { key: "labs", included: true },
+      { key: "support", included: false },
+      { key: "downloads", included: false },
     ],
-    cta: "Démarrer avec Pro",
     ctaLink: "/register",
     ctaStyle: "bg-gradient-primary text-white shadow-glow-primary hover:-translate-y-1",
   },
   {
     id: "elite",
-    name: "Élite",
-    slug: "elite",
-    badge: "Meilleure valeur",
+    badge: "best",
     priceMonthly: 19900,
     priceYearly: 179000,
-    description: "Accès total, support dédié et ressources exclusives pour aller le plus loin.",
     color: "from-accent to-yellow-500",
     borderColor: "border-accent",
     features: [
-      { text: "Accès aux cours gratuits", included: true },
-      { text: "Forum communautaire", included: true },
-      { text: "Certificats de complétion", included: true },
-      { text: "Cours premium illimités", included: true },
-      { text: "Labs interactifs", included: true },
-      { text: "Support prioritaire", included: true },
-      { text: "Téléchargement des ressources", included: true },
+      { key: "freeCourses", included: true },
+      { key: "forum", included: true },
+      { key: "certificates", included: true },
+      { key: "premium", included: true },
+      { key: "labs", included: true },
+      { key: "support", included: true },
+      { key: "downloads", included: true },
     ],
-    cta: "Passer en Élite",
     ctaLink: "/register",
     ctaStyle: "bg-gradient-to-r from-accent to-yellow-500 text-primary-dark font-bold shadow-glow-accent hover:-translate-y-1",
   },
 ];
 
-const faqs = [
-  {
-    q: "Comment fonctionne le paiement ?",
-    a: "Nous acceptons les paiements via Mobile Money (Orange Money, MTN MoMo), virement bancaire et d'autres méthodes locales. Après soumission de votre preuve de paiement, un administrateur valide votre accès sous 24h.",
-  },
-  {
-    q: "Puis-je annuler à tout moment ?",
-    a: "Oui. Vous pouvez annuler votre abonnement depuis votre espace personnel. L'accès reste actif jusqu'à la fin de la période déjà payée.",
-  },
-  {
-    q: "Les prix sont-ils en FCFA ?",
-    a: "Oui, tous les prix sont affichés en Francs CFA (XAF). Nous adaptons nos tarifs aux marchés d'Afrique centrale et de l'Ouest.",
-  },
-  {
-    q: "Y a-t-il un essai gratuit ?",
-    a: "Le plan Gratuit est permanent. Il vous donne accès aux cours gratuits sans limite de temps pour tester la plateforme.",
-  },
-  {
-    q: "Que contient un 'lab interactif' ?",
-    a: "Ce sont des environnements Docker/K8s préconfigurés accessibles directement depuis votre navigateur. Vous exécutez de vrais commandes sur de vraies infrastructures.",
-  },
-];
-
-const formatPrice = (price) => {
-  if (price === 0) return "Gratuit";
-  return new Intl.NumberFormat("fr-FR").format(price) + " FCFA";
-};
-
 export default function Pricing() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation("pricing");
+  const formatPrice = (price) =>
+    price === 0 ? t("free") : `${new Intl.NumberFormat(i18n.language).format(price)} ${t("currency")}`;
   const [billing, setBilling] = useState("monthly");
   const [openFaq, setOpenFaq] = useState(null);
 
   useEffect(() => {
-    document.title = "Tarifs — DevOpsAkademy";
-  }, []);
+    document.title = t("meta.title");
+  }, [t, i18n.language]);
 
   return (
     <div className="bg-white min-h-screen">
@@ -125,13 +88,13 @@ export default function Pricing() {
         <div className="relative max-w-4xl mx-auto px-6 text-center">
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 border border-accent/40 rounded-full text-accent text-sm font-semibold mb-6">
             <Crown className="w-4 h-4" />
-            Tarifs adaptés au marché africain
+            {t("hero.badge")}
           </span>
           <h1 className="text-4xl lg:text-5xl font-bold font-display mb-4">
-            Investissez dans votre carrière
+            {t("hero.title")}
           </h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto mb-10">
-            Des plans flexibles, des prix locaux, un accès mondial aux meilleures formations DevOps.
+            {t("hero.subtitle")}
           </p>
 
           {/* Toggle billing */}
@@ -144,7 +107,7 @@ export default function Pricing() {
                   : "text-white/70 hover:text-white"
               }`}
             >
-              Mensuel
+              {t("hero.monthly")}
             </button>
             <button
               onClick={() => setBilling("yearly")}
@@ -154,7 +117,7 @@ export default function Pricing() {
                   : "text-white/70 hover:text-white"
               }`}
             >
-              Annuel
+              {t("hero.yearly")}
               <span className="absolute -top-2 -right-2 bg-accent text-primary-dark text-xs font-bold px-2 py-0.5 rounded-full">
                 -25%
               </span>
@@ -168,8 +131,8 @@ export default function Pricing() {
         <div className="grid md:grid-cols-3 gap-8 items-start">
           {plans.map((plan, i) => {
             const price = billing === "yearly" ? plan.priceYearly : plan.priceMonthly;
-            const isPopular = plan.badge === "Populaire";
-            const isBest = plan.badge === "Meilleure valeur";
+            const isPopular = plan.badge === "popular";
+            const isBest = plan.badge === "best";
 
             return (
               <div
@@ -182,7 +145,7 @@ export default function Pricing() {
                   <div className={`absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
                     isBest ? "bg-accent text-primary-dark" : "bg-gradient-primary text-white"
                   }`}>
-                    {isBest ? <span className="flex items-center gap-1"><Crown className="w-3 h-3" />{plan.badge}</span> : plan.badge}
+                    {isBest ? <span className="flex items-center gap-1"><Crown className="w-3 h-3" />{t(`plans.${plan.id}.badge`)}</span> : t(`plans.${plan.id}.badge`)}
                   </div>
                 )}
 
@@ -193,8 +156,8 @@ export default function Pricing() {
                    <Crown className="w-6 h-6 text-white" />}
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{plan.name}</h3>
-                <p className="text-sm text-gray-500 mb-5">{plan.description}</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">{t(`plans.${plan.id}.name`)}</h3>
+                <p className="text-sm text-gray-500 mb-5">{t(`plans.${plan.id}.description`)}</p>
 
                 {/* Price */}
                 <div className="mb-6">
@@ -205,12 +168,12 @@ export default function Pricing() {
                   </div>
                   {price > 0 && (
                     <p className="text-xs text-gray-400 mt-1">
-                      {billing === "yearly" ? "par an, facturé annuellement" : "par mois"}
+                      {billing === "yearly" ? t("perYear") : t("perMonth")}
                     </p>
                   )}
                   {billing === "yearly" && plan.priceYearly > 0 && (
                     <p className="text-xs text-emerald-600 font-medium mt-1">
-                      Économisez {formatPrice(plan.priceMonthly * 12 - plan.priceYearly)} vs mensuel
+                      {t("save", { amount: formatPrice(plan.priceMonthly * 12 - plan.priceYearly) })}
                     </p>
                   )}
                 </div>
@@ -220,18 +183,18 @@ export default function Pricing() {
                   to={user ? "/subscriptions" : plan.ctaLink}
                   className={`w-full flex items-center justify-center gap-2 py-3 px-6 rounded-full font-semibold text-sm transition-all duration-300 mb-6 ${plan.ctaStyle}`}
                 >
-                  {plan.cta} <ArrowRight className="w-4 h-4" />
+                  {t(`plans.${plan.id}.cta`)} <ArrowRight className="w-4 h-4" />
                 </Link>
 
                 {/* Features */}
                 <ul className="space-y-3">
-                  {plan.features.map(({ text, included }) => (
-                    <li key={text} className={`flex items-start gap-3 text-sm ${included ? "text-gray-700" : "text-gray-400"}`}>
+                  {plan.features.map(({ key, included }) => (
+                    <li key={key} className={`flex items-start gap-3 text-sm ${included ? "text-gray-700" : "text-gray-400"}`}>
                       {included
                         ? <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
                         : <X className="w-4 h-4 text-gray-300 mt-0.5 shrink-0" />
                       }
-                      <span>{text}</span>
+                      <span>{t(`features.${key}`)}</span>
                     </li>
                   ))}
                 </ul>
@@ -246,16 +209,16 @@ export default function Pricing() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid sm:grid-cols-3 gap-8 text-center">
             {[
-              { icon: Shield, title: "Paiement sécurisé", desc: "Vos transactions sont protégées. Validation manuelle par notre équipe." },
-              { icon: Clock, title: "Activation sous 24h", desc: "Votre accès est activé après vérification de votre preuve de paiement." },
-              { icon: Users, title: "Support humain", desc: "Un vrai humain répond à vos questions. Pas un chatbot." },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex flex-col items-center">
+              { icon: Shield, key: "secure" },
+              { icon: Clock, key: "activation" },
+              { icon: Users, key: "support" },
+            ].map(({ icon: Icon, key }) => (
+              <div key={key} className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-3">
                   <Icon className="w-6 h-6 text-primary" />
                 </div>
-                <h4 className="font-bold text-gray-900 mb-1">{title}</h4>
-                <p className="text-sm text-gray-500">{desc}</p>
+                <h4 className="font-bold text-gray-900 mb-1">{t(`guarantees.${key}.title`)}</h4>
+                <p className="text-sm text-gray-500">{t(`guarantees.${key}.desc`)}</p>
               </div>
             ))}
           </div>
@@ -265,11 +228,11 @@ export default function Pricing() {
       {/* ── FAQ ── */}
       <section className="max-w-3xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Questions fréquentes</h2>
-          <p className="text-gray-500 mt-3">Tout ce que vous devez savoir avant de vous abonner.</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">{t("faq.title")}</h2>
+          <p className="text-gray-500 mt-3">{t("faq.subtitle")}</p>
         </div>
         <div className="space-y-3">
-          {faqs.map((faq, i) => (
+          {t("faq.items", { returnObjects: true }).map((faq, i) => (
             <div
               key={i}
               className="border border-gray-200 rounded-2xl overflow-hidden"
@@ -294,9 +257,9 @@ export default function Pricing() {
 
         <div className="mt-10 text-center">
           <p className="text-gray-500 text-sm">
-            D'autres questions ?{" "}
+            {t("faq.moreQuestions")}{" "}
             <Link to="/contact" className="text-primary font-medium hover:underline">
-              Contactez-nous
+              {t("faq.contactUs")}
             </Link>
           </p>
         </div>
