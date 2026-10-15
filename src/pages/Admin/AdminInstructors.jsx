@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import api from "../../api/api";
 import { formatMoney, formatNumber, formatDate, formatDateTime } from "../../utils/format";
+import { ProgramPanel, PerformancePanel, AuditPanel } from "./program/InstructorPanels";
+import { Thread } from "./program/CommsTabs";
 
 const DEFAULT_RATE = 70;
 const errMsg = (e, fallback) => e?.response?.data?.message || fallback;
@@ -254,6 +256,7 @@ function RateCell({ instructorId, course, onSaved, notify }) {
 // ── Fiche instructeur ────────────────────────────────────────
 function DetailModal({ id, others, onClose, onChanged, notify }) {
   const { t } = useTranslation("adminInstructors");
+  const { t: tp } = useTranslation("instructorProgram");
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
   const [tab, setTab] = useState("apercu");
@@ -282,7 +285,7 @@ function DetailModal({ id, others, onClose, onChanged, notify }) {
     } finally { setPaying(false); }
   };
 
-  const tabs = [["apercu", t("onglet_apercu")], ["cours", t("onglet_cours")], ["gains", t("onglet_gains")], ["historique", t("onglet_historique")]];
+  const tabs = [["apercu", t("onglet_apercu")], ["cours", t("onglet_cours")], ["gains", t("onglet_gains")], ["programme", tp("tab_program")], ["performance", tp("tab_performance")], ["messages", tp("tab_messages_short")], ["historique", t("onglet_historique")]];
   const u = data?.user;
   const appLabel = (s) => t(`app_${s}`, { defaultValue: s });
   const actionLabel = (a) => {
@@ -441,21 +444,10 @@ function DetailModal({ id, others, onClose, onChanged, notify }) {
               </div>
             )}
 
-            {tab === "historique" && (
-              data.history.length === 0 ? <p className="text-sm text-gray-500">{t("historique_vide")}</p> : (
-                <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg">
-                  {data.history.map((h) => (
-                    <li key={h.id} className="p-3 flex justify-between gap-3 text-sm">
-                      <span className="text-gray-900">
-                        {actionLabel(h.action)}
-                        {h.first_name && <span className="text-gray-500"> · {t("par", { name: `${h.first_name} ${h.last_name || ""}`.trim() })}</span>}
-                      </span>
-                      <span className="text-gray-500 shrink-0">{formatDateTime(h.created_at)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )
-            )}
+            {tab === "programme" && <ProgramPanel instructorId={id} onChanged={onChanged} />}
+            {tab === "performance" && <PerformancePanel instructorId={id} />}
+            {tab === "messages" && <Thread instructorId={id} />}
+            {tab === "historique" && <AuditPanel instructorId={id} />}
           </div>
         )}
       </Modal>

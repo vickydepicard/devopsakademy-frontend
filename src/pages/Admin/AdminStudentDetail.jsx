@@ -279,7 +279,7 @@ export default function AdminStudentDetail() {
         <div className="mb-8">
           <button
             onClick={() => navigate("/admin/enrollments")}
-            className="flex items-center gap-2 text-[#3B3A82] hover:text-[#4F46E5] transition-colors mb-6"
+            className="flex items-center gap-2 text-primary-mid hover:text-primary-vibrant transition-colors mb-6"
           >
             <ArrowLeft className="w-5 h-5" />{t("retour_aux_inscriptions")}</button>
           
@@ -301,7 +301,7 @@ export default function AdminStudentDetail() {
               
               <button
                 onClick={() => navigate(`/admin/users/${userId}`)}
-                className="px-4 py-2 bg-[#3B3A82] text-white rounded-lg hover:bg-[#4F46E5] transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-primary-mid text-white rounded-lg hover:bg-primary-vibrant transition-colors flex items-center gap-2"
               >
                 <UserCheck className="w-4 h-4" />{t("profil_complet")}</button>
             </div>
@@ -424,7 +424,7 @@ export default function AdminStudentDetail() {
         {/* Filtres */}
         <div className="flex flex-wrap gap-2 mb-6">
           {[
-            { id: "all", label: t("tous_les_cours"), count: stats.total, color: "bg-[#3B3A82]" },
+            { id: "all", label: t("tous_les_cours"), count: stats.total, color: "bg-primary-mid" },
             { id: "pending", label: t("en_attente"), count: stats.pending, color: "bg-amber-500" },
             { id: "approved", label: t("valides"), count: stats.approved, color: "bg-emerald-600" },
             { id: "rejected", label: t("rejetes"), count: stats.rejected, color: "bg-red-600" },
@@ -512,13 +512,13 @@ export default function AdminStudentDetail() {
                             <div className="mt-3">
                               <div className="flex justify-between text-sm mb-1">
                                 <span className="text-gray-600">{t("progression")}</span>
-                                <span className="font-bold text-[#3B3A82]">
+                                <span className="font-bold text-primary-mid">
                                   {enrollment.completion_percentage}%
                                 </span>
                               </div>
                               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-[#3B3A82] to-[#4F46E5] rounded-full"
+                                  className="h-full bg-gradient-to-r from-primary-mid to-primary-vibrant rounded-full"
                                   style={{ width: `${enrollment.completion_percentage}%` }}
                                 />
                               </div>
@@ -602,7 +602,7 @@ export default function AdminStudentDetail() {
                         <div className="space-y-2">
                           <button
                             onClick={() => window.open(`/courses/${enrollment.course_id}`, '_blank')}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-[#3B3A82] text-[#3B3A82] rounded-xl font-medium hover:bg-[#3B3A82] hover:text-white transition-all"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-primary-mid text-primary-mid rounded-xl font-medium hover:bg-primary-mid hover:text-white transition-all"
                           >
                             <Eye className="w-5 h-5" />{t("voir_le_cours")}</button>
                           

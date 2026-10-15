@@ -402,12 +402,12 @@ const CourseDetails = () => {
         {course.modules.map((module, idx) => (
           <div 
             key={idx} 
-            className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-[#3B3A82]/40 transition-all duration-300"
+            className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-primary-mid/40 transition-all duration-300"
           >
-            <div className="bg-gradient-to-r from-[#3B3A82]/5 to-transparent px-6 py-4 border-b border-gray-100">
+            <div className="bg-gradient-to-r from-primary-mid/5 to-transparent px-6 py-4 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#3B3A82] to-[#4F46E5] rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary-mid to-primary-vibrant rounded-xl flex items-center justify-center text-white font-bold text-lg">
                     {idx + 1}
                   </div>
                   <div>
@@ -480,7 +480,7 @@ const CourseDetails = () => {
                     {accessStatus.status === 'approved' ? (
                       <button 
                         onClick={() => navigate(`/courses/${id}/lessons/${lesson.id}`)}
-                        className="px-4 py-2 bg-[#3B3A82] text-white rounded-lg font-medium hover:bg-[#4F46E5] transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-primary-mid text-white rounded-lg font-medium hover:bg-primary-vibrant transition-colors flex items-center gap-2"
                       >
                         <PlayCircle className="w-4 h-4" />
                         Commencer
@@ -543,22 +543,22 @@ const CourseDetails = () => {
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-            <Briefcase className="w-5 h-5 text-[#3B3A82] mx-auto mb-2" />
+            <Briefcase className="w-5 h-5 text-primary-mid mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-900">10+ ans</p>
             <p className="text-xs text-gray-500">Expérience</p>
           </div>
           <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-            <GraduationCap className="w-5 h-5 text-[#3B3A82] mx-auto mb-2" />
+            <GraduationCap className="w-5 h-5 text-primary-mid mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-900">Certifié</p>
             <p className="text-xs text-gray-500">AWS & Kubernetes</p>
           </div>
           <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-            <UsersIcon className="w-5 h-5 text-[#3B3A82] mx-auto mb-2" />
+            <UsersIcon className="w-5 h-5 text-primary-mid mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-900">5K+</p>
             <p className="text-xs text-gray-500">Étudiants formés</p>
           </div>
           <div className="text-center p-3 bg-white rounded-lg border border-gray-100">
-            <Award className="w-5 h-5 text-[#3B3A82] mx-auto mb-2" />
+            <Award className="w-5 h-5 text-primary-mid mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-900">Top 1%</p>
             <p className="text-xs text-gray-500">Instructeur</p>
           </div>
@@ -661,13 +661,13 @@ const CourseDetails = () => {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => navigate('/courses')}
-              className="px-6 py-3 bg-gradient-to-r from-[#3B3A82] to-[#4F46E5] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300"
+              className="px-6 py-3 bg-gradient-to-r from-primary-mid to-primary-vibrant text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300"
             >
               Explorer les formations
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-3 border-2 border-[#3B3A82] text-[#3B3A82] rounded-xl font-medium hover:bg-[#3B3A82] hover:text-white transition-all duration-300"
+              className="px-6 py-3 border-2 border-primary-mid text-primary-mid rounded-xl font-medium hover:bg-primary-mid hover:text-white transition-all duration-300"
             >
               Réessayer
             </button>
@@ -710,20 +710,20 @@ const CourseDetails = () => {
       )}
 
       {/* HERO SECTION */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#3B3A82]/10 via-white to-[#4F46E5]/10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary-mid/10 via-white to-primary-vibrant/10">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
             <button 
               onClick={() => navigate('/')} 
-              className="hover:text-[#3B3A82] transition-colors"
+              className="hover:text-primary-mid transition-colors"
             >
               Accueil
             </button>
             <ChevronRight className="w-4 h-4" />
             <button 
               onClick={() => navigate('/courses')} 
-              className="hover:text-[#3B3A82] transition-colors"
+              className="hover:text-primary-mid transition-colors"
             >
               Formations
             </button>
@@ -786,7 +786,7 @@ const CourseDetails = () => {
                     className="w-full h-[400px] object-contain"
                   />
                 ) : (
-                  <div className="w-full h-[400px] bg-gradient-to-br from-[#3B3A82] to-[#4F46E5] flex items-center justify-center">
+                  <div className="w-full h-[400px] bg-gradient-to-br from-primary-mid to-primary-vibrant flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-white text-8xl font-extrabold mb-4 block">
                         {course.title?.charAt(0).toUpperCase()}
@@ -816,7 +816,7 @@ const CourseDetails = () => {
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 py-4 px-6 font-medium text-sm border-b-2 transition-all whitespace-nowrap ${
                           activeTab === tab.id
-                            ? 'border-[#3B3A82] text-[#3B3A82] bg-[#3B3A82]/5'
+                            ? 'border-primary-mid text-primary-mid bg-primary-mid/5'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                         }`}
                       >
@@ -856,7 +856,7 @@ const CourseDetails = () => {
                             { icon: <Infinity className="w-5 h-5" />, text: 'Accès à vie' }
                           ].map((item, idx) => (
                             <div key={idx} className="flex items-center gap-3 p-3 bg-white rounded-lg">
-                              <div className="w-8 h-8 bg-[#3B3A82]/10 rounded-lg flex items-center justify-center text-[#3B3A82]">
+                              <div className="w-8 h-8 bg-primary-mid/10 rounded-lg flex items-center justify-center text-primary-mid">
                                 {item.icon}
                               </div>
                               <span className="text-gray-800">{item.text}</span>
@@ -877,7 +877,7 @@ const CourseDetails = () => {
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun avis pour le moment</h3>
                       <p className="text-gray-600 mb-8">Soyez le premier à partager votre expérience !</p>
                       {accessStatus.status === 'approved' && (
-                        <button className="px-6 py-3 bg-[#3B3A82] text-white rounded-xl font-medium hover:bg-[#4F46E5] transition-colors">
+                        <button className="px-6 py-3 bg-primary-mid text-white rounded-xl font-medium hover:bg-primary-vibrant transition-colors">
                           Donner mon avis
                         </button>
                       )}
@@ -909,9 +909,9 @@ const CourseDetails = () => {
                           a: "Oui, vous bénéficiez d'un support direct de l'instructeur et d'un accès à notre communauté d'étudiants pour poser vos questions."
                         }
                       ].map((faq, idx) => (
-                        <div key={idx} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#3B3A82] transition-colors">
+                        <div key={idx} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-primary-mid transition-colors">
                           <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                            <HelpCircle className="w-5 h-5 text-[#3B3A82]" />
+                            <HelpCircle className="w-5 h-5 text-primary-mid" />
                             {faq.q}
                           </h4>
                           <p className="text-gray-600">{faq.a}</p>
@@ -1005,7 +1005,7 @@ const CourseDetails = () => {
                         disabled={accessStatus.actions.primary.disabled || !accessStatus.actions.primary.action}
                         className={`w-full py-3.5 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
                           accessStatus.actions.primary.variant === 'primary' 
-                            ? 'bg-gradient-to-r from-[#3B3A82] to-[#4F46E5] text-white hover:shadow-lg hover:scale-[1.02]' 
+                            ? 'bg-gradient-to-r from-primary-mid to-primary-vibrant text-white hover:shadow-lg hover:scale-[1.02]' 
                             : accessStatus.actions.primary.variant === 'success'
                             ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white hover:shadow-lg hover:scale-[1.02]'
                             : 'bg-gray-300 text-gray-700 cursor-not-allowed'
@@ -1018,7 +1018,7 @@ const CourseDetails = () => {
                       {accessStatus.actions.secondary && (
                         <button
                           onClick={accessStatus.actions.secondary.action}
-                          className="w-full py-3 px-4 border-2 border-[#3B3A82] text-[#3B3A82] rounded-xl font-medium hover:bg-[#3B3A82] hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                          className="w-full py-3 px-4 border-2 border-primary-mid text-primary-mid rounded-xl font-medium hover:bg-primary-mid hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
                         >
                           {accessStatus.actions.secondary.icon}
                           {accessStatus.actions.secondary.text}
@@ -1093,7 +1093,7 @@ const CourseDetails = () => {
           </div>
 
           {/* CTA SECTION */}
-          <div className="mt-16 bg-gradient-to-r from-[#3B3A82] to-[#4F46E5] rounded-3xl p-8 text-center text-white">
+          <div className="mt-16 bg-gradient-to-r from-primary-mid to-primary-vibrant rounded-3xl p-8 text-center text-white">
             <h2 className="text-3xl font-bold mb-4">Prêt à maîtriser DevOps ?</h2>
             <p className="text-lg opacity-90 mb-6 max-w-2xl mx-auto">
               Rejoignez des milliers d'étudiants qui ont transformé leur carrière avec DevOps Akademy
@@ -1101,7 +1101,7 @@ const CourseDetails = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => navigate('/register', { state: { from: `/courses/${id}` } })}
-                className="px-8 py-3 bg-white text-[#3B3A82] rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 hover:scale-105"
+                className="px-8 py-3 bg-white text-primary-mid rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 hover:scale-105"
               >
                 Commencer gratuitement
               </button>

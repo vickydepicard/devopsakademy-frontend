@@ -202,20 +202,20 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
   return (
     <div ref={wrapRef} style={{ borderRadius:16, overflow:"hidden", background:"#0a0820",
       aspectRatio:"16/9", position:"relative",
-      border: status === "streaming" ? "2px solid #ef4444" : "2px solid #1e1b4b" }}>
+      border: status === "streaming" ? "2px solid #ef4444" : "2px solid rgb(var(--c-primary-deep))" }}>
 
       <video ref={videoRef} autoPlay playsInline muted={muted}
         style={{ width:"100%", height:"100%", objectFit:"contain", display:"block" }} />
 
       {/* Overlays */}
       {status === "waiting" && (
-        <Overlay icon={Radio} color="#facc15"
+        <Overlay icon={Radio} color="rgb(var(--c-accent))"
           title={t("en_attente_du_live")}
           sub={t("l_instructeur_n_a_pas_encore")}
           action={
             <div style={{ display:"flex", alignItems:"center", gap:8,
               background:"rgba(255,255,255,0.07)", borderRadius:20, padding:"6px 16px" }}>
-              <span style={{ width:8, height:8, borderRadius:"50%", background:"#facc15",
+              <span style={{ width:8, height:8, borderRadius:"50%", background:"rgb(var(--c-accent))",
                 animation:"blink 1.5s infinite", display:"block" }} />
               <span style={{ color:"rgba(255,255,255,0.6)", fontSize:12 }}>{t("connexion_surveillee")}</span>
             </div>
@@ -224,11 +224,11 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
       )}
 
       {status === "connecting" && (
-        <Overlay icon={Loader} color="#5653e1"
+        <Overlay icon={Loader} color="rgb(var(--c-primary-light))"
           title={t("en_attente_de_l_instructeur")}
           sub={t("votre_connexion_est_prete_l_instructeur")}
           action={
-            <div style={{ width:32, height:32, border:"3px solid #5653e1",
+            <div style={{ width:32, height:32, border:"3px solid rgb(var(--c-primary-light))",
               borderTopColor:"transparent", borderRadius:"50%",
               animation:"spin 1s linear infinite" }} />
           }
@@ -244,7 +244,7 @@ function ScreenShareViewer({ bootcamp, isRegistered, onRequestRegister }) {
           action={
             <button onClick={onRequestRegister}
               style={{ padding:"12px 28px", borderRadius:14, border:"none",
-                background:"linear-gradient(135deg,#2d287f,#5653e1)",
+                background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
                 color:"white", fontWeight:900, fontSize:14, cursor:"pointer" }}>
               {bootcamp.is_free ? t("s_inscrire_gratuitement") : t("s_inscrire_fcfa", { fmtPrice: fmtPrice(bootcamp.price) })}
             </button>

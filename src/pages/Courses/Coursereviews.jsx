@@ -73,7 +73,7 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
 
   return (
     <div className={`bg-white rounded-2xl border p-5 transition-all ${
-      isOwn ? "border-[#2d287f]/20 bg-[#2d287f]/3" : "border-gray-100"
+      isOwn ? "border-primary/20 bg-primary/3" : "border-gray-100"
     }`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -86,7 +86,7 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
               onError={e => { e.target.onerror = null; e.target.style.display = "none"; }}
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2d287f] to-[#5653e1] flex items-center justify-center text-white text-sm font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white text-sm font-bold">
               {initials}
             </div>
           )}
@@ -94,7 +94,7 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
             <p className="font-semibold text-gray-800 text-sm">
               {fullName}
               {isOwn && (
-                <span className="ml-2 text-xs bg-indigo-100 text-[#2d287f] px-1.5 py-0.5 rounded-full font-medium">
+                <span className="ml-2 text-xs bg-indigo-100 text-primary px-1.5 py-0.5 rounded-full font-medium">
                   Mon avis
                 </span>
               )}
@@ -109,7 +109,7 @@ function ReviewCard({ review, isOwn, onEdit, onDelete }) {
             <div className="flex gap-1 ml-1">
               <button
                 onClick={onEdit}
-                className="p-1.5 text-gray-400 hover:text-[#2d287f] hover:bg-[#2d287f]/5 rounded-lg transition"
+                className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition"
                 title="Modifier"
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -161,7 +161,7 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#2d287f]/25 p-6 shadow-sm">
+    <div className="bg-white rounded-2xl border border-primary/25 p-6 shadow-sm">
       <h3 className="font-bold text-gray-800 mb-4 text-base flex items-center gap-2">
         <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
         {existing ? "Modifier votre avis" : "Laisser un avis"}
@@ -187,7 +187,7 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
           rows={4}
           maxLength={1000}
           placeholder="Partagez votre expérience avec ce cours…"
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2d287f]/30 resize-none transition"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none transition"
         />
         <p className="text-xs text-gray-400 text-right mt-1">{comment.length}/1000</p>
       </div>
@@ -202,7 +202,7 @@ function ReviewForm({ courseId, existing, onSuccess, onCancel }) {
         <button
           onClick={handleSubmit}
           disabled={submitting || !rating}
-          className="flex-1 py-2.5 bg-[#2d287f] hover:bg-[#3b3aab] disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition"
+          className="flex-1 py-2.5 bg-primary hover:bg-primary-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition"
         >
           {submitting
             ? <><Loader className="w-4 h-4 animate-spin" /> Envoi...</>
@@ -308,7 +308,7 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
   if (loading) {
     return (
       <div className="py-12 flex justify-center">
-        <Loader className="w-8 h-8 text-[#2d287f] animate-spin" />
+        <Loader className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -324,7 +324,7 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
       {/* ── Titre section ─────────────────────────────── */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-[#2d287f]" />
+          <MessageSquare className="w-5 h-5 text-primary" />
           Avis des apprenants
           {stats?.total > 0 && (
             <span className="text-base font-normal text-gray-400">({stats.total})</span>
@@ -394,7 +394,7 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
             !myReview && (
               <button
                 onClick={() => setShowForm(true)}
-                className="w-full py-3.5 border-2 border-dashed border-[#2d287f]/25 hover:border-indigo-400 hover:bg-indigo-50/50 text-indigo-600 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition group"
+                className="w-full py-3.5 border-2 border-dashed border-primary/25 hover:border-indigo-400 hover:bg-indigo-50/50 text-indigo-600 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition group"
               >
                 <Star className="w-4 h-4 group-hover:fill-indigo-400 transition" />
                 Donner mon avis sur ce cours
@@ -407,7 +407,7 @@ export default function CourseReviews({ courseId, isEnrolled = false }) {
       {/* Message si non connecté ou non inscrit */}
       {!isLoggedIn && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 text-sm text-gray-500 text-center">
-          <a href="/login" className="text-[#2d287f] font-semibold hover:underline">Connectez-vous</a>
+          <a href="/login" className="text-primary font-semibold hover:underline">Connectez-vous</a>
           {" "}pour laisser un avis.
         </div>
       )}

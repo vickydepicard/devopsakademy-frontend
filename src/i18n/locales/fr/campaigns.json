@@ -1,0 +1,16 @@
+{
+  "carousel": {
+    "region": "À la une",
+    "previous": "Diapositive précédente",
+    "next": "Diapositive suivante",
+    "go_to": "Aller à la diapositive {{n}} sur {{total}}",
+    "pause": "Mettre le défilement en pause",
+    "play": "Reprendre le défilement",
+    "show_image": "Affiche",
+    "show_linkedin": "Post LinkedIn",
+    "open_linkedin": "Voir sur LinkedIn",
+    "linkedin_title": "Publication LinkedIn : {{title}}",
+    "image_alt": "Visuel : {{title}}",
+    "base_slide": "Présentation DevOps Akademy"
+  }
+}

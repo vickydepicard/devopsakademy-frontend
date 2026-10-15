@@ -19,13 +19,17 @@ import {
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { getLocale } from "../../i18n";
+import { tint } from "../../utils/color";
+import ApplicationExchange from "./ApplicationExchange";
+import { CategorySelect, ChipSelect, CvUpload, HoursSelect, LevelSelect, YearsSelect, inputCls as sharedInputCls, uploadCv } from "./FormControls";
+import { CERTIFICATION_OPTIONS, EXPERTISE_OPTIONS as EXPERTISE_LIST } from "../../utils/instructorOptions";
 
 // ─────────────────────────────────────────────────────────────
 const C = {
-  primary:   "#2d287f",
-  light:     "#5653e1",
-  accent:    "#facc15",
-  dark:      "#1f1b5a",
+  primary:   "rgb(var(--c-primary))",
+  light:     "rgb(var(--c-primary-light))",
+  accent:    "rgb(var(--c-accent))",
+  dark:      "rgb(var(--c-primary-dark))",
   success:   "#059669",
   warning:   "#d97706",
   danger:    "#dc2626",
@@ -154,7 +158,14 @@ function ApplicationForm({ user, onSuccess }) {
     portfolio_url:                "",
     proposed_course_title:        "",
     proposed_course_description:  "",
+    proposed_course_category:     "",
+    proposed_course_level:        "",
+    certifications:               [],
+    weekly_hours:                 "",
+    video_url:                    "",
   })
+  const [cvFile, setCvFile] = useState(null)
+  const { t: ta } = useTranslation("applicationReview")
   const [errors,   setErrors]   = useState({})
   const [loading,  setLoading]  = useState(false)
   const [globalErr, setGlobalErr] = useState("")
@@ -204,8 +215,13 @@ function ApplicationForm({ user, onSuccess }) {
       await api.post("/instructor-applications", {
         ...form,
         years_experience: parseInt(form.years_experience),
+        weekly_hours: form.weekly_hours ? parseInt(form.weekly_hours) : null,
       })
-      onSuccess()
+      let cvFailed = false
+      if (cvFile) {
+        try { await uploadCv(cvFile) } catch { cvFailed = true }
+      }
+      onSuccess({ cvFailed })
     } catch (err) {
       const data = err?.response?.data
       if (data?.errors && typeof data.errors === "object") setErrors((p) => ({ ...p, ...data.errors }))
@@ -302,23 +318,9 @@ function ApplicationForm({ user, onSuccess }) {
                 </span>
               )}
             </label>
-            <div className="flex flex-wrap gap-2">
-              {EXPERTISE_OPTIONS().map(opt => (
-                <button
-                  key={opt} type="button"
-                  onClick={() => toggleExpertise(opt)}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all"
-                  style={
-                    form.expertise_areas.includes(opt)
-                      ? { background: `linear-gradient(135deg,${C.primary},${C.light})`, borderColor: C.primary, color: "#fff" }
-                      : { background: "#fff", borderColor: "#e5e7eb", color: "#6b7280" }
-                  }
-                >
-                  {form.expertise_areas.includes(opt) && "✓ "}
-                  {opt}
-                </button>
-              ))}
-            </div>
+            <ChipSelect options={EXPERTISE_LIST} value={form.expertise_areas}
+              onChange={(v) => { setForm(p => ({ ...p, expertise_areas: v })); setErrors(p => ({ ...p, expertise_areas: "" })) }}
+              error={!!errors.expertise_areas} />
             {errors.expertise_areas && (
               <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />{errors.expertise_areas}
@@ -329,18 +331,7 @@ function ApplicationForm({ user, onSuccess }) {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>{t("annees_d_experience")}{" "}<span className="text-red-500">*</span></label>
-              <select
-                value={form.years_experience}
-                onChange={e => set("years_experience", e.target.value)}
-                className={inputCls("years_experience")}
-              >
-                <option value="">{t("selectionner")}</option>
-                {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                  <option key={n} value={n}>
-                    {n < 10 ? `${n} an${n > 1 ? "s" : ""}` : t("10_ans_ou_plus")}
-                  </option>
-                ))}
-              </select>
+              <YearsSelect value={form.years_experience} onChange={v => set("years_experience", v)} error={!!errors.years_experience} />
               {errors.years_experience && <p className="mt-1 text-xs text-red-500 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.years_experience}</p>}
             </div>
 
@@ -366,6 +357,28 @@ function ApplicationForm({ user, onSuccess }) {
               placeholder={i18n.t("becomeInstructor:placeholder_portfolio")}
               className={inputCls("portfolio_url")}
             />
+          </div>
+
+          <div>
+            <label className={labelCls}>{ta("f_certifications")} <span className="text-gray-400 font-normal text-xs">({ta("optional")})</span></label>
+            <ChipSelect options={CERTIFICATION_OPTIONS} value={form.certifications} onChange={v => set("certifications", v)} />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>{ta("f_weekly_hours")}</label>
+              <HoursSelect value={form.weekly_hours} onChange={v => set("weekly_hours", v)} />
+            </div>
+            <div>
+              <label className={labelCls}>{ta("f_video_url")}</label>
+              <input type="url" value={form.video_url} onChange={e => set("video_url", e.target.value)}
+                placeholder="https://…" className={inputCls("video_url")} />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>{ta("f_cv_url")} <span className="text-gray-400 font-normal text-xs">({ta("optional")})</span></label>
+            <CvUpload file={cvFile} onFile={setCvFile} />
           </div>
         </div>
       </div>
@@ -400,6 +413,17 @@ function ApplicationForm({ user, onSuccess }) {
               placeholder={t("quels_concepts_allez_vous_aborder_quel")}
               className={inputCls("proposed_course_description") + " resize-none"}
             />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>{ta("f_proposed_course_category")}</label>
+              <CategorySelect value={form.proposed_course_category} onChange={v => set("proposed_course_category", v)} />
+            </div>
+            <div>
+              <label className={labelCls}>{ta("f_proposed_course_level")}</label>
+              <LevelSelect value={form.proposed_course_level} onChange={v => set("proposed_course_level", v)} />
+            </div>
           </div>
         </div>
       </div>
@@ -462,7 +486,7 @@ function ApplicationForm({ user, onSuccess }) {
 }
 
 // ── Écran succès ──────────────────────────────────────────────
-function SuccessState({ userEmail }) {
+function SuccessState({ userEmail, cvFailed }) {
   const { t } = useTranslation("becomeInstructor");
   return (
     <div className="text-center space-y-6 py-4">
@@ -480,6 +504,12 @@ function SuccessState({ userEmail }) {
         <p className="text-gray-500 text-sm mt-2 leading-relaxed max-w-sm mx-auto">{t("votre_dossier_a_bien_ete_recu")}{" "}<strong>{t("3_a_5_jours_ouvres")}</strong>{" "}{t("et_vous_repondra_par_email_a")}{" "}<strong className="text-indigo-700">{userEmail}</strong>.
         </p>
       </div>
+
+      {cvFailed && (
+        <div className="rounded-xl px-4 py-3 text-left text-sm" style={{ background: "#fffbeb", border: "1px solid #fde68a", color: "#92400e" }}>
+          {i18n.t("applicationReview:cv_upload_failed")}
+        </div>
+      )}
 
       <div className="rounded-2xl p-4 text-left space-y-2" style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}>
         <p className="text-sm font-bold text-blue-700">{t("en_attendant")}</p>
@@ -525,6 +555,7 @@ export default function BecomeInstructor() {
   const [existingApp,     setExistingApp]     = useState(null)
   const [loadingApp,      setLoadingApp]       = useState(true)
   const [success,         setSuccess]          = useState(false)
+  const [cvFailed,        setCvFailed]         = useState(false)
   const [showNewForm,     setShowNewForm]       = useState(false)
 
   useEffect(() => {
@@ -532,12 +563,14 @@ export default function BecomeInstructor() {
   }, [])
 
   // Charger la candidature existante si connecté
-  useEffect(() => {
-    if (!isAuthenticated) { setLoadingApp(false); return }
+  const loadApp = () =>
     api.get("/instructor-applications/my")
       .then(r => setExistingApp(r.data?.data || null))
       .catch(() => setExistingApp(null))
-      .finally(() => setLoadingApp(false))
+
+  useEffect(() => {
+    if (!isAuthenticated) { setLoadingApp(false); return }
+    loadApp().finally(() => setLoadingApp(false))
   }, [isAuthenticated])
 
   const scrollToForm = () => {
@@ -552,7 +585,7 @@ export default function BecomeInstructor() {
 
       {/* ══════ HERO ══════ */}
       <section className="relative overflow-hidden text-white py-20 lg:py-28"
-        style={{ background: "linear-gradient(135deg,#1f1b5a 0%,#2d287f 50%,#3b3aab 100%)" }}>
+        style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-dark)) 0%,rgb(var(--c-primary)) 50%,rgb(var(--c-primary-700)) 100%)" }}>
         {/* Grid déco */}
         <div
           className="absolute inset-0 pointer-events-none opacity-100"
@@ -567,7 +600,7 @@ export default function BecomeInstructor() {
 
         <div className="relative max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold mb-8"
-            style={{ background: "rgba(250,204,21,0.15)", border: "1px solid rgba(250,204,21,0.35)", color: C.accent }}>
+            style={{ background: "rgb(var(--c-accent) / 0.15)", border: "1px solid rgb(var(--c-accent) / 0.35)", color: C.accent }}>
             <Star className="w-4 h-4 fill-current" />{t("rejoignez_nos_instructeurs_experts")}</div>
 
           <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">{t("partagez_votre_expertise")}<br />
@@ -648,7 +681,7 @@ export default function BecomeInstructor() {
                 <div className="relative z-10 text-center p-5 rounded-2xl bg-gray-50 border border-gray-100 hover:shadow-md transition">
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md"
-                    style={{ background: `linear-gradient(135deg,${color}33,${color}66)` }}
+                    style={{ background: `linear-gradient(135deg,${tint(color, 20)},${tint(color, 40)})` }}
                   >
                     <Icon className="w-6 h-6" style={{ color }} />
                   </div>
@@ -675,10 +708,13 @@ export default function BecomeInstructor() {
 
           {/* Candidature existante */}
           {isAuthenticated && !loadingApp && existingApp && !showNewForm && (
-            <ExistingApplicationBanner
-              app={existingApp}
-              onNewApplication={() => setShowNewForm(true)}
-            />
+            <>
+              <ExistingApplicationBanner
+                app={existingApp}
+                onNewApplication={() => setShowNewForm(true)}
+              />
+              <ApplicationExchange app={existingApp} onChanged={loadApp} />
+            </>
           )}
 
           {/* Loading */}
@@ -691,7 +727,7 @@ export default function BecomeInstructor() {
           {/* Succès */}
           {success && (
             <div className="bg-white rounded-2xl border border-emerald-200 shadow-lg p-8">
-              <SuccessState userEmail={user?.email} />
+              <SuccessState userEmail={user?.email} cvFailed={cvFailed} />
             </div>
           )}
 
@@ -706,7 +742,7 @@ export default function BecomeInstructor() {
                     <p className="text-amber-700 text-sm">{t("vous_soumettez_une")}{" "}<strong>{t("nouvelle_candidature")}</strong>{t("prenez_le_temps_de_renforcer_votre")}</p>
                   </div>
                 )}
-                <ApplicationForm user={user} onSuccess={() => setSuccess(true)} />
+                <ApplicationForm user={user} onSuccess={(o) => { setCvFailed(!!o?.cvFailed); setSuccess(true) }} />
               </div>
             </div>
           )}

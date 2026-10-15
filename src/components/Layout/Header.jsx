@@ -44,9 +44,12 @@ export default function Header() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    let frame = 0;
+    const update = () => { frame = 0; setScrolled(window.scrollY > 8); };
+    const handleScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", handleScroll); if (frame) cancelAnimationFrame(frame); };
   }, []);
 
   useEffect(() => {
@@ -141,16 +144,10 @@ export default function Header() {
   const roleBadge = getUserRoleBadge();
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-500 ${workspace ? "hidden lg:block" : ""} ${
-        scrolled ? "bg-primary-dark/95 shadow-lg backdrop-blur-md" : "bg-primary"
-      }`}
-    >
-      {/* Top Bar */}
+    <>
+      {/* Barre supérieure : défile avec la page (elle ne modifie plus la hauteur de l'en-tête collant) */}
       <div
-        className={`bg-primary-dark text-gray-200 text-xs sm:text-sm py-1 px-4 hidden sm:flex justify-between items-center border-b border-primary-light transition-all duration-500 ${
-          scrolled ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
-        }`}
+        className={`bg-primary-dark text-gray-200 text-xs sm:text-sm py-1 px-4 hidden ${workspace ? "lg:flex" : "sm:flex"} justify-between items-center border-b border-primary-light`}
       >
         <div className="flex items-center gap-2">
           <Mail size={14} className="text-accent" />
@@ -175,6 +172,12 @@ export default function Header() {
         </div>
       </div>
 
+
+      <header
+        className={`sticky top-0 z-50 transition-[background-color,box-shadow] duration-300 ${workspace ? "hidden lg:block" : ""} ${
+          scrolled ? "bg-primary-dark/95 shadow-lg backdrop-blur-md" : "bg-primary"
+        }`}
+      >
       {/* Main Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Logo */}
@@ -504,6 +507,7 @@ export default function Header() {
           display: block;
         }
       `}</style>
-    </header>
+      </header>
+    </>
   );
 }

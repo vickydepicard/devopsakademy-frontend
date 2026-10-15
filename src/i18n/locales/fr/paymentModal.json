@@ -85,5 +85,12 @@
   "annuler": "Annuler",
   "montant_2": "Montant",
   "statut": "Statut",
-  "actif": "Actif"
+  "actif": "Actif",
+  "coupon_label": "Code promo",
+  "coupon_placeholder": "Votre code",
+  "coupon_apply": "Appliquer",
+  "coupon_applied": "Code {{code}} appliqué",
+  "coupon_remove": "Retirer",
+  "coupon_discount": "Réduction ({{code}})",
+  "coupon_error": "Impossible de vérifier ce code. Réessayez."
 }

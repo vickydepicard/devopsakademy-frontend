@@ -3,6 +3,29 @@
 @tailwind utilities;
 
 :root {
+  /* ── Charte DevOps Akademy : jetons de couleur (triplets RGB) ──────────────
+     Valeurs par défaut = charte normale. Une campagne/événement actif peut les
+     surcharger au chargement (voir src/theme/ThemeProvider.jsx). */
+  --c-primary: 45 40 127;          /* #2d287f  violet profond */
+  --c-primary-light: 86 83 225;    /* #5653e1  violet lumineux */
+  --c-primary-dark: 31 27 90;      /* #1f1b5a  violet nuit */
+  --c-primary-mid: 59 58 130;      /* #3b3a82 */
+  --c-primary-700: 59 58 171;      /* #3b3aab */
+  --c-primary-vibrant: 79 70 229;  /* #4f46e5 */
+  --c-primary-deep: 30 27 75;      /* #1e1b4b */
+  --c-accent: 250 204 21;          /* #facc15  jaune */
+  --c-accent-light: 253 224 71;    /* #fde047 */
+  --c-accent-dark: 202 138 4;      /* #ca8a04 */
+
+  /* Boutons d'action : identiques à la charte normale tant qu'aucune campagne n'est active
+     (voir src/theme/campaignButtons.css : en campagne, ils prennent la couleur d'accent). */
+  --c-btn: var(--c-primary);
+  --c-btn-hover: var(--c-primary-dark);
+  --c-btn-soft: var(--c-primary-light);
+  --c-btn-text: 255 255 255;
+}
+
+:root {
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   color-scheme: light;
@@ -22,7 +45,7 @@ button { cursor: pointer; font-family: inherit; }
 button:disabled { cursor: not-allowed; }
 button svg, a svg { flex-shrink: 0; }
 
-:focus-visible { outline: 2px solid #5653e1; outline-offset: 2px; }
+:focus-visible { outline: 2px solid rgb(var(--c-primary-light)); outline-offset: 2px; }
 
 #root { width: 100%; }
 
@@ -38,12 +61,12 @@ button svg, a svg { flex-shrink: 0; }
 .lesson-content ul { list-style: disc; }
 .lesson-content ol { list-style: decimal; }
 .lesson-content li { margin: .25em 0; }
-.lesson-content a { color: #3b3aab; text-decoration: underline; text-underline-offset: 2px; }
+.lesson-content a { color: rgb(var(--c-primary-700)); text-decoration: underline; text-underline-offset: 2px; }
 .lesson-content strong { color: #0f172a; font-weight: 600; }
 .lesson-content code { background: #f1f5f9; color: #0f172a; padding: .12em .4em; border-radius: 4px; font-size: .875em; }
 .lesson-content pre { background: #0f172a; color: #e2e8f0; padding: 1rem 1.1rem; border-radius: 8px; overflow-x: auto; margin: 0 0 1.2em; font-size: .875rem; line-height: 1.6; }
 .lesson-content pre code { background: transparent; color: inherit; padding: 0; }
-.lesson-content blockquote { margin: 0 0 1em; padding: .6em 1em; border-left: 3px solid #2d287f; background: #f8fafc; color: #475569; }
+.lesson-content blockquote { margin: 0 0 1em; padding: .6em 1em; border-left: 3px solid rgb(var(--c-primary)); background: #f8fafc; color: #475569; }
 .lesson-content img, .lesson-content video { max-width: 100%; height: auto; border-radius: 8px; }
 .lesson-content table { width: 100%; border-collapse: collapse; margin: 0 0 1.2em; font-size: .925rem; }
 .lesson-content th, .lesson-content td { border: 1px solid #e2e8f0; padding: .5em .75em; text-align: left; }
@@ -55,3 +78,32 @@ button svg, a svg { flex-shrink: 0; }
   table th, table td { white-space: nowrap; }
   table td.wrap, table th.wrap { white-space: normal; min-width: 14rem; }
 }
+
+/* ── Héros en mode campagne : animations d'entrée (désactivées si l'utilisateur réduit les animations) ── */
+@keyframes dok-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes dok-pop { from { opacity: 0; transform: translateY(14px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes dok-progress { from { width: 0; } to { width: 100%; } }
+@keyframes dok-drift { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(-28px, 22px, 0); } }
+[data-campaign-carousel] article[data-active] .dok-rise { animation: dok-rise .7s cubic-bezier(.22,1,.36,1) both; animation-delay: var(--d, 0ms); }
+[data-campaign-carousel] article[data-active] .dok-media { animation: dok-pop .8s cubic-bezier(.22,1,.36,1) .2s both; }
+.dok-progress { animation-name: dok-progress; animation-timing-function: linear; animation-fill-mode: forwards; }
+.dok-drift { animation: dok-drift 18s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  [data-campaign-carousel] .dok-rise, [data-campaign-carousel] .dok-media, .dok-drift { animation: none !important; }
+  [data-campaign-carousel] article { transition: none !important; }
+}
+
+/* ── Campagne active : les boutons/liens « palette Tailwind » suivent aussi les couleurs de l'événement ── */
+html[data-campaign-theme] .bg-yellow-300, html[data-campaign-theme] .bg-yellow-400, html[data-campaign-theme] .bg-yellow-500,
+html[data-campaign-theme] .bg-amber-400, html[data-campaign-theme] .bg-amber-500 { background-color: rgb(var(--c-accent)); }
+html[data-campaign-theme] .hover\:bg-yellow-300:hover, html[data-campaign-theme] .hover\:bg-yellow-400:hover,
+html[data-campaign-theme] .hover\:bg-amber-400:hover, html[data-campaign-theme] .hover\:bg-amber-500:hover { background-color: rgb(var(--c-accent-light)); }
+html[data-campaign-theme] .bg-indigo-600, html[data-campaign-theme] .bg-indigo-700, html[data-campaign-theme] .bg-purple-600,
+html[data-campaign-theme] .bg-purple-700 { background-color: rgb(var(--c-primary-700)); }
+html[data-campaign-theme] .bg-indigo-800, html[data-campaign-theme] .bg-violet-900, html[data-campaign-theme] .bg-purple-900 { background-color: rgb(var(--c-primary)); }
+html[data-campaign-theme] .hover\:bg-indigo-700:hover, html[data-campaign-theme] .hover\:bg-purple-700:hover { background-color: rgb(var(--c-primary-700)); }
+html[data-campaign-theme] .hover\:bg-indigo-800:hover { background-color: rgb(var(--c-primary)); }
+html[data-campaign-theme] .text-indigo-600, html[data-campaign-theme] .text-indigo-700, html[data-campaign-theme] .text-violet-600,
+html[data-campaign-theme] .text-violet-700, html[data-campaign-theme] .text-purple-600, html[data-campaign-theme] .text-purple-700,
+html[data-campaign-theme] .hover\:text-indigo-700:hover, html[data-campaign-theme] .hover\:text-indigo-600:hover { color: rgb(var(--c-primary-700)); }
+html[data-campaign-theme] .border-indigo-400 { border-color: rgb(var(--c-primary-light)); }

@@ -86,7 +86,7 @@ export default function LessonDetail() {
 
   if (loading) return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <Loader className="w-8 h-8 text-[#5653e1] animate-spin" />
+      <Loader className="w-8 h-8 text-primary-light animate-spin" />
     </div>
   );
 
@@ -96,7 +96,7 @@ export default function LessonDetail() {
         
         <p className="font-bold text-lg mb-2">{error || t("lecon_introuvable")}</p>
         <button onClick={() => navigate(-1)}
-          className="px-5 py-2.5 bg-[#2d287f] rounded-xl text-sm font-bold hover:bg-[#3b3aab] transition mt-3">{t("retour")}</button>
+          className="px-5 py-2.5 bg-primary rounded-xl text-sm font-bold hover:bg-primary-700 transition mt-3">{t("retour")}</button>
       </div>
     </div>
   );
@@ -114,7 +114,7 @@ export default function LessonDetail() {
 
         {/* ── Navigation retour ── */}
         <button onClick={() => navigate(`/courses/${id}/learn`)}
-          className="flex items-center gap-1.5 text-[#5653e1] hover:text-[#2d287f] transition text-sm mb-6 font-semibold">
+          className="flex items-center gap-1.5 text-primary-light hover:text-primary transition text-sm mb-6 font-semibold">
           <ChevronLeft className="w-4 h-4" />{" "}{t("retour_au_cours")}</button>
 
         {/* ── Titre ── */}
@@ -168,7 +168,7 @@ export default function LessonDetail() {
                 <span className="text-white font-semibold text-sm">{lesson.title}</span>
               </div>
               <a href={contentUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-[#5653e1] hover:underline font-semibold">
+                className="flex items-center gap-1.5 text-xs text-primary-light hover:underline font-semibold">
                 <ExternalLink className="w-3.5 h-3.5" />{" "}{t("ouvrir")}</a>
             </div>
             <div style={{ height: "600px" }}>
@@ -182,7 +182,7 @@ export default function LessonDetail() {
                   <FileText className="w-16 h-16 text-red-400/40" />
                   <p className="text-gray-400 text-sm">{t("votre_navigateur_ne_peut_pas_afficher")}</p>
                   <a href={contentUrl} target="_blank" rel="noopener noreferrer"
-                    className="px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-bold hover:bg-[#3b3aab] transition">{t("ouvrir_dans_un_nouvel_onglet")}</a>
+                    className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-700 transition">{t("ouvrir_dans_un_nouvel_onglet")}</a>
                 </div>
               </object>
             </div>
@@ -195,10 +195,10 @@ export default function LessonDetail() {
             <div
               className="prose prose-invert prose-sm max-w-none text-gray-200 leading-relaxed
                 prose-headings:text-white prose-h2:border-b prose-h2:border-gray-600 prose-h2:pb-2
-                prose-p:text-gray-300 prose-p:leading-7 prose-a:text-[#5653e1]
+                prose-p:text-gray-300 prose-p:leading-7 prose-a:text-primary-light
                 prose-code:bg-gray-900 prose-code:text-green-400 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
                 prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700 prose-pre:rounded-xl
-                prose-blockquote:border-[#5653e1] prose-blockquote:bg-indigo-900/20
+                prose-blockquote:border-primary-light prose-blockquote:bg-indigo-900/20
                 prose-strong:text-white"
               dangerouslySetInnerHTML={{ __html: lesson.article_content }}
             />
@@ -252,7 +252,7 @@ export default function LessonDetail() {
                         )}
                         {!isPdfRes && !isVidRes && (
                           <a href={url} download target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2d287f] hover:bg-[#3b3aab] text-white text-xs font-semibold rounded-lg transition">
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition">
                             <Download className="w-3.5 h-3.5" />{" "}{t("telecharger")}</a>
                         )}
                       </div>
@@ -280,7 +280,7 @@ export default function LessonDetail() {
             className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition ${
               marked
                 ? "bg-emerald-800 text-emerald-300 cursor-default"
-                : "bg-[#2d287f] hover:bg-[#3b3aab] text-white"
+                : "bg-primary hover:bg-primary-700 text-white"
             }`}>
             {marking ? (
               <Loader className="w-4 h-4 animate-spin" />

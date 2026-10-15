@@ -30,8 +30,8 @@ function StarRating({ val }) {
     <div style={{ display:"flex", alignItems:"center", gap:3 }}>
       {[1,2,3,4,5].map(i => (
         <Star key={i} size={11}
-          fill={i <= Math.round(val) ? "#facc15" : "none"}
-          color={i <= Math.round(val) ? "#facc15" : "#d1d5db"} />
+          fill={i <= Math.round(val) ? "rgb(var(--c-accent))" : "none"}
+          color={i <= Math.round(val) ? "rgb(var(--c-accent))" : "#d1d5db"} />
       ))}
       <span style={{ fontSize:11, fontWeight:800, color:"#374151", marginLeft:1 }}>
         {parseFloat(val).toFixed(1)}
@@ -61,7 +61,7 @@ function InstructorCard({ inst }) {
               {inst.name}
             </h3>
             {inst.job_title && (
-              <p style={{ fontSize:12, color:"#5653e1", fontWeight:700, margin:"2px 0 0",
+              <p style={{ fontSize:12, color:"rgb(var(--c-primary-light))", fontWeight:700, margin:"2px 0 0",
                 whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                 {inst.job_title}
               </p>
@@ -89,7 +89,7 @@ function InstructorCard({ inst }) {
           <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
             {skills.map(s => (
               <span key={s} style={{ padding:"2px 8px", borderRadius:20, fontSize:10,
-                fontWeight:700, background:"#f0efff", color:"#5653e1", border:"1px solid #e0e7ff" }}>
+                fontWeight:700, background:"#f0efff", color:"rgb(var(--c-primary-light))", border:"1px solid #e0e7ff" }}>
                 {s}
               </span>
             ))}
@@ -110,8 +110,8 @@ function InstructorCard({ inst }) {
           ].map(({ icon: Icon, val, label }) => (
             <div key={label} style={{ background:"#f8f7ff", borderRadius:10,
               padding:"8px", textAlign:"center" }}>
-              <Icon size={13} color="#5653e1" style={{ margin:"0 auto 2px", display:"block" }} />
-              <p style={{ fontWeight:900, fontSize:16, color:"#2d287f", margin:0 }}>{val}</p>
+              <Icon size={13} color="rgb(var(--c-primary-light))" style={{ margin:"0 auto 2px", display:"block" }} />
+              <p style={{ fontWeight:900, fontSize:16, color:"rgb(var(--c-primary))", margin:0 }}>{val}</p>
               <p style={{ fontSize:10, color:"#9ca3af", fontWeight:600, margin:0 }}>{label}</p>
             </div>
           ))}
@@ -135,7 +135,7 @@ function InstructorCard({ inst }) {
               </a>
             ))}
           </div>
-          <span style={{ fontSize:11, fontWeight:800, color:"#5653e1" }}
+          <span style={{ fontSize:11, fontWeight:800, color:"rgb(var(--c-primary-light))" }}
             className="group-hover:underline">{t("voir_le_profil")}</span>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function Instructors() {
 
       {/* Header compact */}
       <div style={{
-        background:"linear-gradient(135deg,#1e1b4b 0%,#2d287f 55%,#5653e1 100%)",
+        background:"linear-gradient(135deg,rgb(var(--c-primary-deep)) 0%,rgb(var(--c-primary)) 55%,rgb(var(--c-primary-light)) 100%)",
         padding:"40px 24px 36px", textAlign:"center",
       }}>
         <p style={{ color:"rgba(255,255,255,0.55)", fontSize:11, fontWeight:700,
@@ -175,7 +175,7 @@ export default function Instructors() {
           DevOps Akademy
         </p>
         <h1 style={{ color:"white", fontSize:"clamp(24px,4vw,38px)", fontWeight:900,
-          margin:"0 0 6px", letterSpacing:"-0.02em" }}>{t("nos")}{" "}<span style={{ color:"#facc15" }}>{t("instructeurs")}</span>
+          margin:"0 0 6px", letterSpacing:"-0.02em" }}>{t("nos")}{" "}<span style={{ color:"rgb(var(--c-accent))" }}>{t("instructeurs")}</span>
         </h1>
         <p style={{ color:"rgba(255,255,255,0.55)", fontSize:13, margin:"0 0 20px" }}>{i18n.t("instructors:expert", { length: instructors.length, s: instructors.length > 1 ? "s" : "" })}{" "}{t("devops_cloud")}</p>
 
@@ -196,7 +196,7 @@ export default function Instructors() {
       <div style={{ maxWidth:1080, margin:"0 auto", padding:"32px 20px 48px" }}>
         {loading ? (
           <div style={{ textAlign:"center", padding:"60px 0" }}>
-            <div style={{ width:36, height:36, border:"3px solid #5653e1", borderTopColor:"transparent",
+            <div style={{ width:36, height:36, border:"3px solid rgb(var(--c-primary-light))", borderTopColor:"transparent",
               borderRadius:"50%", animation:"spin 1s linear infinite", margin:"0 auto 12px" }} />
             <p style={{ color:"#9ca3af", fontSize:13 }}>{t("chargement")}</p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>

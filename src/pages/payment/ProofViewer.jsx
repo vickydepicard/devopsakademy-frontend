@@ -41,7 +41,7 @@ export function ProofButton({ url, label = t("voir_la_preuve"), size = "sm", cla
       <button
         onClick={() => setOpen(true)}
         className={`inline-flex items-center font-semibold rounded-xl border transition hover:shadow-sm active:scale-95 ${sz} ${className}`}
-        style={{ borderColor: "#5653e1", color: "#2d287f", background: "#f0efff" }}
+        style={{ borderColor: "rgb(var(--c-primary-light))", color: "rgb(var(--c-primary))", background: "#f0efff" }}
       >
         <Eye className="w-3.5 h-3.5 flex-shrink-0" />
         {label}
@@ -141,7 +141,7 @@ export function ProofModal({ url, onClose }) {
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
               {pdf
                 ? <FileText className="w-4 h-4 text-white" />
                 : <Eye className="w-4 h-4 text-white" />
@@ -176,7 +176,7 @@ export function ProofModal({ url, onClose }) {
             </button>
             <button onClick={handleDownload}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-bold transition hover:opacity-90"
-              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
               <Download className="w-3.5 h-3.5" />{" "}{t("telecharger")}</button>
             <button onClick={onClose}
               className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition ml-1">
@@ -206,11 +206,11 @@ export function ProofModal({ url, onClose }) {
               <div className="flex gap-2 justify-center">
                 <button onClick={handleDownload}
                   className="px-4 py-2 rounded-xl text-white text-sm font-bold"
-                  style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                  style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                   <Download className="w-4 h-4 inline mr-1.5" />{" "}{t("telecharger")}</button>
                 <button onClick={() => window.open(url, "_blank")}
                   className="px-4 py-2 rounded-xl border-2 text-sm font-bold"
-                  style={{ borderColor: "#2d287f", color: "#2d287f" }}>{t("ouvrir")}</button>
+                  style={{ borderColor: "rgb(var(--c-primary))", color: "rgb(var(--c-primary))" }}>{t("ouvrir")}</button>
               </div>
             </div>
           ) : (
@@ -247,7 +247,7 @@ export function ProofModal({ url, onClose }) {
           <div className="flex gap-2">
             <button onClick={handleDownload}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition hover:opacity-90"
-              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
               <Download className="w-3.5 h-3.5" />{" "}{t("telecharger")}</button>
             <button onClick={onClose}
               className="px-4 py-2 rounded-xl border-2 text-xs font-bold transition"

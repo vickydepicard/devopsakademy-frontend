@@ -7,7 +7,7 @@ import api from "../../api/api"
 import { Mail, ArrowLeft, CheckCircle, Loader, ShieldCheck } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
-const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" }
+const C = { primary: "rgb(var(--c-primary))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))" }
 
 export default function ForgotPassword() {
   const { t, i18n } = useTranslation("auth")
@@ -35,7 +35,7 @@ export default function ForgotPassword() {
   return (
     <div
       className="h-screen flex items-center justify-center px-4 overflow-hidden"
-      style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#2d287f 50%,#4c1d95 100%)" }}
+      style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-deep)) 0%,rgb(var(--c-primary)) 50%,#4c1d95 100%)" }}
     >
       {/* Orbs déco */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -49,7 +49,7 @@ export default function ForgotPassword() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="h-1" style={{ background: "linear-gradient(90deg,#2d287f,#5653e1,#facc15)" }} />
+          <div className="h-1" style={{ background: "linear-gradient(90deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)),rgb(var(--c-accent)))" }} />
 
           <div className="px-7 py-6">
 

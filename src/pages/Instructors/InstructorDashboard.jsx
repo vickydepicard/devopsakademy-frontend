@@ -16,8 +16,9 @@ import {
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { formatMoney, formatNumber } from "../../utils/format";
+import OnboardingCard from "./program/OnboardingCard";
 
-const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" };
+const C = { primary: "rgb(var(--c-primary))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))" };
 
 const StatCard = ({ label, value, icon: Icon, color, bg, sub }) => (
   <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
@@ -150,6 +151,8 @@ export default function InstructorDashboard() {
           style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
           <Plus className="w-4 h-4" />{" "}{t("nouveau_cours")}</Link>
       </div>
+
+      <OnboardingCard />
 
       {/* Invitations co-instructeur en attente */}
       {invitations.length > 0 && (

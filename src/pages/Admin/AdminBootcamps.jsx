@@ -179,7 +179,7 @@ function BootcampModal({ boot, onClose, onSaved }) {
 
           {/* Header */}
           <div style={{ padding:"20px 24px 16px",
-            background:"linear-gradient(135deg,#1e1b4b,#2d287f 60%,#5653e1)" }}>
+            background:"linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)) 60%,rgb(var(--c-primary-light)))" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
                 <h2 style={{ color:"white", fontWeight:900, fontSize:18, margin:0 }}>
@@ -202,7 +202,7 @@ function BootcampModal({ boot, onClose, onSaved }) {
             borderBottom:"1px solid #f0f0f0", display:"flex", gap:4, alignItems:"center" }}>
             {[i18n.t("adminBootcamps:infos"), i18n.t("adminBootcamps:stream"), i18n.t("adminBootcamps:acces")].map((s, i) => (
               <span key={s} style={{ display:"flex", alignItems:"center", gap:4 }}>
-                <span style={{ fontSize:11, fontWeight:700, color:"#5653e1" }}>{s}</span>
+                <span style={{ fontSize:11, fontWeight:700, color:"rgb(var(--c-primary-light))" }}>{s}</span>
                 {i < 2 && <ChevronRight size={11} color="#d1d5db" />}
               </span>
             ))}
@@ -214,7 +214,7 @@ function BootcampModal({ boot, onClose, onSaved }) {
 
             {/* Section Infos */}
             <div style={{ background:"#f8f7ff", borderRadius:14, padding:16 }}>
-              <p style={{ fontSize:11, fontWeight:800, color:"#5653e1",
+              <p style={{ fontSize:11, fontWeight:800, color:"rgb(var(--c-primary-light))",
                 textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("informations_generales")}</p>
 
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -311,7 +311,7 @@ function BootcampModal({ boot, onClose, onSaved }) {
                     {form.stream_url && (
                       <button onClick={() => setPreview(true)}
                         style={{ padding:"9px 14px", borderRadius:10, border:"none",
-                          background: urlTested ? "#10b981" : "#2d287f",
+                          background: urlTested ? "#10b981" : "rgb(var(--c-primary))",
                           color:"white", fontWeight:700, fontSize:12,
                           cursor:"pointer", display:"flex", alignItems:"center", gap:5,
                           whiteSpace:"nowrap", flexShrink:0 }}
@@ -385,7 +385,7 @@ function BootcampModal({ boot, onClose, onSaved }) {
             <button onClick={handle} disabled={saving}
               style={{ flex:2, padding:"11px", borderRadius:14, border:"none",
                 fontWeight:900, fontSize:13, cursor:"pointer", color:"white",
-                background:"linear-gradient(135deg,#2d287f,#5653e1)",
+                background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
                 opacity: saving ? 0.6 : 1, display:"flex",
                 alignItems:"center", justifyContent:"center", gap:8 }}>
               {saving
@@ -446,7 +446,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
 
         {/* Timeline processus */}
         <div style={{ background:"#f8f7ff", borderRadius:14, padding:14 }}>
-          <p style={{ fontSize:11, fontWeight:800, color:"#5653e1",
+          <p style={{ fontSize:11, fontWeight:800, color:"rgb(var(--c-primary-light))",
             textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("processus")}</p>
           {steps.map((step, i) => (
             <div key={step.key} style={{ display:"flex", gap:10, alignItems:"flex-start",
@@ -499,7 +499,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
               {boot.stream_url && (
                 <button onClick={() => setPreview(true)}
                   style={{ flex:1, padding:"8px", borderRadius:10, border:"none",
-                    background:"#2d287f", color:"white", fontWeight:700,
+                    background:"rgb(var(--c-primary))", color:"white", fontWeight:700,
                     fontSize:12, cursor:"pointer", display:"flex",
                     alignItems:"center", justifyContent:"center", gap:5 }}>
                   <Play size={12} />{" "}{t("tester_le_stream")}</button>
@@ -527,7 +527,7 @@ function LivePanel({ boot, onStatusChange, onEdit, onClose }) {
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           <button onClick={onEdit}
             style={{ padding:"10px", borderRadius:12, border:"2px solid #e0e7ff",
-              background:"#f0efff", color:"#2d287f", fontWeight:700,
+              background:"#f0efff", color:"rgb(var(--c-primary))", fontWeight:700,
               fontSize:13, cursor:"pointer", display:"flex",
               alignItems:"center", justifyContent:"center", gap:6 }}>
             <Pencil size={14} />{" "}{t("modifier_les_infos")}</button>
@@ -637,7 +637,7 @@ export default function AdminBootcamps() {
         <div>
           <h1 style={{ fontWeight:900, fontSize:22, color:"#111",
             display:"flex", alignItems:"center", gap:8, margin:0 }}>
-            <Radio size={24} color="#5653e1" />{" "}{t("bootcamps_lives")}</h1>
+            <Radio size={24} color="rgb(var(--c-primary-light))" />{" "}{t("bootcamps_lives")}</h1>
           <p style={{ fontSize:13, color:"#9ca3af", margin:"2px 0 0" }}>{i18n.t("adminBootcamps:bootcamp", { length: boots.length, s: boots.length !== 1 ? "s" : "" })}{" "}{counts.live > 0 && <span style={{ color:"#ef4444", fontWeight:700 }}>{t("en_direct_2", { live: counts.live })}</span>}
           </p>
         </div>
@@ -649,9 +649,9 @@ export default function AdminBootcamps() {
           <button onClick={() => { setModal("create"); setSelected(null); }}
             style={{ display:"flex", alignItems:"center", gap:6,
               padding:"9px 18px", borderRadius:12, border:"none",
-              background:"linear-gradient(135deg,#2d287f,#5653e1)",
+              background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
               color:"white", fontWeight:800, fontSize:13, cursor:"pointer",
-              boxShadow:"0 4px 14px rgba(45,40,127,0.3)" }}>
+              boxShadow:"0 4px 14px rgb(var(--c-primary) / 0.3)" }}>
             <Plus size={16} />{" "}{t("nouveau_bootcamp")}</button>
         </div>
       </div>
@@ -659,7 +659,7 @@ export default function AdminBootcamps() {
       {/* Stats rapides */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))", gap:10 }}>
         {[
-          ["all",       i18n.t("adminBootcamps:total"),        counts.all,       "#5653e1", "#f0efff"],
+          ["all",       i18n.t("adminBootcamps:total"),        counts.all,       "rgb(var(--c-primary-light))", "#f0efff"],
           ["live",      i18n.t("adminBootcamps:en_direct"),    counts.live,      "#ef4444", "#fef2f2"],
           ["scheduled", i18n.t("adminBootcamps:planifies"),    counts.scheduled, "#f59e0b", "#fffbeb"],
           ["ended",     i18n.t("adminBootcamps:termines"),     counts.ended,     "#10b981", "#f0fdf4"],
@@ -687,7 +687,7 @@ export default function AdminBootcamps() {
 
           {loading ? (
             <div style={{ padding:"60px", textAlign:"center" }}>
-              <div style={{ width:32, height:32, border:"3px solid #5653e1",
+              <div style={{ width:32, height:32, border:"3px solid rgb(var(--c-primary-light))",
                 borderTopColor:"transparent", borderRadius:"50%",
                 animation:"spin 1s linear infinite", margin:"0 auto 12px" }} />
               <p style={{ color:"#9ca3af" }}>{t("chargement")}</p>
@@ -701,7 +701,7 @@ export default function AdminBootcamps() {
               </p>
               <button onClick={() => setModal("create")}
                 style={{ marginTop:12, padding:"10px 20px", borderRadius:12,
-                  border:"none", background:"linear-gradient(135deg,#2d287f,#5653e1)",
+                  border:"none", background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
                   color:"white", fontWeight:800, cursor:"pointer" }}>{t("creer_le_premier_bootcamp")}</button>
             </div>
           ) : (
@@ -733,7 +733,7 @@ export default function AdminBootcamps() {
                       borderBottom:"1px solid #f9fafb",
                       background: isSelected ? "#f8f7ff" : "white",
                       cursor:"pointer", transition:"background 0.15s",
-                      borderLeft: isSelected ? "3px solid #5653e1" : "3px solid transparent",
+                      borderLeft: isSelected ? "3px solid rgb(var(--c-primary-light))" : "3px solid transparent",
                       alignItems:"center" }}>
 
                     {/* Titre */}
@@ -784,7 +784,7 @@ export default function AdminBootcamps() {
 
                     {/* Prix */}
                     <span style={{ fontSize:11, fontWeight:700,
-                      color: b.is_free ? "#10b981" : "#2d287f" }}>
+                      color: b.is_free ? "#10b981" : "rgb(var(--c-primary))" }}>
                       {b.is_free ? t("gratuit") : (Number(b.price) > 0 ? `${fmt(b.price)} F` : t("payant"))}
                     </span>
 

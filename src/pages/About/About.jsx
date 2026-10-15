@@ -41,11 +41,11 @@ const getTerminalLines = (t) => [
   { color: "text-gray-400",  prompt: false, text: "NAME              STATUS" },
   { color: "text-white",     prompt: false, text: <>devopsakademy     <span className="text-green-400">Running</span></> },
   { color: "text-green-400", prompt: true,  text: "describe platform" },
-  { color: "text-[#facc15]", prompt: false, text: t("mission.terminal.l1") },
-  { color: "text-[#facc15]", prompt: false, text: t("mission.terminal.l2") },
-  { color: "text-[#facc15]", prompt: false, text: t("mission.terminal.l3") },
+  { color: "text-accent", prompt: false, text: t("mission.terminal.l1") },
+  { color: "text-accent", prompt: false, text: t("mission.terminal.l2") },
+  { color: "text-accent", prompt: false, text: t("mission.terminal.l3") },
   { color: "text-green-400", prompt: true,  text: "deploy --env prod" },
-  { color: "text-sky-300",   prompt: false, text: <>{t("mission.terminal.deploying")}<span className="inline-block w-2 h-4 bg-[#facc15] ml-1 animate-pulse align-middle rounded-sm" /></> },
+  { color: "text-sky-300",   prompt: false, text: <>{t("mission.terminal.deploying")}<span className="inline-block w-2 h-4 bg-accent ml-1 animate-pulse align-middle rounded-sm" /></> },
 ];
 
 export default function About() {
@@ -87,21 +87,21 @@ export default function About() {
     <div className="bg-white min-h-screen">
 
       {/* ── HERO ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1f1b5a] via-[#2d287f] to-[#3b3aab] text-white py-24 lg:py-32">
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-700 text-white py-24 lg:py-32">
         <div className="absolute inset-0 pointer-events-none opacity-100"
           style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px)`, backgroundSize: "56px 56px" }} />
-        <div className="absolute -top-24 right-0 w-96 h-96 bg-[#facc15]/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#5653e1]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 right-0 w-96 h-96 bg-accent/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary-light/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-6xl mx-auto px-6">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#facc15]/15 border border-[#facc15]/30 rounded-full text-[#facc15] text-sm font-bold mb-8">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-accent/15 border border-accent/30 rounded-full text-accent text-sm font-bold mb-8">
               <Zap className="w-4 h-4" />
               {t("hero.badge")}
             </span>
             <h1 className="text-4xl lg:text-6xl font-black leading-tight mb-6">
               {t("hero.titleStart")}{" "}
-              <span className="text-[#facc15]">DevOps</span>{" "}
+              <span className="text-accent">DevOps</span>{" "}
               {t("hero.titleEnd")}
             </h1>
             <p className="text-xl text-white/75 leading-relaxed mb-10 max-w-2xl">
@@ -109,7 +109,7 @@ export default function About() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/courses"
-                className="inline-flex items-center gap-2 bg-[#facc15] hover:bg-[#fde047] text-[#1f1b5a] font-black py-3.5 px-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
+                className="inline-flex items-center gap-2 bg-accent hover:bg-accent-light text-primary-dark font-black py-3.5 px-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-lg">
                 {t("hero.explore")} <ArrowRight className="w-5 h-5" />
               </Link>
               <Link to="/become-instructor"
@@ -128,10 +128,10 @@ export default function About() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {statItems.map(({ value, label, icon: Icon }) => (
               <div key={label} className="ri opacity-0 translate-y-8 transition-all duration-700 text-center">
-                <div className="w-12 h-12 bg-[#2d287f]/8 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Icon className="w-6 h-6 text-[#2d287f]" />
+                <div className="w-12 h-12 bg-primary/8 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Icon className="w-6 h-6 text-primary" />
                 </div>
-                <p className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mb-1">{value}</p>
+                <p className="text-3xl lg:text-4xl font-black text-primary-dark mb-1">{value}</p>
                 <p className="text-sm text-gray-500">{label}</p>
               </div>
             ))}
@@ -144,8 +144,8 @@ export default function About() {
       <section className="max-w-6xl mx-auto px-6 py-20">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="ri opacity-0 translate-y-8 transition-all duration-700">
-            <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">{t("mission.eyebrow")}</span>
-            <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-3 mb-6 leading-tight">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">{t("mission.eyebrow")}</span>
+            <h2 className="text-3xl lg:text-4xl font-black text-primary-dark mt-3 mb-6 leading-tight">
               {t("mission.title")}
             </h2>
             <p className="text-gray-600 leading-relaxed mb-5">
@@ -190,18 +190,18 @@ export default function About() {
       <section className="bg-gray-50 py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14 ri opacity-0 translate-y-8 transition-all duration-700">
-            <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">{t("values.eyebrow")}</span>
-            <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mt-3">{t("values.title")}</h2>
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">{t("values.eyebrow")}</span>
+            <h2 className="text-3xl lg:text-4xl font-black text-primary-dark mt-3">{t("values.title")}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {VALUES.map(({ icon: Icon, key, color }, i) => (
               <div key={key}
-                className="ri opacity-0 translate-y-8 transition-all duration-700 bg-white rounded-2xl border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-xl hover:-translate-y-1 p-6"
+                className="ri opacity-0 translate-y-8 transition-all duration-700 bg-white rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 p-6"
                 style={{ transitionDelay: `${i * 80}ms` }}>
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center mb-4 shadow-md`}>
                   <Icon className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-bold text-[#1f1b5a] text-lg mb-2">{t(`values.${key}.title`)}</h3>
+                <h3 className="font-bold text-primary-dark text-lg mb-2">{t(`values.${key}.title`)}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{t(`values.${key}.desc`)}</p>
               </div>
             ))}
@@ -212,8 +212,8 @@ export default function About() {
       {/* ── TECHNOLOGIES ── */}
       <section className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-12 ri opacity-0 translate-y-8 transition-all duration-700">
-          <span className="text-[#2d287f] font-semibold text-sm uppercase tracking-wider">{t("tech.eyebrow")}</span>
-          <h2 className="text-2xl lg:text-3xl font-black text-[#1f1b5a] mt-2">
+          <span className="text-primary font-semibold text-sm uppercase tracking-wider">{t("tech.eyebrow")}</span>
+          <h2 className="text-2xl lg:text-3xl font-black text-primary-dark mt-2">
             {t("tech.title")}
           </h2>
           <p className="text-gray-500 mt-2 text-sm">{t("tech.subtitle")}</p>
@@ -231,10 +231,10 @@ export default function About() {
       </section>
 
       {/* ── ÉQUIPE ── */}
-      <section className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white py-20">
+      <section className="bg-gradient-to-br from-primary-dark to-primary text-white py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14 ri opacity-0 translate-y-8 transition-all duration-700">
-            <span className="text-[#facc15] font-semibold text-sm uppercase tracking-wider">{t("team.eyebrow")}</span>
+            <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t("team.eyebrow")}</span>
             <h2 className="text-3xl lg:text-4xl font-black mt-3">{t("team.title")}</h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-8">
@@ -246,7 +246,7 @@ export default function About() {
                   {initials}
                 </div>
                 <h3 className="font-bold text-lg mb-1">{t(`team.${key}.name`)}</h3>
-                <p className="text-[#facc15] text-sm font-semibold mb-3">{t(`team.${key}.role`)}</p>
+                <p className="text-accent text-sm font-semibold mb-3">{t(`team.${key}.role`)}</p>
                 <p className="text-white/65 text-sm leading-relaxed">{t(`team.${key}.bio`)}</p>
               </div>
             ))}
@@ -258,10 +258,10 @@ export default function About() {
       <section className="bg-white py-24">
         <div className="max-w-3xl mx-auto px-6 text-center ri opacity-0 translate-y-8 transition-all duration-700">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-8"
-            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+            style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
             <Zap className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl lg:text-4xl font-black text-[#1f1b5a] mb-4">
+          <h2 className="text-3xl lg:text-4xl font-black text-primary-dark mb-4">
             {t("cta.title")}
           </h2>
           <p className="text-gray-500 mb-10 text-lg leading-relaxed">
@@ -270,11 +270,11 @@ export default function About() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/register"
               className="inline-flex items-center gap-2 text-white font-black py-3.5 px-10 rounded-2xl hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
-              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
               {t("cta.start")} <ArrowRight className="w-5 h-5" />
             </Link>
             <Link to="/pricing"
-              className="inline-flex items-center gap-2 border-2 border-[#2d287f]/25 hover:border-[#2d287f] text-[#2d287f] font-semibold py-3.5 px-8 rounded-2xl transition-all duration-300">
+              className="inline-flex items-center gap-2 border-2 border-primary/25 hover:border-primary text-primary font-semibold py-3.5 px-8 rounded-2xl transition-all duration-300">
               {t("cta.pricing")}
             </Link>
           </div>

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, BookOpen, ClipboardList,
   BarChart2, Mail, FileText, CreditCard, Award,
   Tag, Trophy, Settings, LogOut, Menu, X,
-  ChevronLeft, ChevronRight, Bell, Shield, GraduationCap, CheckSquare, Radio, Globe
+  ChevronLeft, ChevronRight, Bell, Shield, GraduationCap, CheckSquare, Radio, Globe, Megaphone, BadgeCheck, Send, Languages
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
@@ -30,6 +30,7 @@ const NAV_GROUPS = () => ([
       { to: "/admin/submissions", label: i18n.t("adminLayout:devoirs"), icon: FileText },
       { to: "/admin/instructors", label: i18n.t("adminLayout:instructeurs"), icon: GraduationCap },
       { to: "/admin/instructor-applications", label: i18n.t("adminLayout:candidatures"), icon: Award },
+      { to: "/admin/instructor-program", label: i18n.t("adminLayout:programme_instructeurs"), icon: BadgeCheck },
       { to: "/admin/bootcamps", label: i18n.t("adminLayout:bootcamps_lives"), icon: Radio },
     ],
   },
@@ -44,8 +45,11 @@ const NAV_GROUPS = () => ([
     items: [
       { to: "/admin/certificates", label: i18n.t("adminLayout:certificats"), icon: Award },
       { to: "/admin/categories", label: i18n.t("adminLayout:categories"), icon: Tag },
+      { to: "/admin/translations", label: i18n.t("adminLayout:traductions"), icon: Languages },
       { to: "/admin/leaderboard", label: i18n.t("adminLayout:classement"), icon: Trophy },
       { to: "/admin/messages", label: i18n.t("adminLayout:messages"), icon: Mail },
+      { to: "/admin/marketing", label: i18n.t("adminLayout:marketing"), icon: Send },
+      { to: "/admin/campaigns", label: i18n.t("adminLayout:campagnes"), icon: Megaphone },
       { to: "/admin/settings", label: i18n.t("adminLayout:parametres"), icon: Settings },
     ],
   },
@@ -70,7 +74,7 @@ export default function AdminLayout() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className={`flex items-center gap-3 px-5 py-5 border-b border-white/10 shrink-0 ${collapsed ? "justify-center" : ""}`}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 flex-shrink-0" style={{background:"linear-gradient(135deg,#2d287f,#5653e1)"}}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 flex-shrink-0" style={{background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))"}}>
           <Shield className="w-5 h-5 text-white" />
         </div>
         {!collapsed && (
@@ -149,7 +153,7 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3">
             <NotificationBell basePath="/admin/notifications" />
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{background:"#facc15",color:"#2d287f"}}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{background:"rgb(var(--c-accent))",color:"rgb(var(--c-primary))"}}>
                 {user?.first_name?.[0]}{user?.last_name?.[0]}
               </div>
               <div className="hidden sm:block text-sm">

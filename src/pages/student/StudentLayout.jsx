@@ -1,5 +1,5 @@
 // src/pages/Student/StudentLayout.jsx
-// Sidebar claire, épurée, charte DevOps Akademy : primary #2d287f / accent #facc15
+// Sidebar claire, épurée, charte DevOps Akademy : primary rgb(var(--c-primary)) / accent rgb(var(--c-accent))
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -71,11 +71,11 @@ export default function StudentLayout() {
         className={`flex items-center gap-2.5 py-5 flex-shrink-0 transition-all ${collapsed?"justify-center px-3":"px-5"}`}
         style={{ borderBottom:"1px solid #e8e6f5" }}>
         <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background:"#facc15" }}>
-          <GraduationCap className="w-4 h-4" style={{ color:"#2d287f" }} />
+          style={{ background:"rgb(var(--c-accent))" }}>
+          <GraduationCap className="w-4 h-4" style={{ color:"rgb(var(--c-primary))" }} />
         </div>
         {!collapsed && (
-          <span className="font-black text-sm" style={{ color:"#2d287f" }}>{t("devops")}{" "}<span style={{ color:"#5653e1" }}>{t("akademy")}</span>
+          <span className="font-black text-sm" style={{ color:"rgb(var(--c-primary))" }}>{t("devops")}{" "}<span style={{ color:"rgb(var(--c-primary-light))" }}>{t("akademy")}</span>
           </span>
         )}
       </Link>
@@ -87,10 +87,10 @@ export default function StudentLayout() {
             {user?.avatar_url
               ? <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-lg object-contain flex-shrink-0"/>
               : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
-                  style={{ background:"#2d287f", color:"#facc15" }}>{initials}</div>
+                  style={{ background:"rgb(var(--c-primary))", color:"rgb(var(--c-accent))" }}>{initials}</div>
             }
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate leading-none" style={{ color:"#2d287f" }}>{fullName}</p>
+              <p className="text-sm font-semibold truncate leading-none" style={{ color:"rgb(var(--c-primary))" }}>{fullName}</p>
               <div className="flex items-center gap-1 mt-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <p className="text-xs text-emerald-600 font-medium">{t("etudiant")}</p>
@@ -103,7 +103,7 @@ export default function StudentLayout() {
           {user?.avatar_url
             ? <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-lg object-contain"/>
             : <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black"
-                style={{ background:"#2d287f", color:"#facc15" }}>{initials}</div>
+                style={{ background:"rgb(var(--c-primary))", color:"rgb(var(--c-accent))" }}>{initials}</div>
           }
         </div>
       )}
@@ -130,14 +130,14 @@ export default function StudentLayout() {
                     }
                   `}
                   style={({ isActive }) => isActive
-                    ? { background:"#eeeeff", color:"#2d287f", fontWeight:700 }
+                    ? { background:"#eeeeff", color:"rgb(var(--c-primary))", fontWeight:700 }
                     : {}
                   }
                 >
                   {({ isActive }) => (
                     <>
                       <Icon className="w-4 h-4 flex-shrink-0"
-                        style={{ color: isActive ? "#2d287f" : undefined }} />
+                        style={{ color: isActive ? "rgb(var(--c-primary))" : undefined }} />
                       {!collapsed && (
                         <>
                           <span className="flex-1 leading-none">{label}</span>
@@ -186,15 +186,15 @@ export default function StudentLayout() {
       {/* ── SIDEBAR DESKTOP ── */}
       <aside
         className={`hidden lg:flex flex-col relative flex-shrink-0 transition-[width] duration-300 ease-in-out bg-white`}
-        style={{ width: collapsed ? 60 : 210, borderRight:"1px solid #e8e6f5", boxShadow:"2px 0 12px rgba(45,40,127,0.06)" }}>
+        style={{ width: collapsed ? 60 : 210, borderRight:"1px solid #e8e6f5", boxShadow:"2px 0 12px rgb(var(--c-primary) / 0.06)" }}>
         <SidebarContent />
         <button
           onClick={() => setCollapsed(p => !p)}
           className="absolute -right-3.5 top-20 w-7 h-7 rounded-full flex items-center justify-center z-10 bg-white shadow-md transition hover:shadow-lg"
           style={{ border:"1.5px solid #e8e6f5" }}>
           {collapsed
-            ? <ChevronRight className="w-3.5 h-3.5" style={{ color:"#5653e1" }} />
-            : <ChevronLeft  className="w-3.5 h-3.5" style={{ color:"#5653e1" }} />
+            ? <ChevronRight className="w-3.5 h-3.5" style={{ color:"rgb(var(--c-primary-light))" }} />
+            : <ChevronLeft  className="w-3.5 h-3.5" style={{ color:"rgb(var(--c-primary-light))" }} />
           }
         </button>
       </aside>
@@ -221,10 +221,10 @@ export default function StudentLayout() {
             <Menu className="w-5 h-5" />
           </button>
           <Link to="/student" className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background:"#facc15" }}>
-              <GraduationCap className="w-3.5 h-3.5" style={{ color:"#2d287f" }} />
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background:"rgb(var(--c-accent))" }}>
+              <GraduationCap className="w-3.5 h-3.5" style={{ color:"rgb(var(--c-primary))" }} />
             </div>
-            <span className="font-black text-sm" style={{ color:"#2d287f" }}>{t("devops")}{" "}<span style={{ color:"#5653e1" }}>{t("akademy")}</span></span>
+            <span className="font-black text-sm" style={{ color:"rgb(var(--c-primary))" }}>{t("devops")}{" "}<span style={{ color:"rgb(var(--c-primary-light))" }}>{t("akademy")}</span></span>
           </Link>
           <Link to="/notifications" className="p-2 rounded-lg hover:bg-slate-100 transition text-slate-400">
             <Bell className="w-5 h-5" />

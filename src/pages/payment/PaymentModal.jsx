@@ -1,7 +1,8 @@
 // src/pages/payment/PaymentModal.jsx — DevOpsAkademy
 // Parcours inscription & paiement 4 étapes
 // Tous les numéros, noms et activation lus depuis .env
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
+import usePublicOffers, { bestOfferFor, getStoredPromo } from "../../hooks/usePublicOffers"
 import { useAuth } from "../../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
 import {
@@ -162,7 +163,7 @@ function Steps({ current }) {
           <div className="flex items-center gap-1.5 min-w-0">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 transition-all
               ${i < current ? "bg-emerald-500 text-white" : i === current ? "text-white" : "bg-gray-100 text-gray-400"}`}
-              style={i === current ? { background: "linear-gradient(135deg,#2d287f,#5653e1)" } : {}}>
+              style={i === current ? { background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" } : {}}>
               {i < current ? <CheckCircle className="w-4 h-4" /> : i + 1}
             </div>
             <span className={`text-xs font-semibold truncate hidden sm:block
@@ -228,9 +229,48 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
   const [copied,  setCopied]  = useState(false)
   const fileRef = useRef()
 
-  const price    = Number(course?.price || 0)
-  const isFree   = course?.is_free === 1 || price === 0
-  const priceFmt = fmtPrice(price)
+  const [coupon,      setCoupon]      = useState(null)     // { code, discount, final_price }
+  const [couponInput, setCouponInput] = useState("")
+  const [couponMsg,   setCouponMsg]   = useState("")
+  const [couponBusy,  setCouponBusy]  = useState(false)
+
+  const basePrice  = Number(course?.price || 0)
+  const price      = coupon ? coupon.final_price : basePrice
+  const isFree     = course?.is_free === 1 || price === 0
+  const canCoupon  = !(course?.is_free === 1 || basePrice === 0)
+  const priceFmt   = fmtPrice(price)
+
+  // `override` : code fourni automatiquement (lien de partage ou offre affichée) ; `silent` : pas de message d'erreur
+  const applyCoupon = async (override, silent = false) => {
+    const code = (typeof override === "string" ? override : couponInput).trim()
+    if (!code) return
+    setCouponBusy(true); setCouponMsg("")
+    try {
+      const res  = await fetch("/api/marketing/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        credentials: "include",
+        body: JSON.stringify({ code, course_id: course.id }),
+      })
+      const data = await res.json()
+      if (data?.data?.valid) { setCoupon({ code: data.data.code, discount: data.data.discount, final_price: data.data.final_price }); setCouponInput("") }
+      else if (!silent) setCouponMsg(data?.data?.message || data?.message || t("coupon_error"))
+    } catch { if (!silent) setCouponMsg(t("coupon_error")) }
+    finally { setCouponBusy(false) }
+  }
+
+  // Code reçu par lien (?promo=) ou offre affichée sur le cours : appliqué automatiquement à l'ouverture
+  const offers = usePublicOffers()
+  const autoTried = useRef(false)
+  useEffect(() => {
+    if (autoTried.current || !canCoupon || !token) return
+    const linked = getStoredPromo()
+    const offer  = bestOfferFor(offers, course)
+    const code   = linked || offer?.code
+    if (!code) return
+    autoTried.current = true
+    applyCoupon(code, !linked)
+  }, [offers, canCoupon, token]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Copier le numéro
   const copyNumber = () => {
@@ -248,7 +288,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         credentials: "include",
-        body: JSON.stringify({ course_id: course.id }),
+        body: JSON.stringify({ course_id: course.id, ...(coupon ? { coupon_code: coupon.code } : {}) }),
       })
       const data = await res.json()
       const eid  = data?.data?.enrollment_id || data?.data?.id
@@ -322,7 +362,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
 
         {/* Header */}
         <div className="flex-shrink-0 px-6 pt-5 pb-4 relative"
-          style={{ background:"linear-gradient(135deg,#1e1b4b,#2d287f,#4c1d95)" }}>
+          style={{ background:"linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)),#4c1d95)" }}>
           <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-4 sm:hidden" />
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -334,7 +374,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
               </div>
               <h2 className="text-white font-black text-base leading-snug line-clamp-2">{course?.title}</h2>
               <div className="flex items-center gap-3 mt-2">
-                <span className="text-2xl font-black" style={{ color:"#facc15" }}>
+                <span className="text-2xl font-black" style={{ color:"rgb(var(--c-accent))" }}>
                   {isFree ? t("gratuit") : priceFmt}
                 </span>
                 {!isFree && (
@@ -374,14 +414,43 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                         <span className="font-semibold text-gray-800 text-right max-w-[55%] truncate">{v}</span>
                       </div>
                     ))}
+                    {coupon && (
+                      <div className="flex justify-between items-center px-4 py-2.5 text-sm bg-emerald-50">
+                        <span className="text-emerald-700 font-semibold">{t("coupon_discount", { code: coupon.code })}</span>
+                        <span className="font-bold text-emerald-700">-{fmtPrice(coupon.discount)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center px-4 py-3 bg-indigo-50">
                       <span className="font-black text-gray-900">{t("total_a_payer")}</span>
-                      <span className="font-black text-xl" style={{ color:"#2d287f" }}>
+                      <span className="font-black text-xl" style={{ color:"rgb(var(--c-primary))" }}>
                         {isFree ? t("gratuit") : priceFmt}
                       </span>
                     </div>
                   </div>
                 </div>
+
+                {canCoupon && (
+                  <div className="rounded-2xl border border-gray-100 p-4 space-y-2">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("coupon_label")}</p>
+                    {coupon ? (
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-semibold text-emerald-700">✓ {t("coupon_applied", { code: coupon.code })}</span>
+                        <button type="button" onClick={() => { setCoupon(null); setCouponMsg("") }} className="text-xs font-bold text-gray-500 hover:underline">{t("coupon_remove")}</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input value={couponInput} onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponMsg("") }} placeholder={t("coupon_placeholder")} maxLength={50}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCoupon() } }}
+                          className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono uppercase focus:outline-none focus:border-indigo-400" />
+                        <button type="button" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()}
+                          className="px-4 py-2 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: "rgb(var(--c-primary))" }}>
+                          {couponBusy ? "…" : t("coupon_apply")}
+                        </button>
+                      </div>
+                    )}
+                    {couponMsg && <p className="text-xs text-red-600">{couponMsg}</p>}
+                  </div>
+                )}
 
                 {!isFree && (
                   <div className="rounded-2xl p-4 space-y-2.5"
@@ -423,7 +492,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
               <>
                 <div>
                   <h3 className="font-black text-gray-900 text-lg">{t("moyen_de_paiement")}</h3>
-                  <p className="text-sm text-gray-500 mt-0.5">{t("montant")}{" "}<strong style={{ color:"#2d287f" }}>{priceFmt}</strong>
+                  <p className="text-sm text-gray-500 mt-0.5">{t("montant")}{" "}<strong style={{ color:"rgb(var(--c-primary))" }}>{priceFmt}</strong>
                   </p>
                 </div>
 
@@ -460,7 +529,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                       <p className="text-xs text-gray-500 mb-1">{t("envoyez_a_ce_numero")}</p>
                       <p className="font-black text-2xl text-gray-900 tracking-wider">{method.number}</p>
                       <p className="text-sm text-gray-500 italic mt-0.5">{method.accountName}</p>
-                      <p className="font-black text-2xl mt-2" style={{ color:"#2d287f" }}>{priceFmt}</p>
+                      <p className="font-black text-2xl mt-2" style={{ color:"rgb(var(--c-primary))" }}>{priceFmt}</p>
                       <button onClick={copyNumber}
                         className="mt-3 px-5 py-2 rounded-xl text-sm font-bold text-white transition"
                         style={{ background: copied ? "linear-gradient(135deg,#059669,#10b981)" : `linear-gradient(135deg,${method.color},${method.color}cc)`,
@@ -501,7 +570,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                   <h3 className="font-black text-gray-900 text-lg">{t("preuve_de_paiement")}</h3>
                   {method && (
                     <p className="text-sm text-gray-500 mt-0.5">
-                      {method.short} · <strong style={{ color:"#2d287f" }}>{priceFmt}</strong>
+                      {method.short} · <strong style={{ color:"rgb(var(--c-primary))" }}>{priceFmt}</strong>
                     </p>
                   )}
                 </div>
@@ -619,7 +688,7 @@ export default function PaymentModal({ course, onClose, onSuccess }) {
                 )}
                 <button onClick={() => { onSuccess?.(); onClose() }}
                   className="w-full py-4 text-white rounded-2xl font-black transition hover:opacity-90 shadow-lg"
-                  style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                  style={{ background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                   {isFree ? t("commencer_le_cours_maintenant") : t("retour_au_catalogue")}
                 </button>
               </div>
@@ -659,7 +728,7 @@ function Btns({ onBack, backLabel, onNext, nextLabel, nextStyle={}, loading, dis
       </button>
       <button onClick={onNext} disabled={loading || disabled}
         className="flex-[2] py-3 text-white rounded-2xl font-black text-sm transition hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-        style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)", ...nextStyle }}>
+        style={{ background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))", ...nextStyle }}>
         {loading ? <><Loader className="w-4 h-4 animate-spin" />{" "}{t("chargement")}</> : nextLabel}
       </button>
     </div>

@@ -2,7 +2,7 @@
 // ║  AdminCourses.jsx  —  DevOpsAkademy                             ║
 // ║  Gestion COMPLÈTE cours · modules · leçons · ressources         ║
 // ║  Upload vidéo depuis l'ordi · Publier/Dépublier partout         ║
-// ║  Intégré aux couleurs Tailwind du projet (#2d287f / #facc15)    ║
+// ║  Intégré aux couleurs Tailwind du projet (rgb(var(--c-primary)) / rgb(var(--c-accent)))    ║
 // ╚══════════════════════════════════════════════════════════════════╝
 import CourseImage from "../../components/UI/CourseImage";
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -21,6 +21,7 @@ import FileUrlField from "../../components/Common/FileUrlField";
 import { FileTypeIcon } from "../../components/UI/Icons";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
+import { tint } from "../../utils/color";
 
 /* ──────── CONSTANTES ──────── */
 const LEVEL_MAP  = () => ({ beginner:i18n.t("adminCourses:debutant"),   intermediate:i18n.t("adminCourses:intermediaire"), advanced:i18n.t("adminCourses:avance") });
@@ -91,7 +92,7 @@ function Modal({ open, onClose, title, children, wide }) {
 }
 
 /* ──────── TOGGLE ──────── */
-function Toggle({ label, checked, on, color = "#2d287f" }) {
+function Toggle({ label, checked, on, color = "rgb(var(--c-primary))" }) {
   return (
     <label className="flex items-center gap-3 cursor-pointer select-none">
       <div
@@ -107,9 +108,9 @@ function Toggle({ label, checked, on, color = "#2d287f" }) {
 }
 
 /* ──────── BADGE ──────── */
-function Badge({ children, color = "#2d287f", bg }) {
+function Badge({ children, color = "rgb(var(--c-primary))", bg }) {
   return (
-    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: bg || (color + "18"), color }}>
+    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: bg || tint(color, 9), color }}>
       {children}
     </span>
   );
@@ -133,7 +134,7 @@ const IS = "w-full border-[1.5px] border-slate-200 rounded-xl px-3.5 py-2.5 text
 
 /* ──────── SPINNER ──────── */
 const Spin = ({ sm }) => (
-  <div className={`rounded-full border-4 border-slate-200 border-t-primary animate-spin ${sm ? "w-5 h-5 border-[3px]" : "w-9 h-9"}`} style={{ borderTopColor: "#2d287f" }} />
+  <div className={`rounded-full border-4 border-slate-200 border-t-primary animate-spin ${sm ? "w-5 h-5 border-[3px]" : "w-9 h-9"}`} style={{ borderTopColor: "rgb(var(--c-primary))" }} />
 );
 
 /* ──────── UPLOAD VIDÉO ──────── */
@@ -177,7 +178,7 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
       {/* Onglets */}
       <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
         {[["url", Link, i18n.t("adminCourses:url_externe")], ["file", Upload, i18n.t("adminCourses:depuis_mon_ordi")]].map(([v, Icon, l]) => (
-          <button key={v} onClick={() => setTab(v)} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition ${tab === v ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`} style={tab === v ? { color: "#2d287f" } : {}}>
+          <button key={v} onClick={() => setTab(v)} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition ${tab === v ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`} style={tab === v ? { color: "rgb(var(--c-primary))" } : {}}>
             <Icon size={15} /> {l}
           </button>
         ))}
@@ -212,21 +213,21 @@ function VideoUploader({ token, lessonId, currentUrl, onSuccess }) {
             onDrop={e => { e.preventDefault(); setDragging(false); doUpload(e.dataTransfer.files[0]); }}
             onClick={() => !uploading && inputRef.current?.click()}
             className={`border-2 border-dashed rounded-2xl p-8 text-center transition cursor-pointer ${dragging ? "border-primary bg-primary/5" : "border-slate-300 hover:border-primary/50 hover:bg-slate-50"}`}
-            style={dragging ? { borderColor: "#2d287f" } : {}}
+            style={dragging ? { borderColor: "rgb(var(--c-primary))" } : {}}
           >
             {uploading ? (
               <div>
                 <div className="flex justify-center mb-3"><Spin sm /></div>
-                <p className="text-sm font-bold mb-3" style={{ color: "#2d287f" }}>{t("upload_en_cours")}</p>
+                <p className="text-sm font-bold mb-3" style={{ color: "rgb(var(--c-primary))" }}>{t("upload_en_cours")}</p>
                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: "linear-gradient(90deg,#2d287f,#5653e1)" }} />
+                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: "linear-gradient(90deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }} />
                 </div>
                 <p className="text-xs text-slate-400 mt-2">{progress}%</p>
               </div>
             ) : (
               <>
-                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#2d287f18" }}>
-                  <Film size={26} style={{ color: "#2d287f" }} />
+                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "rgb(var(--c-primary) / 0.094)" }}>
+                  <Film size={26} style={{ color: "rgb(var(--c-primary))" }} />
                 </div>
                 <p className="font-bold text-slate-700 mb-1">{t("glissez_votre_video_ici")}</p>
                 <p className="text-xs text-slate-400">{t("ou_cliquez_pour_selectionner_mp4_mkv")}</p>
@@ -298,7 +299,7 @@ function ResourceUploader({ token, lessonId, onSuccess }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
         {FILE_TYPES.map(([v, l]) => (
-          <button key={v} onClick={() => setFileType(v)} className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition ${fileType === v ? "border-primary/50 bg-primary/8 text-primary" : "border-slate-200 text-slate-500 hover:border-slate-300"}`} style={fileType === v ? { borderColor: "#2d287f50", background: "#2d287f10", color: "#2d287f" } : {}}>
+          <button key={v} onClick={() => setFileType(v)} className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition ${fileType === v ? "border-primary/50 bg-primary/8 text-primary" : "border-slate-200 text-slate-500 hover:border-slate-300"}`} style={fileType === v ? { borderColor: "rgb(var(--c-primary) / 0.314)", background: "rgb(var(--c-primary) / 0.063)", color: "rgb(var(--c-primary))" } : {}}>
             <FileTypeIcon type={v} className="w-3.5 h-3.5" />{l}
           </button>
         ))}
@@ -321,9 +322,9 @@ function ResourceUploader({ token, lessonId, onSuccess }) {
             {uploading ? (
               <div>
                 <div className="flex justify-center mb-2"><Spin sm /></div>
-                <p className="text-xs font-bold mb-2" style={{ color: "#2d287f" }}>{t("envoi")}</p>
+                <p className="text-xs font-bold mb-2" style={{ color: "rgb(var(--c-primary))" }}>{t("envoi")}</p>
                 <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "#2d287f" }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "rgb(var(--c-primary))" }} />
                 </div>
               </div>
             ) : file ? (
@@ -659,10 +660,10 @@ export default function AdminCourses() {
           <div className="flex items-end justify-between mb-7 flex-wrap gap-4">
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <BookOpen size={26} style={{ color: "#2d287f" }} />{" "}{t("gestion_des_cours")}</h1>
+                <BookOpen size={26} style={{ color: "rgb(var(--c-primary))" }} />{" "}{t("gestion_des_cours")}</h1>
               <p className="text-sm text-slate-400 mt-1">{t("cours", { length: courses.length })}{" "}{courses.filter(c => c.is_published).length}{" "}{t("publies")}{" "}{courses.filter(c => c.is_free).length}{" "}{i18n.t("adminCourses:gratuits")}</p>
             </div>
-            <button onClick={openCreate} className="flex items-center gap-2 px-5 py-2.5 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+            <button onClick={openCreate} className="flex items-center gap-2 px-5 py-2.5 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5" style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
               <Plus size={16} />{" "}{t("nouveau_cours")}</button>
           </div>
 
@@ -670,11 +671,11 @@ export default function AdminCourses() {
           <div className="flex gap-3 mb-5 flex-wrap">
             <div className="flex-1 min-w-[200px] relative">
               <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("rechercher_par_titre_instructeur")} className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10" style={{ "--tw-ring-color": "#2d287f20" }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("rechercher_par_titre_instructeur")} className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10" style={{ "--tw-ring-color": "rgb(var(--c-primary) / 0.125)" }} />
             </div>
             <div className="flex gap-2 flex-wrap">
               {[["all",i18n.t("adminCourses:tous")],["published",i18n.t("adminCourses:publies_2")],["draft",i18n.t("adminCourses:brouillons_filtre")],["free",i18n.t("adminCourses:gratuits_2")],["featured",i18n.t("adminCourses:vedette")]].map(([v, l]) => (
-                <button key={v} onClick={() => setFilter(v)} className={`px-4 py-2.5 rounded-xl text-xs font-bold transition ${filter === v ? "text-white shadow-sm" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`} style={filter === v ? { background: "#2d287f" } : {}}>
+                <button key={v} onClick={() => setFilter(v)} className={`px-4 py-2.5 rounded-xl text-xs font-bold transition ${filter === v ? "text-white shadow-sm" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`} style={filter === v ? { background: "rgb(var(--c-primary))" } : {}}>
                   {l}
                 </button>
               ))}
@@ -692,19 +693,19 @@ export default function AdminCourses() {
           ) : (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-5">
               {filtered.map(c => {
-                const lc = LEVEL_CLR[c.level] || "#2d287f";
+                const lc = LEVEL_CLR[c.level] || "rgb(var(--c-primary))";
                 return (
                   <div key={c.id} onClick={() => openEditor(c)} className="bg-white rounded-2xl border border-slate-100 overflow-hidden cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-200 shadow-sm">
                     {/* Bannière */}
-                    <div className="h-28 relative overflow-hidden" style={{ background: `linear-gradient(135deg,${lc}30,${lc}88)` }}>
+                    <div className="h-28 relative overflow-hidden" style={{ background: `linear-gradient(135deg,${tint(lc, 19)},${tint(lc, 53)})` }}>
                       {c.thumbnail_url && <img src={c.thumbnail_url} alt="" className="w-full h-full object-contain opacity-80" onError={e => e.target.style.display = "none"} />}
                       <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55))" }} />
                       <div className="absolute top-2.5 left-3 flex gap-1.5">
-                        <Badge color={lc} bg={lc + "30"}>{LEVEL_MAP()[c.level]}</Badge>
+                        <Badge color={lc} bg={tint(lc, 19)}>{LEVEL_MAP()[c.level]}</Badge>
                         <Badge color="#fff" bg="rgba(0,0,0,.35)">{(c.language || "fr").toUpperCase()}</Badge>
                       </div>
                       <div className="absolute top-2.5 right-2.5 flex gap-1.5">
-                        {!!c.is_featured && <Badge color="#facc15" bg="rgba(0,0,0,.4)"></Badge>}
+                        {!!c.is_featured && <Badge color="rgb(var(--c-accent))" bg="rgba(0,0,0,.4)"></Badge>}
                         <Badge color={c.is_published ? "#4ade80" : "#fca5a5"} bg="rgba(0,0,0,.4)">{c.is_published ? t("publie") : t("brouillon")}</Badge>
                       </div>
                       <p className="absolute bottom-2 left-3 right-3 font-bold text-white text-sm leading-tight" style={{ textShadow: "0 1px 5px rgba(0,0,0,.6)" }}>{c.title}</p>
@@ -713,7 +714,7 @@ export default function AdminCourses() {
                     <div className="p-4">
                       <p className="text-xs text-slate-400 mb-2 truncate">{c.instructor_name || "—"} · {c.category_name || "—"}</p>
                       <div className="flex gap-1.5 flex-wrap mb-3">
-                        <Badge color="#2d287f">{c.is_free ? t("gratuit") : `${Number(c.price || 0).toLocaleString()} XAF`}</Badge>
+                        <Badge color="rgb(var(--c-primary))">{c.is_free ? t("gratuit") : `${Number(c.price || 0).toLocaleString()} XAF`}</Badge>
                         <Badge color="#64748b">{c.duration_hours || 0}h</Badge>
                         <Badge color="#64748b">{(c.student_count || 0).toLocaleString()}</Badge>
                         <Badge color="#d97706">{Number(c.rating || 0).toFixed(1)}</Badge>
@@ -755,7 +756,7 @@ export default function AdminCourses() {
             {/* Gauche */}
             <div className="flex flex-col gap-4">
               {[
-                [i18n.t("adminCourses:informations_generales"), "#2d287f", () => (
+                [i18n.t("adminCourses:informations_generales"), "rgb(var(--c-primary))", () => (
                   <div className="grid grid-cols-2 gap-3">
                     <Field label={t("titre")} required><input className={IS} value={cForm.title || ""} onChange={e => setCForm(p => ({ ...p, title: e.target.value }))} placeholder={t("docker_fondamentaux")} /></Field>
                     <Field label={t("slug")}><input className={IS} value={cForm.slug || ""} onChange={e => setCForm(p => ({ ...p, slug: e.target.value }))} placeholder="docker-fondamentaux" /></Field>
@@ -811,9 +812,9 @@ export default function AdminCourses() {
                             onClick={() => setCForm(p => ({ ...p, thumbnail_url: url }))}
                             className="px-2 py-0.5 rounded-md text-[10px] font-bold border transition hover:scale-105"
                             style={{
-                              background: cForm.thumbnail_url === url ? "#2d287f" : "#f8f7ff",
-                              color:      cForm.thumbnail_url === url ? "#fff"    : "#2d287f",
-                              borderColor: cForm.thumbnail_url === url ? "#2d287f" : "#e0e7ff",
+                              background: cForm.thumbnail_url === url ? "rgb(var(--c-primary))" : "#f8f7ff",
+                              color:      cForm.thumbnail_url === url ? "#fff"    : "rgb(var(--c-primary))",
+                              borderColor: cForm.thumbnail_url === url ? "rgb(var(--c-primary))" : "#e0e7ff",
                             }}>
                             {name}
                           </button>
@@ -902,7 +903,7 @@ export default function AdminCourses() {
                 </div>
               ))}
 
-              <button onClick={saveCourse} disabled={saving} className="w-full py-3.5 text-white font-bold text-sm rounded-2xl transition shadow-lg hover:shadow-xl hover:-translate-y-0.5" style={{ background: saving ? "#a5b4fc" : "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              <button onClick={saveCourse} disabled={saving} className="w-full py-3.5 text-white font-bold text-sm rounded-2xl transition shadow-lg hover:shadow-xl hover:-translate-y-0.5" style={{ background: saving ? "#a5b4fc" : "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                 {saving ? t("enregistrement") : isNew ? t("creer_le_cours") : t("mettre_a_jour")}
               </button>
             </div>
@@ -916,7 +917,7 @@ export default function AdminCourses() {
           {/* Bandeau cours */}
           <div className="flex items-center gap-4 mb-5 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex-wrap">
             <button onClick={() => setView("list")} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition flex-shrink-0">{t("retour")}</button>
-            <div className="w-12 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: `linear-gradient(135deg,${LEVEL_CLR[course.level] || "#2d287f"}50,${LEVEL_CLR[course.level] || "#2d287f"})` }}>
+            <div className="w-12 h-10 rounded-xl overflow-hidden flex-shrink-0" style={{ background: `linear-gradient(135deg,${LEVEL_CLR[course.level] || "rgb(var(--c-primary))"}50,${LEVEL_CLR[course.level] || "rgb(var(--c-primary))"})` }}>
               {course.thumbnail_url && <img src={course.thumbnail_url} alt="" className="w-full h-full object-contain" onError={e => e.target.style.display = "none"} />}
             </div>
             <div className="flex-1 min-w-0">
@@ -927,7 +928,7 @@ export default function AdminCourses() {
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
                 {course.instructor_name} · {LEVEL_MAP()[course.level]} · {(course.language || "fr").toUpperCase()}
-                {" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{modules.length}</strong>{" "}{i18n.t("adminCourses:module_2", { s: modules.length !== 1 ? "s" : "" })}{" · "}<strong className="text-primary" style={{ color: "#2d287f" }}>{totalLessons}</strong>{" "}{t("lecon_p", { s: totalLessons !== 1 ? "s" : "" })}
+                {" · "}<strong className="text-primary" style={{ color: "rgb(var(--c-primary))" }}>{modules.length}</strong>{" "}{i18n.t("adminCourses:module_2", { s: modules.length !== 1 ? "s" : "" })}{" · "}<strong className="text-primary" style={{ color: "rgb(var(--c-primary))" }}>{totalLessons}</strong>{" "}{t("lecon_p", { s: totalLessons !== 1 ? "s" : "" })}
               </p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
@@ -937,7 +938,7 @@ export default function AdminCourses() {
                 {dlCourse ? <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> : <Download size={14} />}
                 {dlCourse ? t("export") : t("export_2")}
               </button>
-              <button onClick={() => openModM()} className="flex items-center gap-1.5 px-4 py-2 text-white rounded-xl text-sm font-bold hover:opacity-90 transition shadow-md" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              <button onClick={() => openModM()} className="flex items-center gap-1.5 px-4 py-2 text-white rounded-xl text-sm font-bold hover:opacity-90 transition shadow-md" style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                 <Plus size={15} />{" "}{t("module")}</button>
             </div>
           </div>
@@ -958,7 +959,7 @@ export default function AdminCourses() {
                   
                   <p className="font-bold text-slate-700 text-base mb-2">{t("ce_cours_n_a_pas_encore")}</p>
                   <p className="text-sm text-slate-400 mb-5">{t("verifiez_que_le_backend_est_rebuild")}</p>
-                  <button onClick={() => openModM()} className="px-7 py-3 text-white rounded-2xl font-bold text-sm shadow-lg" style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{t("creer_le_premier_module")}</button>
+                  <button onClick={() => openModM()} className="px-7 py-3 text-white rounded-2xl font-bold text-sm shadow-lg" style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>{t("creer_le_premier_module")}</button>
                 </div>
               )}
 
@@ -988,7 +989,7 @@ export default function AdminCourses() {
                         </div>
                         {mod.description && <p className="text-xs text-slate-400 mt-0.5">{mod.description}</p>}
                         <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                          <Badge color="#2d287f">{t("lecon_2_p", { length: modLes.length, s: modLes.length !== 1 ? "s" : "" })}</Badge>
+                          <Badge color="rgb(var(--c-primary))">{t("lecon_2_p", { length: modLes.length, s: modLes.length !== 1 ? "s" : "" })}</Badge>
                           {totMin > 0 && <Badge color="#64748b">{i18n.t("adminCourses:min", { totMin })}</Badge>}
                         </div>
                       </div>
@@ -1025,7 +1026,7 @@ export default function AdminCourses() {
                                   {/* Ligne leçon */}
                                   <div className="flex items-center gap-2.5 px-4 py-3 bg-slate-50/80">
                                     <span className="text-[8px] text-slate-300 flex-shrink-0">⠿</span>
-                                    <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0" style={{ background: "#e0e7ff", color: "#4f46e5" }}>{li + 1}</span>
+                                    <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0" style={{ background: "#e0e7ff", color: "rgb(var(--c-primary-vibrant))" }}>{li + 1}</span>
                                     <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: tc + "18", color: tc }}>
                                       <TIcon size={13} />
                                     </div>
@@ -1117,7 +1118,7 @@ export default function AdminCourses() {
             </div>
             <div className="flex gap-3 mt-6 pt-5 border-t border-slate-100">
               <button onClick={() => setModM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">{t("annuler")}</button>
-              <button onClick={saveMod} disabled={modSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: modSv ? "#a5b4fc" : "#2d287f" }}>
+              <button onClick={saveMod} disabled={modSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: modSv ? "#a5b4fc" : "rgb(var(--c-primary))" }}>
                 {modSv ? t("enregistrement") : modM._new ? t("creer_le_module") : t("mettre_a_jour")}
               </button>
             </div>
@@ -1155,7 +1156,7 @@ export default function AdminCourses() {
               {/* URL vidéo + Upload inline */}
               {["video", "exercise", "download"].includes(lesM.content_type || "video") && (
                 <div className="bg-slate-50 rounded-2xl p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#2d287f" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "rgb(var(--c-primary))" }}>
                     {lesM.content_type === "video" ? t("contenu_video") : lesM.content_type === "download" ? t("url_du_fichier") : t("url_de_l_exercice")}
                   </p>
 
@@ -1164,7 +1165,7 @@ export default function AdminCourses() {
                     <>
                       <div className="flex gap-2 p-1 bg-white rounded-xl mb-3 border border-slate-200">
                         {[["url", i18n.t("adminCourses:url_externe")], ["upload", i18n.t("adminCourses:depuis_mon_pc")]].map(([v, l]) => (
-                          <button key={v} onClick={() => setLesM(p => ({ ...p, _vidTab: v }))} className="flex-1 py-2 rounded-lg text-xs font-bold transition" style={{ background: (lesM._vidTab||"url")===v ? "#2d287f" : "transparent", color: (lesM._vidTab||"url")===v ? "#fff" : "#64748b" }}>
+                          <button key={v} onClick={() => setLesM(p => ({ ...p, _vidTab: v }))} className="flex-1 py-2 rounded-lg text-xs font-bold transition" style={{ background: (lesM._vidTab||"url")===v ? "rgb(var(--c-primary))" : "transparent", color: (lesM._vidTab||"url")===v ? "#fff" : "#64748b" }}>
                             {l}
                           </button>
                         ))}
@@ -1297,7 +1298,7 @@ export default function AdminCourses() {
 
             <div className="flex gap-3 mt-6 pt-5 border-t border-slate-100">
               <button onClick={() => setLesM(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">{t("annuler")}</button>
-              <button onClick={saveLes} disabled={lesSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: lesSv ? "#a5b4fc" : "#2d287f" }}>
+              <button onClick={saveLes} disabled={lesSv} className="flex-[2] py-3 text-white rounded-xl font-bold text-sm transition" style={{ background: lesSv ? "#a5b4fc" : "rgb(var(--c-primary))" }}>
                 {lesSv ? t("enregistrement") : lesM.les ? t("mettre_a_jour_la_lecon") : t("creer_la_lecon")}
               </button>
             </div>

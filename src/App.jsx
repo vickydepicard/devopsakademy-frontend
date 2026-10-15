@@ -18,6 +18,7 @@ import VerifyEmail from './pages/Auth/VerifyEmail';
 import About from './pages/About/About';
 import Pricing from './pages/Pricing/Pricing';
 import BecomeInstructor from './pages/BecomeInstructor/BecomeInstructor';
+import InterviewRoom from './pages/Interview/InterviewRoom';
 import CertificateVerify from './pages/Certificates/CertificateVerify';
 import Instructors      from './pages/Instructors/Instructors';
 import InstructorProfile from './pages/Instructors/InstructorProfile';
@@ -29,6 +30,7 @@ import ForumList from './pages/Forum/ForumList';
 import ForumThread from './pages/Forum/ForumThread';
 import ForumNew from './pages/Forum/ForumNew';
 import TawkTo from './components/Common/TawkTo';
+import ThemeProvider from './theme/ThemeProvider';
 
 // Pages de cours
 import CourseDetails from './pages/Courses/CourseDetails';
@@ -75,6 +77,15 @@ import AdminMessages from "./pages/Admin/AdminMessages";
 import AdminStudentDetail from "./pages/Admin/AdminStudentDetail";
 import InstructorBootcamps from './pages/Instructors/InstructorBootcamps';
 import InstructorEarnings from "./pages/Instructors/InstructorEarnings";
+import InstructorAgreement from "./pages/Instructors/InstructorAgreement";
+import InstructorMessages from "./pages/Instructors/InstructorMessages";
+import InstructorCollaborations from "./pages/Instructors/InstructorCollaborations";
+import AdminInstructorProgram from "./pages/Admin/AdminInstructorProgram";
+import AdminMarketing from "./pages/Admin/AdminMarketing";
+import AdminTranslations from "./pages/Admin/AdminTranslations";
+import EmailPreferences from "./pages/EmailPreferences/EmailPreferences";
+import NewsletterPage from "./pages/Newsletter/NewsletterPage";
+import SiteBanner from "./components/Common/SiteBanner";
 import AdminCourseReviews from "./pages/Admin/AdminCourseReviews";
 import AdminInstructors from "./pages/Admin/AdminInstructors";
 import AdminInstructorApplications from "./pages/Admin/AdminInstructorApplications";
@@ -83,6 +94,7 @@ import AdminCertificates from "./pages/Admin/AdminCertificates";
 import AdminCategories from "./pages/Admin/AdminCategories";
 import AdminLeaderboard from "./pages/Admin/AdminLeaderboard";
 import AdminSettings from "./pages/Admin/AdminSettings";
+import AdminCampaigns from "./pages/Admin/AdminCampaigns";
 
 // Soumissions
 import StudentSubmission from "./pages/Submissions/StudentSubmission";
@@ -99,10 +111,12 @@ import { useTranslation } from "react-i18next";
 function App() {
   const { i18n } = useTranslation();
   return (
+    <ThemeProvider>
     <AuthProvider>
       <ProfileProvider>
         <PermissionProvider>
           <div className="min-h-screen bg-gray-50 flex flex-col">
+            <SiteBanner />
             <Header />
             <main key={i18n.resolvedLanguage || i18n.language} className="flex-1">
               <Routes>
@@ -119,6 +133,9 @@ function App() {
                 <Route path="/about"                     element={<About />} />
                 <Route path="/pricing"                   element={<Pricing />} />
                 <Route path="/become-instructor"         element={<BecomeInstructor />} />
+                <Route path="/interview/:code"           element={<InterviewRoom />} />
+                <Route path="/email-preferences/:token"  element={<EmailPreferences />} />
+                <Route path="/newsletter"                element={<NewsletterPage />} />
                 <Route path="/certificates/verify"       element={<CertificateVerify />} />
                 <Route path="/certificates/verify/:number" element={<CertificateVerify />} />
                 <Route path="/instructors"               element={<Instructors />} />
@@ -188,6 +205,9 @@ function App() {
                   <Route path="courses/:id/analytics" element={<InstructorAnalytics />} />
                   <Route path="earnings"              element={<InstructorEarnings />} />
                   <Route path="bootcamps"             element={<InstructorBootcamps />} />
+                  <Route path="agreement"             element={<InstructorAgreement />} />
+                  <Route path="messages"              element={<InstructorMessages />} />
+                  <Route path="collaborations"        element={<InstructorCollaborations />} />
                 </Route>
 
                 {/* ── ADMIN ── */}
@@ -205,6 +225,9 @@ function App() {
                   <Route path="submissions"              element={<AdminSubmissionReview />} />
                   <Route path="submissions/:id"          element={<AdminSubmissionReview />} />
                   <Route path="instructors"              element={<AdminInstructors />} />
+                  <Route path="instructor-program"       element={<AdminInstructorProgram />} />
+                  <Route path="marketing"                element={<AdminMarketing />} />
+                  <Route path="translations"             element={<AdminTranslations />} />
                   <Route path="course-reviews"           element={<AdminCourseReviews />} />
                   <Route path="instructor-applications"  element={<AdminInstructorApplications />} />
                   <Route path="bootcamps"                element={<AdminBootcamps />} />
@@ -212,6 +235,7 @@ function App() {
                   <Route path="certificates"             element={<AdminCertificates />} />
                   <Route path="leaderboard"              element={<AdminLeaderboard />} />
                   <Route path="messages"                 element={<AdminMessages />} />
+                  <Route path="campaigns"                element={<AdminCampaigns />} />
                   <Route path="settings"                 element={<AdminSettings />} />
                   <Route path="notifications"            element={<Notifications />} />
                 </Route>
@@ -225,6 +249,7 @@ function App() {
         </PermissionProvider>
       </ProfileProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

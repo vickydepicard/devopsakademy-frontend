@@ -85,5 +85,12 @@
   "annuler": "Cancel",
   "montant_2": "Amount",
   "statut": "Status",
-  "actif": "Active"
+  "actif": "Active",
+  "coupon_label": "Promo code",
+  "coupon_placeholder": "Your code",
+  "coupon_apply": "Apply",
+  "coupon_applied": "Code {{code}} applied",
+  "coupon_remove": "Remove",
+  "coupon_discount": "Discount ({{code}})",
+  "coupon_error": "Could not check this code. Please try again."
 }

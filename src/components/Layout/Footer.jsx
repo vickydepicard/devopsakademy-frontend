@@ -4,6 +4,7 @@ import logo from "../../assets/logo2.png";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { usePermissions } from "../../contexts/PermissionContext";
+import NewsletterForm from "../Common/NewsletterForm";
 
 const linkCls = "text-gray-300 hover:text-accent transition text-sm";
 
@@ -36,6 +37,7 @@ const Footer = () => {
               <span className="text-lg font-bold text-white">DevOps <span className="text-accent">Akademy</span></span>
             </Link>
             <p className="text-sm leading-relaxed text-gray-400 max-w-xs">{t("footer.description")}</p>
+            <NewsletterForm />
           </div>
 
           <div>

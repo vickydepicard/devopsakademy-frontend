@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
-const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15", dark: "#1f1b5a" }
+const C = { primary: "rgb(var(--c-primary))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))", dark: "rgb(var(--c-primary-dark))" }
 
 const EXPERTISE_OPTIONS = [
   "Docker & Conteneurisation", "Kubernetes", "CI/CD (GitHub Actions, GitLab CI, Jenkins)",
@@ -388,7 +388,7 @@ function InstructorApplicationForm({ baseData, tempToken, onSuccess }) {
                   style={{
                     background: i + 1 < step ? "#10b981" : i + 1 === step ? `linear-gradient(135deg,${C.primary},${C.light})` : "#f3f4f6",
                     color: i + 1 <= step ? "#fff" : "#9ca3af",
-                    boxShadow: i + 1 === step ? "0 0 0 3px rgba(86,83,225,0.2)" : "none"
+                    boxShadow: i + 1 === step ? "0 0 0 3px rgb(var(--c-primary-light) / 0.2)" : "none"
                   }}>
                   {i + 1 < step ? "✓" : i + 1}
                 </div>
@@ -699,7 +699,7 @@ export default function Register() {
   const fw = (k) => `flex items-center rounded-xl border-2 transition bg-white ${errors[k] ? "border-red-300" : "border-gray-200 focus-within:border-indigo-400"}`
 
   return (
-    <div className="min-h-screen flex" style={{ background: `linear-gradient(135deg,#1e1b4b,#2d287f,#4c1d95)` }}>
+    <div className="min-h-screen flex" style={{ background: `linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)),#4c1d95)` }}>
       <div className="m-auto w-full max-w-5xl min-h-screen lg:min-h-0 lg:my-8 lg:rounded-3xl lg:shadow-2xl overflow-hidden flex flex-col lg:flex-row bg-white">
 
         {/* COLONNE GAUCHE */}
@@ -757,7 +757,7 @@ export default function Register() {
                     <button key={value} type="button" onClick={() => changeRole(value)}
                       className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all text-center"
                       style={role === value
-                        ? { background: `linear-gradient(135deg,${C.primary},${C.light})`, color: "#fff", boxShadow: "0 4px 12px rgba(45,40,127,0.3)" }
+                        ? { background: `linear-gradient(135deg,${C.primary},${C.light})`, color: "#fff", boxShadow: "0 4px 12px rgb(var(--c-primary) / 0.3)" }
                         : { background: "transparent", color: "#6b7280" }}>
                       <Icon className="w-5 h-5" />
                       <span className="font-black text-sm">{label}</span>

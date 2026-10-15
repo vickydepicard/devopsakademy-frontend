@@ -61,7 +61,7 @@ export default function CourseEnroll() {
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <Loader className="w-8 h-8 text-[#2d287f] animate-spin" />
+      <Loader className="w-8 h-8 text-primary animate-spin" />
     </div>
   );
 
@@ -73,7 +73,7 @@ export default function CourseEnroll() {
         </div>
         <h2 className="text-xl font-black text-gray-900 mb-2">{t("inscription_confirmee")}</h2>
         <p className="text-gray-500 text-sm mb-4">{t("redirection_vers_le_cours")}</p>
-        <div className="w-8 h-8 border-4 border-[#2d287f] border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
       </div>
     </div>
   );
@@ -84,17 +84,17 @@ export default function CourseEnroll() {
 
         {/* Icône */}
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6"
-          style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+          style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
           <BookOpen className="w-7 h-7 text-white" />
         </div>
 
-        <h1 className="text-2xl font-black text-[#1f1b5a] text-center mb-1">{t("confirmer_l_inscription")}</h1>
+        <h1 className="text-2xl font-black text-primary-dark text-center mb-1">{t("confirmer_l_inscription")}</h1>
         <p className="text-gray-500 text-sm text-center mb-6">{t("bonjour")}{" "}<strong>{user?.first_name || t("cher_apprenant")}</strong>,<br />{t("vous_allez_vous_inscrire_a")}</p>
 
         {/* Nom du cours */}
         {course && (
-          <div className="bg-[#2d287f]/5 border border-[#2d287f]/15 rounded-xl p-4 mb-6 text-center">
-            <p className="font-bold text-[#1f1b5a] text-base">{course.title}</p>
+          <div className="bg-primary/5 border border-primary/15 rounded-xl p-4 mb-6 text-center">
+            <p className="font-bold text-primary-dark text-base">{course.title}</p>
             <p className="text-emerald-600 text-sm font-semibold mt-1">{t("acces_gratuit")}</p>
           </div>
         )}
@@ -112,7 +112,7 @@ export default function CourseEnroll() {
             onClick={handleEnroll}
             disabled={enrolling}
             className="w-full py-3.5 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base disabled:opacity-70 hover:shadow-lg hover:-translate-y-0.5 transition-all"
-            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+            style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
             {enrolling
               ? <><Loader className="w-5 h-5 animate-spin" />{" "}{t("inscription_en_cours")}</>
               : <><CheckCircle className="w-5 h-5" />{" "}{t("confirmer_l_inscription")}</>

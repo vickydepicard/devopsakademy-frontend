@@ -26,7 +26,7 @@ const getInitials = (first, last) =>
 
 const AVATAR_COLORS = [
   "#7c3aed", "#059669", "#0284c7", "#dc2626",
-  "#d97706", "#4f46e5", "#0f766e", "#be185d",
+  "#d97706", "rgb(var(--c-primary-vibrant))", "#0f766e", "#be185d",
 ];
 const avatarColor = (id) => AVATAR_COLORS[(id || 0) % AVATAR_COLORS.length];
 
@@ -130,7 +130,7 @@ export default function ForumList() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── Header ── */}
-      <div className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white py-10 sm:py-14 px-4 sm:px-6">
+      <div className="bg-gradient-to-br from-primary-dark to-primary text-white py-10 sm:py-14 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
@@ -163,13 +163,13 @@ export default function ForumList() {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t("categories")}</p>
               <button
                 onClick={() => setActiveCategory(null)}
-                className={"w-full text-left px-3 py-2 rounded-xl text-sm font-medium mb-1 transition-colors " + (!activeCategory ? "bg-[#2d287f]/8 text-[#2d287f]" : "text-gray-600 hover:bg-gray-50")}
+                className={"w-full text-left px-3 py-2 rounded-xl text-sm font-medium mb-1 transition-colors " + (!activeCategory ? "bg-primary/8 text-primary" : "text-gray-600 hover:bg-gray-50")}
               >{t("tous_les_sujets")}</button>
               {categories.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id === activeCategory ? null : cat.id)}
-                  className={"w-full text-left px-3 py-2 rounded-xl text-sm font-medium mb-1 transition-colors flex items-center gap-2 " + (activeCategory === cat.id ? "bg-[#2d287f]/8 text-[#2d287f]" : "text-gray-600 hover:bg-gray-50")}
+                  className={"w-full text-left px-3 py-2 rounded-xl text-sm font-medium mb-1 transition-colors flex items-center gap-2 " + (activeCategory === cat.id ? "bg-primary/8 text-primary" : "text-gray-600 hover:bg-gray-50")}
                 >
                   <Hash className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">{cat.name}</span>
@@ -177,14 +177,14 @@ export default function ForumList() {
               ))}
 
               {!user && (
-                <Link to="/login" className="w-full mt-4 flex items-center justify-center gap-2 border border-[#2d287f] text-[#2d287f] font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-[#2d287f] hover:text-white transition-colors">
+                <Link to="/login" className="w-full mt-4 flex items-center justify-center gap-2 border border-primary text-primary font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-primary hover:text-white transition-colors">
                   {t("connectez_vous_pour_participer")}
                 </Link>
               )}
               {user && (
                 <button
                   onClick={() => navigate(`/forum/new${activeCategory ? `?category=${activeCategory}` : ""}`)}
-                  className="w-full mt-4 flex items-center justify-center gap-2 bg-[#2d287f] text-white font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-[#3b3aab] transition-colors"
+                  className="w-full mt-4 flex items-center justify-center gap-2 bg-primary text-white font-bold py-2.5 px-4 rounded-xl text-sm hover:bg-primary-700 transition-colors"
                 >
                   <Plus className="w-4 h-4" />{" "}{t("nouveau_sujet")}</button>
               )}
@@ -197,7 +197,7 @@ export default function ForumList() {
             <div className="flex flex-wrap gap-2 mb-4">
               {[["", t("filterAll")], ["unanswered", t("filterUnanswered")], ["resolved", t("filterResolved")], ...(user ? [["mine", t("filterMine")]] : [])].map(([k, label]) => (
                 <button key={k || "all"} onClick={() => setFilter(k)}
-                  className={"px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors " + (filter === k ? "bg-[#2d287f] text-white border-[#2d287f]" : "bg-white text-gray-600 border-gray-200 hover:border-[#2d287f]/40")}>
+                  className={"px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors " + (filter === k ? "bg-primary text-white border-primary" : "bg-white text-gray-600 border-gray-200 hover:border-primary/40")}>
                   {label}
                 </button>
               ))}
@@ -207,7 +207,7 @@ export default function ForumList() {
                 {loading ? t("chargement") : `${total} sujet${total > 1 ? "s" : ""}`}
               </p>
               {!user && (
-                <Link to="/login" className="text-sm text-[#2d287f] font-semibold hover:underline">{t("connectez_vous_pour_participer")}</Link>
+                <Link to="/login" className="text-sm text-primary font-semibold hover:underline">{t("connectez_vous_pour_participer")}</Link>
               )}
             </div>
 
@@ -233,7 +233,7 @@ export default function ForumList() {
                 <p className="font-semibold">{t("aucun_sujet_trouve")}</p>
                 <p className="text-sm mt-1">{t("soyez_le_premier_a_lancer_une")}</p>
                 {user && (
-                  <button onClick={() => navigate("/forum/new")} className="mt-4 inline-flex items-center gap-2 bg-[#2d287f] text-white font-bold py-2.5 px-6 rounded-xl text-sm hover:bg-[#3b3aab] transition-colors">
+                  <button onClick={() => navigate("/forum/new")} className="mt-4 inline-flex items-center gap-2 bg-primary text-white font-bold py-2.5 px-6 rounded-xl text-sm hover:bg-primary-700 transition-colors">
                     <Plus className="w-4 h-4" />{" "}{t("creer_un_sujet")}</button>
                 )}
               </div>
@@ -245,7 +245,7 @@ export default function ForumList() {
                   <Link
                     key={thread.id}
                     to={`/forum/thread/${thread.id}`}
-                    className="group flex flex-wrap sm:flex-nowrap items-start gap-3 sm:gap-4 bg-white border border-gray-100 hover:border-[#2d287f]/20 hover:shadow-md rounded-2xl p-5 transition-all duration-200"
+                    className="group flex flex-wrap sm:flex-nowrap items-start gap-3 sm:gap-4 bg-white border border-gray-100 hover:border-primary/20 hover:shadow-md rounded-2xl p-5 transition-all duration-200"
                   >
                     <Avatar
                       firstName={thread.author_first_name}
@@ -265,13 +265,13 @@ export default function ForumList() {
                             <CheckCircle className="w-2.5 h-2.5" />{" "}{t("resolved")}</span>
                         )}
                         {thread.category_name && (
-                          <span className="inline-flex items-center gap-1 text-xs bg-[#2d287f]/6 text-[#2d287f] px-2 py-0.5 rounded-full font-medium">
+                          <span className="inline-flex items-center gap-1 text-xs bg-primary/6 text-primary px-2 py-0.5 rounded-full font-medium">
                             <Hash className="w-2.5 h-2.5" /> {thread.category_name}
                           </span>
                         )}
                       </div>
 
-                      <h3 className="font-semibold text-gray-900 group-hover:text-[#2d287f] transition-colors leading-snug line-clamp-2 mb-1">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors leading-snug line-clamp-2 mb-1">
                         {thread.title}
                       </h3>
 
@@ -298,7 +298,7 @@ export default function ForumList() {
                         <Eye className="w-3.5 h-3.5" />
                         {thread.views || 0}
                       </span>
-                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-[#2d287f]" />
+                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
                     </div>
                   </Link>
                 ))}
@@ -311,7 +311,7 @@ export default function ForumList() {
                 <button
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 font-medium py-2.5 px-6 rounded-xl text-sm hover:border-[#2d287f] hover:text-[#2d287f] transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 font-medium py-2.5 px-6 rounded-xl text-sm hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
                 >
                   {loadingMore ? <Loader className="w-4 h-4 animate-spin" /> : null}
                   {loadingMore ? t("chargement") : t("voir_plus_de_sujets")}

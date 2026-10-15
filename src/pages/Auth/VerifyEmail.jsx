@@ -13,7 +13,7 @@ import { useParams, Link, useNavigate } from "react-router-dom"
 import { CheckCircle, XCircle, Loader, Mail, Clock, RefreshCw } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
-const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" }
+const C = { primary: "rgb(var(--c-primary))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))" }
 
 export default function VerifyEmail() {
   const { t, i18n } = useTranslation("auth")
@@ -109,7 +109,7 @@ export default function VerifyEmail() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-6"
-      style={{ background: "linear-gradient(135deg,#1e1b4b,#2d287f,#4c1d95)" }}
+      style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)),#4c1d95)" }}
     >
       <div
         className="bg-white rounded-3xl shadow-2xl p-10 text-center max-w-md w-full"

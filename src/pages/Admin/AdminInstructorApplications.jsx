@@ -10,13 +10,14 @@ import {
   Award, Search, CheckCircle, XCircle, Clock, Eye,
   User, Briefcase, Globe, Linkedin, BookOpen, Mail,
   X, Loader, RefreshCw, AlertCircle, Filter, ChevronDown,
-  Calendar, Star, Video, Timer
+  Calendar, Star, Video, Timer, MessageSquare
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import ApplicationDetailModal from "./ApplicationDetailModal";
 import i18n from "../../i18n";
 import { getLocale } from "../../i18n";
 
-const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" };
+const C = { primary: "rgb(var(--c-primary))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))" };
 
 const STATUS = () => ({
   pending:      { label: i18n.t("adminInstructorApplications:en_attente"),  cls: "bg-amber-100 text-amber-700 border-amber-200",   dot: "bg-amber-500",   icon: Clock },
@@ -41,216 +42,6 @@ function StatBox({ label, value, color }) {
     <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
       <p className="text-2xl font-black" style={{ color }}>{value}</p>
       <p className="text-xs text-gray-500 mt-1 font-medium">{label}</p>
-    </div>
-  );
-}
-
-// ── Modal détail candidature ──────────────────────────────────
-function DetailModal({ app, onClose, onApprove, onReject, onReview }) {
-  const { t } = useTranslation("adminInstructorApplications");
-  const [reason, setReason]       = useState("");
-  const [showReject, setShowReject] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [err, setErr]             = useState("");
-
-  const handleApprove = async () => {
-    setProcessing(true); setErr("");
-    try { await onApprove(app.id); onClose(); }
-    catch (e) { setErr(e?.response?.data?.message || t("erreur_lors_de_l_approbation")); }
-    finally { setProcessing(false); }
-  };
-
-  const handleReject = async () => {
-    if (!reason.trim() || reason.trim().length < 3) { setErr(t("motif_requis_min_3_caracteres")); return; }
-    setProcessing(true); setErr("");
-    try { await onReject(app.id, reason.trim()); onClose(); }
-    catch (e) { setErr(e?.response?.data?.message || t("erreur_lors_du_rejet")); }
-    finally { setProcessing(false); }
-  };
-
-  const handleReview = async () => {
-    setProcessing(true);
-    try { await onReview(app.id); }
-    catch {}
-    finally { setProcessing(false); }
-  };
-
-  const domains = (() => {
-    try {
-      const d = app.expertise_areas;
-      if (Array.isArray(d)) return d;
-      if (typeof d === "string") return JSON.parse(d);
-      return [];
-    } catch { return []; }
-  })();
-
-  const isPending  = app.status === "pending" || app.status === "under_review";
-  const isAccepted = app.status === "accepted";
-  const isRejected = app.status === "rejected";
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100" style={{ background: `linear-gradient(135deg,${C.primary},${C.light})` }}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-sm">
-              {app.first_name?.[0]}{app.last_name?.[0]}
-            </div>
-            <div>
-              <p className="font-black text-white">{app.first_name} {app.last_name}</p>
-              <p className="text-white/70 text-xs">{app.email}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge status={app.status} />
-            <button onClick={onClose} className="text-white/70 hover:text-white transition">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-5">
-
-          {err && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-              <p className="text-red-600 text-sm">{err}</p>
-            </div>
-          )}
-
-          {/* Infos rapides */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { icon: Briefcase, label: t("experience"),    value: app.years_experience ? `${app.years_experience} an(s)` : "—" },
-              { icon: Timer,     label: t("heures_sem"),    value: app.weekly_hours     ? `${app.weekly_hours}h`            : "—" },
-              { icon: Calendar,  label: t("soumis_le"),     value: app.submitted_at ? new Date(app.submitted_at).toLocaleDateString(getLocale()) : "—" },
-              { icon: BookOpen,  label: t("cours_propose"), value: app.sample_course_topic || "—" },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="bg-gray-50 rounded-xl p-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Icon className="w-3.5 h-3.5 text-gray-400" />
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{label}</p>
-                </div>
-                <p className="text-sm font-semibold text-gray-800 leading-tight">{value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Domaines */}
-          {domains.length > 0 && (
-            <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t("domaines_d_expertise")}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {domains.map((d, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-full text-xs font-semibold border"
-                    style={{ background: "#f0f0ff", color: C.light, borderColor: "#e0e7ff" }}>{d}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Motivation */}
-          <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t("motivation")}</p>
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{app.motivation || "—"}</p>
-            </div>
-          </div>
-
-          {/* Expérience */}
-          <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t("parcours_professionnel")}</p>
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{app.experience || "—"}</p>
-            </div>
-          </div>
-
-          {/* Liens */}
-          <div className="grid grid-cols-2 gap-3">
-            {app.linkedin_url && (
-              <a href={app.linkedin_url} target="_blank" rel="noreferrer"
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium hover:bg-gray-50 transition"
-                style={{ borderColor: "#e5e7eb", color: C.light }}>
-                <Linkedin className="w-4 h-4" /> LinkedIn
-              </a>
-            )}
-            {app.cv_url && (
-              <a href={app.cv_url} target="_blank" rel="noreferrer"
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium hover:bg-gray-50 transition"
-                style={{ borderColor: "#e5e7eb", color: C.light }}>
-                <Globe className="w-4 h-4" />{" "}{t("portfolio")}</a>
-            )}
-            {app.video_url && (
-              <a href={app.video_url} target="_blank" rel="noreferrer"
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium hover:bg-gray-50 transition col-span-2"
-                style={{ borderColor: "#e5e7eb", color: C.light }}>
-                <Video className="w-4 h-4" />{" "}{t("video_de_presentation")}</a>
-            )}
-          </div>
-
-          {/* Note de révision si rejeté */}
-          {isRejected && app.review_note && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-xs font-bold text-red-700 mb-1">{t("motif_du_refus")}</p>
-              <p className="text-sm text-red-600">{app.review_note}</p>
-            </div>
-          )}
-
-          {/* Zone rejet */}
-          {isPending && showReject && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
-              <p className="text-sm font-bold text-red-700">{t("motif_du_refus_2")}{" "}<span className="text-red-500">*</span></p>
-              <textarea
-                value={reason} onChange={e => { setReason(e.target.value); setErr(""); }}
-                rows={3} placeholder={t("expliquez_pourquoi_cette_candidature_est_refusee")}
-                className="w-full px-3 py-2.5 border border-red-200 rounded-xl text-sm focus:outline-none focus:border-red-400 bg-white resize-none"
-              />
-              <p className="text-xs text-gray-400">{t("car_min_3", { length: reason.length })}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer actions */}
-        {isPending && (
-          <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center gap-3 bg-gray-50">
-
-            {app.status === "pending" && (
-              <button onClick={handleReview} disabled={processing}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition hover:bg-blue-50 disabled:opacity-60"
-                style={{ borderColor: "#bfdbfe", color: "#2563eb" }}>
-                <Eye className="w-4 h-4" />{" "}{t("mettre_en_revision")}</button>
-            )}
-
-            <div className="flex gap-2 ml-auto">
-              {!showReject ? (
-                <button onClick={() => setShowReject(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition hover:bg-red-50"
-                  style={{ borderColor: "#fecaca", color: "#dc2626" }}>
-                  <XCircle className="w-4 h-4" />{" "}{t("refuser")}</button>
-              ) : (
-                <>
-                  <button onClick={() => { setShowReject(false); setReason(""); setErr(""); }}
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-100 transition">{t("annuler")}</button>
-                  <button onClick={handleReject} disabled={processing || reason.trim().length < 3}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-60"
-                    style={{ background: "#dc2626" }}>
-                    {processing ? <Loader className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}{t("confirmer_le_refus")}</button>
-                </>
-              )}
-
-              {!showReject && (
-                <button onClick={handleApprove} disabled={processing}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60"
-                  style={{ background: `linear-gradient(135deg,#059669,#10b981)` }}>
-                  {processing ? <Loader className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}{t("approuver")}</button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -426,6 +217,19 @@ export default function AdminInstructorApplications() {
                   </td>
                   <td className="px-5 py-4">
                     <Badge status={app.status} />
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {app.next_interview_at && (
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${app.next_interview_status === "confirmed" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                          <Calendar className="w-3 h-3" />
+                          {new Date(app.next_interview_at).toLocaleString(getLocale(), { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                      {app.comment_count > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">
+                          <MessageSquare className="w-3 h-3" />{app.comment_count}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 hidden md:table-cell">
                     <p className="text-xs text-gray-400">
@@ -466,8 +270,9 @@ export default function AdminInstructorApplications() {
 
       {/* Modal */}
       {selected && (
-        <DetailModal
-          app={selected}
+        <ApplicationDetailModal
+          appId={selected.id}
+          onChanged={load}
           onClose={() => setSelected(null)}
           onApprove={handleApprove}
           onReject={handleReject}

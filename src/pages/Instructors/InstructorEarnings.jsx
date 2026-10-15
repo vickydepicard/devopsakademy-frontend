@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Loader, ChevronLeft, ChevronRight } from "lucide-react";
 import api from "../../api/api";
 import { formatMoney, formatDate } from "../../utils/format";
+import PayoutProfileCard from "./program/PayoutProfileCard";
 
 const FILTERS = ["all", "pending", "earned", "paid"];
 const BADGE = { pending: "bg-gray-100 text-gray-600", earned: "bg-amber-100 text-amber-700", paid: "bg-emerald-100 text-emerald-700" };
@@ -60,6 +61,8 @@ export default function InstructorEarnings() {
         ))}
       </div>
       <p className="text-xs text-gray-500">{t("note_versements")}</p>
+
+      <PayoutProfileCard />
 
       {data.by_course.length > 0 && (
         <section className="bg-white border border-gray-200 rounded-xl">

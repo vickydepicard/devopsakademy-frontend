@@ -91,7 +91,7 @@ export default function Login() {
 
   return (
     <div className="h-screen flex items-center justify-center px-4 overflow-hidden"
-      style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#2d287f 50%,#4c1d95 100%)" }}>
+      style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-deep)) 0%,rgb(var(--c-primary)) 50%,#4c1d95 100%)" }}>
 
       <div className="w-full max-w-sm">
 
@@ -99,7 +99,7 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
 
           {/* Barre top */}
-          <div className="h-1" style={{ background: "linear-gradient(90deg,#2d287f,#5653e1,#facc15)" }} />
+          <div className="h-1" style={{ background: "linear-gradient(90deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)),rgb(var(--c-accent)))" }} />
 
           <div className="px-6 py-5 space-y-4">
 
@@ -137,7 +137,7 @@ export default function Login() {
                   ) : (
                     <button onClick={handleResend} disabled={resending}
                       className="text-xs font-bold flex items-center gap-1.5 disabled:opacity-50"
-                      style={{ color: "#5653e1" }}>
+                      style={{ color: "rgb(var(--c-primary-light))" }}>
                       {resending ? <><Loader className="w-3 h-3 animate-spin" /> {t("login.resending")}</>
                         : <><RefreshCw className="w-3 h-3" /> {t("login.resend")}</>}
                     </button>
@@ -184,7 +184,7 @@ export default function Login() {
                 </div>
                 <div className="flex justify-end mt-1">
                   <Link to="/forgot-password" className="text-xs font-semibold hover:underline"
-                    style={{ color: "#5653e1" }}>
+                    style={{ color: "rgb(var(--c-primary-light))" }}>
                     {t("login.forgot")}
                   </Link>
                 </div>
@@ -193,7 +193,7 @@ export default function Login() {
               {/* Bouton */}
               <button type="submit" disabled={loading}
                 className="w-full py-3 rounded-xl text-sm font-black text-white transition hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                 {loading
                   ? <><Loader className="w-4 h-4 animate-spin" /> {t("login.signingIn")}</>
                   : t("login.submit")}
@@ -203,7 +203,7 @@ export default function Login() {
             {/* Lien inscription */}
             <p className="text-center text-xs text-gray-500">
               {t("login.noAccount")}{" "}
-              <Link to="/register" className="font-black hover:underline" style={{ color: "#5653e1" }}>
+              <Link to="/register" className="font-black hover:underline" style={{ color: "rgb(var(--c-primary-light))" }}>
                 {t("login.createAccount")}
               </Link>
             </p>

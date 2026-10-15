@@ -343,7 +343,7 @@ export default function AdminSubmissionReview() {
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters({...filters, status: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   >
                     <option value="all">{t("tous_les_statuts")}</option>
                     <option value="pending">{t("en_attente")}</option>
@@ -357,7 +357,7 @@ export default function AdminSubmissionReview() {
                   <select
                     value={filters.course}
                     onChange={(e) => setFilters({...filters, course: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   >
                     <option value="">{t("tous_les_cours")}</option>
                     {courses.map(course => (
@@ -376,7 +376,7 @@ export default function AdminSubmissionReview() {
                     value={filters.search}
                     onChange={(e) => setFilters({...filters, search: e.target.value})}
                     placeholder={t("titre_etudiant_cours")}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -402,7 +402,7 @@ export default function AdminSubmissionReview() {
                     <div
                       key={submission.id}
                       className={`bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer ${
-                        selectedSubmission?.id === submission.id ? 'ring-2 ring-[#2d287f]' : ''
+                        selectedSubmission?.id === submission.id ? 'ring-2 ring-primary' : ''
                       }`}
                       onClick={() => handleReviewSubmission(submission)}
                     >
@@ -457,7 +457,7 @@ export default function AdminSubmissionReview() {
                             e.stopPropagation();
                             handleReviewSubmission(submission);
                           }}
-                          className="ml-4 px-4 py-2 bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                          className="ml-4 px-4 py-2 bg-gradient-to-r from-primary to-primary-light text-white rounded-lg font-medium hover:shadow-lg transition-all"
                         >{t("examiner")}</button>
                       </div>
                     </div>
@@ -548,7 +548,7 @@ export default function AdminSubmissionReview() {
                         onChange={(e) => setFeedback(e.target.value)}
                         placeholder={t("donnez_un_retour_constructif_a_l")}
                         rows="4"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all resize-none"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
                       />
                     </div>
                     
@@ -563,7 +563,7 @@ export default function AdminSubmissionReview() {
                           value={grade}
                           onChange={(e) => setGrade(e.target.value)}
                           placeholder={t("ex_16_5")}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                         />
                         <div className="text-sm text-gray-600">/20</div>
                       </div>

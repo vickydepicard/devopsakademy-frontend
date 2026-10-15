@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
+import AdSlot from "../../components/Common/AdSlot";
 
 /* ── Labels niveaux ── */
 const LEVEL_LABELS = () => ({ beginner: i18n.t("studentDashboard:debutant"), intermediate: i18n.t("studentDashboard:intermediaire"), advanced: i18n.t("studentDashboard:avance") })
@@ -54,13 +55,13 @@ function ThumbnailCard({ title, url, className = "" }) {
 
 /* ── Palette ── */
 const C = {
-  primary:  "#2d287f",
-  light:    "#5653e1",
-  accent:   "#facc15",
+  primary:  "rgb(var(--c-primary))",
+  light:    "rgb(var(--c-primary-light))",
+  accent:   "rgb(var(--c-accent))",
   bg:       "#f6f5fb",
   card:     "#ffffff",
   border:   "#e8e6f5",
-  text:     "#1e1b4b",
+  text:     "rgb(var(--c-primary-deep))",
   muted:    "#6b7280",
 };
 
@@ -94,10 +95,10 @@ function ProgressBar({ pct, done=false }) {
         style={{
           width: `${Math.max(pct, pct>0?4:0)}%`,
           background: done
-            ? "linear-gradient(90deg, #5653e1, #8b5cf6)"
+            ? "linear-gradient(90deg, rgb(var(--c-primary-light)), #8b5cf6)"
             : pct >= 80
             ? "linear-gradient(90deg, #059669, #10b981)"
-            : `linear-gradient(90deg, #2d287f, #5653e1)`,
+            : `linear-gradient(90deg, rgb(var(--c-primary)), rgb(var(--c-primary-light)))`,
           minWidth: pct > 0 ? 8 : 0,
         }}
       />
@@ -118,10 +119,10 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
       className="group flex flex-col rounded-2xl overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 cursor-default"
       style={{
         border: `1.5px solid ${done ? "#c4b5fd" : acc ? "#ddd9f9" : C.border}`,
-        boxShadow: "0 2px 8px rgba(45,40,127,0.07)",
+        boxShadow: "0 2px 8px rgb(var(--c-primary) / 0.07)",
       }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 8px 24px rgba(45,40,127,0.14)"; e.currentTarget.style.borderColor=done?"#a78bfa":acc?"#6366f1":"#c4b5fd"; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow="0 2px 8px rgba(45,40,127,0.07)"; e.currentTarget.style.borderColor=done?"#c4b5fd":acc?"#ddd9f9":C.border; }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 8px 24px rgb(var(--c-primary) / 0.14)"; e.currentTarget.style.borderColor=done?"#a78bfa":acc?"#6366f1":"#c4b5fd"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow="0 2px 8px rgb(var(--c-primary) / 0.07)"; e.currentTarget.style.borderColor=done?"#c4b5fd":acc?"#ddd9f9":C.border; }}
     >
       {/* Thumbnail */}
       <div className="relative h-36 overflow-hidden flex-shrink-0">
@@ -145,7 +146,7 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
         {done && (
           <div className="absolute inset-0 flex items-center justify-center bg-violet-900/20">
             <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md">
-              <Trophy className="w-5 h-5" style={{ color:"#5653e1" }} />
+              <Trophy className="w-5 h-5" style={{ color:"rgb(var(--c-primary-light))" }} />
             </div>
           </div>
         )}
@@ -169,7 +170,7 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-400 font-medium">{c.completed_lessons||0}/{c.total_lessons||0}{" "}{t("lecons_2")}</span>
               <span className="font-bold px-1.5 py-0.5 rounded-md text-[10px]"
-                style={{ background: done?"#ede9fe":pct>=50?"#d1fae5":"#eff6ff", color: done?"#5653e1":pct>=50?"#059669":"#2d287f" }}>
+                style={{ background: done?"#ede9fe":pct>=50?"#d1fae5":"#eff6ff", color: done?"rgb(var(--c-primary-light))":pct>=50?"#059669":"rgb(var(--c-primary))" }}>
                 {pct}%
               </span>
             </div>
@@ -193,10 +194,10 @@ function CourseCard({ c, onUpload, uploading, onGo }) {
             <div className="flex gap-1.5">
               <button onClick={() => onGo(`/courses/${c.course_id}/learn`)}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold border transition hover:opacity-90"
-                style={{ borderColor:"#5653e1", color:"#5653e1", background:"#f0efff" }}>{t("revoir")}</button>
+                style={{ borderColor:"rgb(var(--c-primary-light))", color:"rgb(var(--c-primary-light))", background:"#f0efff" }}>{t("revoir")}</button>
               <button onClick={() => onGo("/student/certificates")}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold transition hover:opacity-90"
-                style={{ background:"#facc15", color:"#2d287f" }}>{t("certificat")}</button>
+                style={{ background:"rgb(var(--c-accent))", color:"rgb(var(--c-primary))" }}>{t("certificat")}</button>
             </div>
           ) : acc ? (
             <div className="flex gap-1.5">
@@ -235,9 +236,9 @@ function StatCard({ icon: Icon, label, value, sub, color, bg, border, onClick })
   return (
     <button onClick={onClick}
       className="flex items-center gap-3.5 p-4 bg-white rounded-2xl border transition-all hover:-translate-y-0.5 text-left w-full"
-      style={{ border: `1px solid ${border || "#e8e6f5"}`, boxShadow:"0 1px 4px rgba(45,40,127,0.06)" }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow="0 4px 16px rgba(45,40,127,0.1)"}
-      onMouseLeave={e => e.currentTarget.style.boxShadow="0 1px 4px rgba(45,40,127,0.06)"}>
+      style={{ border: `1px solid ${border || "#e8e6f5"}`, boxShadow:"0 1px 4px rgb(var(--c-primary) / 0.06)" }}
+      onMouseEnter={e => e.currentTarget.style.boxShadow="0 4px 16px rgb(var(--c-primary) / 0.1)"}
+      onMouseLeave={e => e.currentTarget.style.boxShadow="0 1px 4px rgb(var(--c-primary) / 0.06)"}>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${bg}`}>
         <Icon className={`w-5 h-5 ${color}`} />
       </div>
@@ -424,6 +425,8 @@ export default function StudentDashboard() {
     }>
       <div className="max-w-5xl space-y-8">
 
+        <AdSlot placement="inline_dashboard" />
+
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard icon={Flame}    label={t("en_cours")}   value={g.active.length}
@@ -447,7 +450,7 @@ export default function StudentDashboard() {
         {/* Resume banner */}
         {lastAcc && (
           <div className="flex items-center gap-5 bg-white p-5 rounded-2xl border"
-            style={{ border:`1px solid ${C.border}`, boxShadow:"0 1px 4px rgba(45,40,127,0.06)" }}>
+            style={{ border:`1px solid ${C.border}`, boxShadow:"0 1px 4px rgb(var(--c-primary) / 0.06)" }}>
             <ThumbnailCard title={lastAcc.title} url={lastAcc.thumbnail_url} className="w-16 h-12 rounded-xl flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -502,7 +505,7 @@ export default function StudentDashboard() {
                 <div className="flex items-center gap-3">
                   <button onClick={() => navigate("/student/certificates")}
                     className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition hover:opacity-90"
-                    style={{ background:"#facc15", color:C.primary }}>
+                    style={{ background:"rgb(var(--c-accent))", color:C.primary }}>
                     <Award className="w-3.5 h-3.5" />{" "}{t("certificats")}</button>
                   <SeeAll to="/student/completed" />
                 </div>
@@ -596,7 +599,7 @@ export default function StudentDashboard() {
         {g.completed.length > 0 && (
           <button onClick={() => navigate("/student/certificates")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition hover:opacity-90"
-            style={{ background:"#facc15", color:C.primary }}>
+            style={{ background:"rgb(var(--c-accent))", color:C.primary }}>
             <Award className="w-4 h-4" />{" "}{t("mes_certificats")}</button>
         )}
       </div>

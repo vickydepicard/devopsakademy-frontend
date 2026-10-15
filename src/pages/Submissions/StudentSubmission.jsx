@@ -225,7 +225,7 @@ export default function StudentSubmission() {
         <div className="mb-8">
           <button
             onClick={() => navigate(`/courses/${courseId}/learn`)}
-            className="flex items-center gap-2 text-[#2d287f] hover:text-[#5653e1] transition-colors mb-6"
+            className="flex items-center gap-2 text-primary hover:text-primary-light transition-colors mb-6"
           >
             <ExternalLink className="w-4 h-4 rotate-180" />{t("retour_au_cours")}</button>
           
@@ -246,7 +246,7 @@ export default function StudentSubmission() {
           <div className="space-y-6">
             <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
-                <Upload className="w-6 h-6 text-[#2d287f]" />
+                <Upload className="w-6 h-6 text-primary" />
                 <h2 className="text-xl font-bold text-gray-900">{t("nouvelle_soumission")}</h2>
               </div>
 
@@ -258,7 +258,7 @@ export default function StudentSubmission() {
                     value={newSubmission.title}
                     onChange={(e) => setNewSubmission({...newSubmission, title: e.target.value})}
                     placeholder={t("ex_projet_docker_tp_kubernetes")}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     required
                   />
                 </div>
@@ -270,18 +270,18 @@ export default function StudentSubmission() {
                     onChange={(e) => setNewSubmission({...newSubmission, description: e.target.value})}
                     placeholder={t("decrivez_votre_travail")}
                     rows="4"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-[#2d287f] focus:ring-2 focus:ring-[#2d287f]/20 outline-none transition-all resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
                   />
                 </div>
 
                 {/* Zone de téléchargement */}
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">{t("fichiers_joints")}</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-[#2d287f] transition-colors">
+                  <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-primary transition-colors">
                     <Paperclip className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-2">{t("glissez_deposez_vos_fichiers")}</p>
                     <p className="text-sm text-gray-500 mb-4">{t("formats_acceptes_pdf_word_excel_zip")}</p>
-                    <label className="inline-block px-6 py-3 bg-gradient-to-r from-[#2d287f] to-[#5653e1] text-white rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer">
+                    <label className="inline-block px-6 py-3 bg-gradient-to-r from-primary to-primary-light text-white rounded-xl font-medium hover:shadow-lg transition-all cursor-pointer">
                       <input
                         type="file"
                         multiple
@@ -339,7 +339,7 @@ export default function StudentSubmission() {
               <h2 className="text-xl font-bold text-gray-900">{t("historique_des_soumissions")}</h2>
               <button
                 onClick={fetchData}
-                className="flex items-center gap-2 text-sm text-[#2d287f] hover:text-[#5653e1]"
+                className="flex items-center gap-2 text-sm text-primary hover:text-primary-light"
               >
                 <RefreshCw className="w-4 h-4" />{t("actualiser")}</button>
             </div>

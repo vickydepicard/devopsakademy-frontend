@@ -85,7 +85,7 @@ function ChatMsg({ msg, isMe, isAdmin, onDelete }) {
     <div style={{ display:"flex", gap:7, flexDirection:isMe ? "row-reverse" : "row",
       padding:"3px 0" }}>
       <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0,
-        background: isInstructor ? "#2d287f" : "#5653e1",
+        background: isInstructor ? "rgb(var(--c-primary))" : "rgb(var(--c-primary-light))",
         display:"flex", alignItems:"center", justifyContent:"center",
         color:"white", fontSize:9, fontWeight:900 }}>
         {msg.user_name?.slice(0,2).toUpperCase()}
@@ -94,15 +94,15 @@ function ChatMsg({ msg, isMe, isAdmin, onDelete }) {
         alignItems:isMe ? "flex-end" : "flex-start", gap:2 }}>
         <div style={{ display:"flex", alignItems:"center", gap:5 }}>
           <span style={{ fontSize:10, fontWeight:700,
-            color: isInstructor ? "#2d287f" : "#6b7280" }}>
+            color: isInstructor ? "rgb(var(--c-primary))" : "#6b7280" }}>
             {msg.user_name}
             {isInstructor && <span style={{ marginLeft:4, fontSize:9,
-              background:"#2d287f", color:"white", padding:"1px 5px", borderRadius:4 }}>{t("instructor")}</span>}
+              background:"rgb(var(--c-primary))", color:"white", padding:"1px 5px", borderRadius:4 }}>{t("instructor")}</span>}
           </span>
           <span style={{ fontSize:9, color:"#d1d5db" }}>{time}</span>
         </div>
         <div style={{ padding:"6px 10px", borderRadius:10,
-          background: isMe ? "#2d287f" : "#f0efff",
+          background: isMe ? "rgb(var(--c-primary))" : "#f0efff",
           color: isMe ? "white" : "#111", fontSize:12, lineHeight:1.5 }}>
           {msg.message}
         </div>
@@ -212,7 +212,7 @@ export default function BootcampLive() {
 
   if (loading) return (
     <div style={{ minHeight:"80vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <Loader size={32} color="#5653e1" style={{ animation:"spin 1s linear infinite" }} />
+      <Loader size={32} color="rgb(var(--c-primary-light))" style={{ animation:"spin 1s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -293,7 +293,7 @@ export default function BootcampLive() {
 
               {/* Bouton inscription si pas inscrit et accès privé */}
               {!isReg && boot.access_mode === "registered" && (
-                <div style={{ background:"linear-gradient(135deg,#1e1b4b,#2d287f)",
+                <div style={{ background:"linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)))",
                   borderRadius:16, padding:20, textAlign:"center" }}>
                   <Lock size={24} color="rgba(255,255,255,0.6)"
                     style={{ margin:"0 auto 10px", display:"block" }} />
@@ -303,7 +303,7 @@ export default function BootcampLive() {
                   </p>
                   <button onClick={handleRegister} disabled={regLoading}
                     style={{ padding:"12px 28px", borderRadius:14, border:"none",
-                      background:"#facc15", color:"#1e1b4b",
+                      background:"rgb(var(--c-accent))", color:"rgb(var(--c-primary-deep))",
                       fontWeight:900, fontSize:14, cursor:"pointer",
                       display:"inline-flex", alignItems:"center", gap:8 }}>
                     {regLoading
@@ -337,7 +337,7 @@ export default function BootcampLive() {
                 fontSize:12, color:"rgba(255,255,255,0.5)" }}>
                 <Users size={12} />{fmt(boot.registered_count)}{" "}{i18n.t("bootcampLive:inscrits_2")}</span>
               <span style={{ fontSize:12, fontWeight:700,
-                color: boot.is_free ? "#10b981" : "#facc15" }}>
+                color: boot.is_free ? "#10b981" : "rgb(var(--c-accent))" }}>
                 {boot.is_free ? t("gratuit") : `${fmt(boot.price)} FCFA`}
               </span>
             </div>
@@ -367,10 +367,10 @@ export default function BootcampLive() {
               <button key={tab} onClick={() => setActiveTab(tab)}
                 style={{ flex:1, padding:"11px 8px", border:"none", cursor:"pointer",
                   fontSize:12, fontWeight:700, transition:"all 0.15s",
-                  background: activeTab === tab ? "rgba(86,83,225,0.3)" : "transparent",
+                  background: activeTab === tab ? "rgb(var(--c-primary-light) / 0.3)" : "transparent",
                   color: activeTab === tab ? "#a5b4fc" : "rgba(255,255,255,0.4)",
                   display:"flex", alignItems:"center", justifyContent:"center", gap:5,
-                  borderBottom: activeTab === tab ? "2px solid #5653e1" : "2px solid transparent" }}>
+                  borderBottom: activeTab === tab ? "2px solid rgb(var(--c-primary-light))" : "2px solid transparent" }}>
                 {icon}{label}
               </button>
             ))}
@@ -381,11 +381,11 @@ export default function BootcampLive() {
             <div style={{ padding:16, display:"flex", flexDirection:"column", gap:12 }}>
               <div style={{ textAlign:"center", padding:"20px 0" }}>
                 <div style={{ width:56, height:56, borderRadius:"50%",
-                  background: boot.status === "live" ? "rgba(239,68,68,0.2)" : "rgba(86,83,225,0.2)",
+                  background: boot.status === "live" ? "rgba(239,68,68,0.2)" : "rgb(var(--c-primary-light) / 0.2)",
                   margin:"0 auto 12px", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   {boot.status === "live"
                     ? <Radio size={24} color="#ef4444" />
-                    : <Monitor size={24} color="#5653e1" />}
+                    : <Monitor size={24} color="rgb(var(--c-primary-light))" />}
                 </div>
                 <p style={{ color:"white", fontWeight:800, fontSize:15, margin:"0 0 4px" }}>
                   {stCfg.label}
@@ -413,7 +413,7 @@ export default function BootcampLive() {
                   <button onClick={handleRegister} disabled={regLoading}
                     style={{ marginTop:10, width:"100%", padding:"9px",
                       borderRadius:10, border:"none",
-                      background:"linear-gradient(135deg,#2d287f,#5653e1)",
+                      background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
                       color:"white", fontWeight:800, fontSize:12, cursor:"pointer" }}>
                     {boot.is_free ? t("s_inscrire") : t("s_inscrire_fcfa", { fmt: fmt(boot.price) })}
                   </button>
@@ -457,7 +457,7 @@ export default function BootcampLive() {
                     <p style={{ fontSize:13 }}>{t("inscrivez_vous_pour_acceder_au_chat")}</p>
                     <button onClick={handleRegister}
                       style={{ marginTop:12, padding:"8px 20px", borderRadius:10,
-                        border:"none", background:"linear-gradient(135deg,#2d287f,#5653e1)",
+                        border:"none", background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
                         color:"white", fontWeight:700, fontSize:12, cursor:"pointer" }}>
                       {boot?.is_free ? t("s_inscrire_gratuitement") : t("s_inscrire")}
                     </button>
@@ -488,7 +488,7 @@ export default function BootcampLive() {
                       outline:"none" }} />
                   <button type="submit" disabled={!newMsg.trim() || sending}
                     style={{ width:36, height:36, borderRadius:10, border:"none",
-                      background: newMsg.trim() ? "#5653e1" : "rgba(255,255,255,0.08)",
+                      background: newMsg.trim() ? "rgb(var(--c-primary-light))" : "rgba(255,255,255,0.08)",
                       cursor:newMsg.trim() ? "pointer" : "default",
                       display:"flex", alignItems:"center", justifyContent:"center",
                       flexShrink:0 }}>

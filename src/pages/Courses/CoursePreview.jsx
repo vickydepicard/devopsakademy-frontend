@@ -72,14 +72,14 @@ function VideoPlayer({ url, poster, title, duration }) {
             <img src={poster} alt={title} className="w-full h-full object-cover"
               onError={e => { e.currentTarget.style.display = "none"; }} />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-primary-dark to-primary flex items-center justify-center">
               <Film className="w-16 h-16 text-white/20" />
             </div>
           )}
           <div className="absolute inset-0 bg-black/25 group-hover:bg-black/45 transition-colors" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all group-hover:scale-110 ${ytId ? "bg-red-600 group-hover:bg-red-500" : "bg-white/90 group-hover:bg-white"}`}>
-              <svg className={`w-9 h-9 ml-1`} fill={ytId ? "white" : "#2d287f"} viewBox="0 0 24 24">
+              <svg className={`w-9 h-9 ml-1`} fill={ytId ? "white" : "rgb(var(--c-primary))"} viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
@@ -124,7 +124,7 @@ function PdfViewer({ url, title }) {
       >
         {/* Fallback si le navigateur ne peut pas afficher le PDF inline */}
         <div className="flex flex-col items-center justify-center h-full gap-4 bg-gray-50">
-          <FileText className="w-16 h-16 text-[#2d287f]/30" />
+          <FileText className="w-16 h-16 text-primary/30" />
           <p className="text-gray-600 font-semibold">{title}</p>
           <p className="text-gray-400 text-sm text-center max-w-xs">{t("votre_navigateur_ne_supporte_pas_l")}<br />{t("inscrivez_vous_pour_acceder_au_contenu")}</p>
         </div>
@@ -139,7 +139,7 @@ function NoContentMessage({ lesson, isAdmin, courseId, onTogglePreview, toggling
   const ct = CONTENT_TYPES()[lesson?.content_type] || CONTENT_TYPES().video;
   const Icon = ct.icon;
   return (
-    <div className="aspect-video flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] relative">
+    <div className="aspect-video flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-primary-dark to-primary relative">
       <div className="w-20 h-20 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
         <WifiOff className="w-10 h-10 text-white/50" />
       </div>
@@ -202,7 +202,7 @@ function ContentPlayer({ lesson, course, isAdmin, onTogglePreview, toggling }) {
   const ct = CONTENT_TYPES()[lesson.content_type] || CONTENT_TYPES().article;
   const Icon = ct.icon;
   return (
-    <div className="aspect-video flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#1f1b5a] to-[#2d287f]">
+    <div className="aspect-video flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-primary-dark to-primary">
       <div className="w-20 h-20 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
         <Icon className="w-10 h-10 text-white/60" />
       </div>
@@ -273,7 +273,7 @@ export default function CoursePreview() {
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
-        <div className="w-10 h-10 border-4 border-[#2d287f] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-gray-500 text-sm">{t("chargement")}</p>
       </div>
     </div>
@@ -285,7 +285,7 @@ export default function CoursePreview() {
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
         <p className="font-semibold text-gray-800 mb-4">{error || t("cours_non_disponible")}</p>
         <button onClick={() => navigate("/courses")}
-          className="px-5 py-2.5 bg-[#2d287f] text-white rounded-xl text-sm font-semibold hover:bg-[#3b3aab] transition">{t("retour_au_catalogue")}</button>
+          className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-700 transition">{t("retour_au_catalogue")}</button>
       </div>
     </div>
   );
@@ -310,13 +310,13 @@ export default function CoursePreview() {
       )}
 
       {/* ── Header ── */}
-      <div className="bg-gradient-to-br from-[#1f1b5a] to-[#2d287f] text-white px-6 py-10">
+      <div className="bg-gradient-to-br from-primary-dark to-primary text-white px-6 py-10">
         <div className="max-w-5xl mx-auto">
           <button onClick={() => navigate(`/courses/${id}`)}
             className="flex items-center gap-2 text-white/60 hover:text-white text-sm mb-6 transition">
             <ChevronLeft className="w-4 h-4" />{" "}{t("retour_au_cours")}</button>
           <div className="flex items-center gap-3 mb-3 flex-wrap">
-            <span className="bg-[#facc15] text-[#1f1b5a] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+            <span className="bg-accent text-primary-dark text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
               <Eye className="w-3 h-3" />{" "}{t("apercu_gratuit")}</span>
             {level && <span className={`text-xs font-semibold px-3 py-1 rounded-full ${LEVEL_COLORS[course.level]}`}>{level}</span>}
           </div>
@@ -327,7 +327,7 @@ export default function CoursePreview() {
           <div className="flex items-center gap-5 text-sm text-white/60 flex-wrap">
             {course.rating > 0 && (
               <span className="flex items-center gap-1.5">
-                <Star className="w-4 h-4 fill-[#facc15] text-[#facc15]" />
+                <Star className="w-4 h-4 fill-accent text-accent" />
                 <strong className="text-white">{parseFloat(course.rating).toFixed(1)}</strong>
               </span>
             )}
@@ -355,7 +355,7 @@ export default function CoursePreview() {
             {/* Info sous le lecteur */}
             <div className="p-5">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <span className="text-[#facc15] text-xs font-bold uppercase tracking-wide">{t("apercu_lecon_gratuite")}</span>
+                <span className="text-accent text-xs font-bold uppercase tracking-wide">{t("apercu_lecon_gratuite")}</span>
                 {activeLesson && (
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ct.bg} ${ct.color}`}>{ct.label}</span>
                 )}
@@ -377,7 +377,7 @@ export default function CoursePreview() {
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-bold text-gray-900">{t("programme_du_cours")}</h2>
-              <span className="text-xs text-[#2d287f] bg-[#2d287f]/8 px-2.5 py-1 rounded-full font-medium">{t("apercu", { length: previewLessons.length })}{i18n.t("coursePreview:gratuit_2", { s: previewLessons.length > 1 ? "s" : "", s2: previewLessons.length > 1 ? "s" : "" })}</span>
+              <span className="text-xs text-primary bg-primary/8 px-2.5 py-1 rounded-full font-medium">{t("apercu", { length: previewLessons.length })}{i18n.t("coursePreview:gratuit_2", { s: previewLessons.length > 1 ? "s" : "", s2: previewLessons.length > 1 ? "s" : "" })}</span>
             </div>
 
             {(course.modules || []).length === 0 ? (
@@ -408,12 +408,12 @@ export default function CoursePreview() {
                         <div key={les.id || li}
                           onClick={() => isPreview && handleSelectLesson(les)}
                           className={`flex items-center gap-3 px-5 py-3.5 transition-all ${
-                            isPreview ? "cursor-pointer hover:bg-[#2d287f]/4" : "cursor-default"
-                          } ${isActive ? "bg-[#2d287f]/8 border-l-2 border-[#2d287f]" : ""}`}>
+                            isPreview ? "cursor-pointer hover:bg-primary/4" : "cursor-default"
+                          } ${isActive ? "bg-primary/8 border-l-2 border-primary" : ""}`}>
 
                           {/* Icône type */}
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition ${
-                            isActive  ? "bg-[#2d287f] shadow-md" :
+                            isActive  ? "bg-primary shadow-md" :
                             isPreview ? lt.bg : "bg-gray-100"
                           }`}>
                             {isActive
@@ -427,7 +427,7 @@ export default function CoursePreview() {
                           {/* Titre + sous-titre */}
                           <div className="flex-1 min-w-0">
                             <p className={`text-sm truncate leading-snug ${
-                              isActive  ? "font-bold text-[#2d287f]" :
+                              isActive  ? "font-bold text-primary" :
                               isPreview ? "font-medium text-gray-800" :
                               "text-gray-400"
                             }`}>
@@ -444,10 +444,10 @@ export default function CoursePreview() {
                           {/* Droite : badge + toggle admin */}
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {isActive ? (
-                              <span className="text-xs bg-[#2d287f] text-white px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                              <span className="text-xs bg-primary text-white px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
                                 <PlayCircle className="w-3 h-3" />{" "}{t("en_cours")}</span>
                             ) : isPreview ? (
-                              <span className="text-xs bg-[#2d287f]/10 text-[#2d287f] px-2 py-0.5 rounded-full font-medium">{t("apercu_2")}</span>
+                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{t("apercu_2")}</span>
                             ) : (
                               <Lock className="w-3.5 h-3.5 text-gray-300" />
                             )}
@@ -482,8 +482,8 @@ export default function CoursePreview() {
 
             {/* Bannière CTA */}
             {previewLessons.length < totalLessons && (
-              <div className="p-5 border-t border-gray-100 flex items-center gap-4 bg-gradient-to-r from-[#2d287f]/5 to-transparent">
-                <Lock className="w-5 h-5 text-[#2d287f] shrink-0" />
+              <div className="p-5 border-t border-gray-100 flex items-center gap-4 bg-gradient-to-r from-primary/5 to-transparent">
+                <Lock className="w-5 h-5 text-primary shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800">
                     {totalLessons - previewLessons.length}{" "}{t("lecon_p", { s: (totalLessons - previewLessons.length) > 1 ? "s" : "" })}{" "}{t("verrouillee_p", { s: (totalLessons - previewLessons.length) > 1 ? "s" : "" })}
@@ -492,7 +492,7 @@ export default function CoursePreview() {
                 </div>
                 <button onClick={() => navigate(`/courses/${id}`)}
                   className="shrink-0 px-4 py-2 text-xs font-bold text-white rounded-xl transition hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{t("s_inscrire")}</button>
+                  style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>{t("s_inscrire")}</button>
               </div>
             )}
           </div>
@@ -504,19 +504,19 @@ export default function CoursePreview() {
             <div className="mb-5">
               {isFree
                 ? <p className="text-3xl font-black text-emerald-600">{t("gratuit")}</p>
-                : <p className="text-3xl font-black text-[#1f1b5a]">{parseFloat(course.price || 0).toLocaleString(getLocale())} FCFA</p>
+                : <p className="text-3xl font-black text-primary-dark">{parseFloat(course.price || 0).toLocaleString(getLocale())} FCFA</p>
               }
               <p className="text-xs text-gray-400 mt-1">{t("acces_a_vie_certificat_inclus")}</p>
             </div>
             <div className="space-y-3 mb-5">
               <button onClick={() => navigate(`/courses/${id}`)}
                 className="w-full py-3.5 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base hover:shadow-xl hover:-translate-y-0.5 transition-all"
-                style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                 {isAuthenticated ? t("s_inscrire_au_cours") : t("commencer_maintenant")}
                 <ArrowRight className="w-5 h-5" />
               </button>
               <Link to={`/courses/${id}`}
-                className="w-full py-3 rounded-2xl font-semibold text-sm border-2 border-[#2d287f]/25 text-[#2d287f] flex items-center justify-center gap-2 hover:border-[#2d287f] hover:bg-[#2d287f]/5 transition">
+                className="w-full py-3 rounded-2xl font-semibold text-sm border-2 border-primary/25 text-primary flex items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition">
                 <BookOpen className="w-4 h-4" />{" "}{t("voir_le_detail_du_cours")}</Link>
             </div>
             <div className="space-y-2.5 text-sm text-gray-600 border-t border-gray-100 pt-4">
@@ -527,7 +527,7 @@ export default function CoursePreview() {
                 [Award,    i18n.t("coursePreview:certificat_officiel_inclus")],
               ].map(([Icon, label]) => (
                 <div key={label} className="flex items-center gap-2.5">
-                  <Icon className="w-4 h-4 text-[#2d287f]" />
+                  <Icon className="w-4 h-4 text-primary" />
                   {label}
                 </div>
               ))}
@@ -546,7 +546,7 @@ export default function CoursePreview() {
                     return (
                       <button key={les.id} onClick={() => handleSelectLesson(les)}
                         className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all text-sm ${
-                          isActive ? "bg-[#2d287f] text-white shadow-md" : "hover:bg-[#2d287f]/8 text-gray-700 border border-gray-100"
+                          isActive ? "bg-primary text-white shadow-md" : "hover:bg-primary/8 text-gray-700 border border-gray-100"
                         }`}>
                         <LIcon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : lt.color}`} />
                         <span className="truncate flex-1">{les.title}</span>

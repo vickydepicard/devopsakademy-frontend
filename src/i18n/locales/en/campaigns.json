@@ -1,0 +1,16 @@
+{
+  "carousel": {
+    "region": "Featured",
+    "previous": "Previous slide",
+    "next": "Next slide",
+    "go_to": "Go to slide {{n}} of {{total}}",
+    "pause": "Pause the slideshow",
+    "play": "Resume the slideshow",
+    "show_image": "Poster",
+    "show_linkedin": "LinkedIn post",
+    "open_linkedin": "View on LinkedIn",
+    "linkedin_title": "LinkedIn post: {{title}}",
+    "image_alt": "Visual: {{title}}",
+    "base_slide": "DevOps Akademy introduction"
+  }
+}

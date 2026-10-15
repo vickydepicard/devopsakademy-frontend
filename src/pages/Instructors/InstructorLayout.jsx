@@ -10,13 +10,13 @@ import {
   LayoutDashboard, BookOpen, Plus, BarChart2, Wallet,
   FileText, LogOut, User, GraduationCap, Clock,
   CheckCircle, XCircle, AlertCircle, ChevronRight,
-  ChevronLeft, Menu, X, Bell, Radio
+  ChevronLeft, Menu, X, Bell, Radio, MessageSquare, Users
 } from "lucide-react";
 import api from "../../api/api";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 
-const C = { primary: "#2d287f", dark: "#1e1b4b", light: "#5653e1", accent: "#facc15" }
+const C = { primary: "rgb(var(--c-primary))", dark: "rgb(var(--c-primary-deep))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))" }
 
 const navItems = () => ([
   { to: "/instructor",              label: i18n.t("instructorLayout:dashboard"),    icon: LayoutDashboard, exact: true },
@@ -26,6 +26,8 @@ const navItems = () => ([
   { to: "/instructor/bootcamps",  label: i18n.t("instructorLayout:mes_lives"),    icon: Radio },
   { to: "/instructor/analytics",    label: i18n.t("instructorLayout:analytics"),    icon: BarChart2 },
   { to: "/instructor/earnings",     label: i18n.t("instructorLayout:gains"),        icon: Wallet },
+  { to: "/instructor/messages",     label: i18n.t("instructorLayout:messages"),     icon: MessageSquare },
+  { to: "/instructor/collaborations", label: i18n.t("instructorLayout:collaborations"), icon: Users },
 ]);
 
 // ── Page de statut "En attente" ─────────────────────────────
@@ -38,7 +40,7 @@ function PendingApplicationScreen({ status, reviewNote }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: "linear-gradient(135deg,#1e1b4b,#2d287f,#4c1d95)" }}>
+      style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)),#4c1d95)" }}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         <div className="h-1.5" style={{ background: `linear-gradient(90deg,${C.primary},${C.light},${C.accent})` }} />
         <div className="p-8 text-center">
@@ -131,7 +133,7 @@ function NoApplicationScreen() {
   const { logout } = useAuth();
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: "linear-gradient(135deg,#1e1b4b,#2d287f,#4c1d95)" }}>
+      style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)),#4c1d95)" }}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden">
         <div className="h-1.5" style={{ background: `linear-gradient(90deg,${C.primary},${C.light},${C.accent})` }} />
         <div className="p-7 text-center">
@@ -195,11 +197,18 @@ export default function InstructorLayout() {
     return () => { cancelled = true; };
   }, [user?.id, isStaff, attempt]);
 
+  // Pastilles du menu : messages / annonces non lus, réponses aux demandes de collaboration
+  const [inbox, setInbox] = useState({ messages: 0, announcements: 0, collab_updates: 0 });
+  useEffect(() => {
+    if (!user || appStatus !== "accepted") return;
+    api.get("/instructor-program/inbox/summary").then((r) => setInbox(r.data.data)).catch(() => {});
+  }, [user?.id, appStatus, location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Loading ────────────────────────────────────────────────
   if (!checkDone) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-        style={{ background: "linear-gradient(135deg,#1e1b4b,#2d287f)" }}>
+        style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)))" }}>
         <div className="text-center">
           <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white animate-spin mx-auto mb-4" />
           <p className="text-white/70 text-sm font-medium">{t("verification_de_votre_acces")}</p>
@@ -267,7 +276,11 @@ export default function InstructorLayout() {
               style={active ? { background: C.accent, color: C.primary } : {}}
               title={collapsed ? label : ""}>
               <Icon className="w-5 h-5 shrink-0" />
-              {!collapsed && <span className="text-sm">{label}</span>}
+              {!collapsed && <span className="text-sm flex-1">{label}</span>}
+              {(() => {
+                const n = to === "/instructor/messages" ? inbox.messages + inbox.announcements : to === "/instructor/collaborations" ? inbox.collab_updates : 0;
+                return n > 0 ? <span className="min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center">{n}</span> : null;
+              })()}
             </Link>
           );
         })}

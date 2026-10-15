@@ -182,7 +182,7 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
   return (
     <div style={{ background:"white", borderRadius:20, border:"1.5px solid #f0f0f0", overflow:"hidden" }}>
       {/* Header */}
-      <div style={{ padding:"14px 18px", background: isSharing ? "linear-gradient(135deg,#dc2626,#ef4444)" : "linear-gradient(135deg,#1e1b4b,#2d287f)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+      <div style={{ padding:"14px 18px", background: isSharing ? "linear-gradient(135deg,#dc2626,#ef4444)" : "linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)))", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           {isSharing && <span style={{ width:10, height:10, borderRadius:"50%", background:"white", animation:"pulse 1.5s infinite", display:"block" }} />}
           <span style={{ color:"white", fontWeight:800, fontSize:14 }}>
@@ -206,7 +206,7 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
           )}
           {isLoading && (
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:10 }}>
-              <div style={{ width:36, height:36, border:"3px solid #5653e1", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }} />
+              <div style={{ width:36, height:36, border:"3px solid rgb(var(--c-primary-light))", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 1s linear infinite" }} />
               <p style={{ color:"rgba(255,255,255,0.6)", fontSize:13, fontWeight:600 }}>{t("demarrage")}</p>
             </div>
           )}
@@ -219,22 +219,22 @@ function ScreenShareBroadcaster({ bootcamp, onStatusChange }) {
         {status === "idle" && (
           <>
             <div style={{ background:"#f8f7ff", borderRadius:14, padding:14 }}>
-              <p style={{ fontSize:11, fontWeight:800, color:"#5653e1", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("que_partager")}</p>
+              <p style={{ fontSize:11, fontWeight:800, color:"rgb(var(--c-primary-light))", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 12px" }}>{t("que_partager")}</p>
               {[
                 [shareScreen, setShareScreen, Monitor, i18n.t("screenShareBroadcaster:partager_l_ecran"),  i18n.t("screenShareBroadcaster:presentation_terminal_navigateur")],
                 [shareWebcam, setShareWebcam, Camera,  i18n.t("screenShareBroadcaster:ajouter_la_webcam"), i18n.t("screenShareBroadcaster:votre_visage_en_incrustation")],
                 [shareMic,    setShareMic,    Mic,     i18n.t("screenShareBroadcaster:activer_le_micro"),  i18n.t("screenShareBroadcaster:votre_voix_en_direct")],
               ].map(([val, setter, Icon, label, sub]) => (
                 <button key={label} onClick={() => setter(!val)}
-                  style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:10, border:"2px solid " + (val ? "#5653e1" : "#e5e7eb"), background: val ? "#f0efff" : "white", cursor:"pointer", width:"100%", marginBottom:8, textAlign:"left" }}>
-                  <div style={{ width:34, height:34, borderRadius:10, background: val ? "#5653e1" : "#f3f4f6", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:10, border:"2px solid " + (val ? "rgb(var(--c-primary-light))" : "#e5e7eb"), background: val ? "#f0efff" : "white", cursor:"pointer", width:"100%", marginBottom:8, textAlign:"left" }}>
+                  <div style={{ width:34, height:34, borderRadius:10, background: val ? "rgb(var(--c-primary-light))" : "#f3f4f6", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <Icon size={16} color={val ? "white" : "#9ca3af"} />
                   </div>
                   <div style={{ flex:1 }}>
                     <p style={{ fontWeight:700, fontSize:13, color:"#111", margin:0 }}>{label}</p>
                     <p style={{ fontSize:11, color:"#9ca3af", margin:"1px 0 0" }}>{sub}</p>
                   </div>
-                  {val && <CheckCircle size={16} color="#5653e1" />}
+                  {val && <CheckCircle size={16} color="rgb(var(--c-primary-light))" />}
                 </button>
               ))}
             </div>

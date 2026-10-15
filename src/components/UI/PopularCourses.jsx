@@ -83,7 +83,7 @@ const PopularCourses = () => {
       icon: <Eye className="w-4 h-4" />,
       variant: 'secondary',
       onClick: () => navigate(`/courses/${courseId}`),
-      className: 'border-[#3B3A82] text-[#3B3A82] hover:bg-[#3B3A82] hover:text-white'
+      className: 'border-primary-mid text-primary-mid hover:bg-primary-mid hover:text-white'
     });
     
     // ============= BOUTON 2 : "S'INSCRIRE" (LOGIQUE VARIABLE) =============
@@ -99,7 +99,7 @@ const PopularCourses = () => {
             message: "Connectez-vous pour vous inscrire à ce cours"
           } 
         }),
-        className: 'bg-[#3B3A82] hover:bg-[#4F46E5] text-white'
+        className: 'bg-primary-mid hover:bg-primary-vibrant text-white'
       });
     } else {
       const status = getEnrollmentStatus(courseId);
@@ -122,7 +122,7 @@ const PopularCourses = () => {
                 setPaymentModal(co);
               }
             },
-            className: 'bg-[#3B3A82] hover:bg-[#4F46E5] text-white'
+            className: 'bg-primary-mid hover:bg-primary-vibrant text-white'
           });
           break;
         }
@@ -162,7 +162,7 @@ const PopularCourses = () => {
                 navigate(`/courses/${courseId}`);
               }
             },
-            className: 'bg-[#3B3A82] hover:bg-[#4F46E5] text-white'
+            className: 'bg-primary-mid hover:bg-primary-vibrant text-white'
           });
       }
     }
@@ -227,7 +227,7 @@ const PopularCourses = () => {
     <section className="py-16 bg-gradient-to-b from-slate-50 to-white">
       {/* TITRE */}
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-[#3B3A82] mb-3">
+        <h2 className="text-3xl md:text-4xl font-extrabold text-primary-mid mb-3">
           Formations populaires
         </h2>
         <p className="text-gray-500 text-base md:text-lg">
@@ -241,7 +241,7 @@ const PopularCourses = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="animate-pulse bg-white border border-[#3B3A82]/10 rounded-2xl shadow p-5 h-72"
+              className="animate-pulse bg-white border border-primary-mid/10 rounded-2xl shadow p-5 h-72"
             >
               <div className="bg-gray-200 h-40 w-full rounded-xl"></div>
               <div className="h-4 bg-gray-200 mt-4 w-3/4 rounded"></div>
@@ -260,7 +260,7 @@ const PopularCourses = () => {
               return (
                 <div
                   key={course.id}
-                  className="group bg-white border border-[#3B3A82]/10 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:border-[#3B3A82]/30 relative flex flex-col"
+                  className="group bg-white border border-primary-mid/10 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:border-primary-mid/30 relative flex flex-col"
                 >
                   {/* BADGE D'ACCÈS */}
                   {accessBadge && (
@@ -289,7 +289,7 @@ const PopularCourses = () => {
 
                     {/* PRIX */}
                     {!isFree && (
-                      <span className="absolute bottom-3 right-3 bg-gradient-to-r from-[#3B3A82] to-[#4F46E5] text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg">
+                      <span className="absolute bottom-3 right-3 bg-gradient-to-r from-primary-mid to-primary-vibrant text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg">
                         {formatPrice(course.price)} €
                       </span>
                     )}
@@ -298,7 +298,7 @@ const PopularCourses = () => {
                   {/* CONTENU */}
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-[#3B3A82] transition-colors duration-200 line-clamp-2">
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary-mid transition-colors duration-200 line-clamp-2">
                         {course.title}
                       </h3>
                       
@@ -389,7 +389,7 @@ const PopularCourses = () => {
         <div className="text-center mt-12">
           <Link
             to="/courses"
-            className="inline-flex items-center gap-3 px-8 py-3.5 bg-gradient-to-r from-[#3B3A82] to-[#4F46E5] text-white rounded-xl font-semibold hover:shadow-xl transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+            className="inline-flex items-center gap-3 px-8 py-3.5 bg-gradient-to-r from-primary-mid to-primary-vibrant text-white rounded-xl font-semibold hover:shadow-xl transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
           >
             <Eye className="w-5 h-5" />
             Voir toutes les formations

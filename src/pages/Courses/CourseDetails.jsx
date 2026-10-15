@@ -1,6 +1,6 @@
 // CourseDetails.jsx — DevOpsAkademy
 // Page détail cours — 100% dynamique — Prix en FCFA
-// Design cohérent avec les couleurs #2d287f / #facc15
+// Design cohérent avec les couleurs rgb(var(--c-primary)) / rgb(var(--c-accent))
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import CourseReviews from "../../components/Reviews/CourseReviews";
 import RealPaymentModal from "../../pages/payment/PaymentModal";
+import { OfferBox } from "../../components/Common/CourseOffer";
+import usePublicOffers, { bestOfferFor } from "../../hooks/usePublicOffers";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { getLocale } from "../../i18n";
@@ -94,7 +96,7 @@ function Thumbnail({ url, title, h = "h-80" }) {
   }
   return (
     <div className={`w-full ${h} flex items-center justify-center`}
-      style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+      style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
       <div className="text-center">
         <span className="text-white font-black text-5xl drop-shadow">{initials}</span>
         <p className="text-white/70 text-sm mt-2">DevOps Akademy</p>
@@ -286,13 +288,13 @@ function PaymentModal({ onClose, price, isFree }) {
         {/* ── HEADER ── */}
         <div
           className="relative flex-shrink-0 px-6 pt-7 pb-6 text-center overflow-hidden"
-          style={{ background: "linear-gradient(160deg,#0f0c2e 0%,#1e1b4b 40%,#2d287f 100%)" }}
+          style={{ background: "linear-gradient(160deg,#0f0c2e 0%,rgb(var(--c-primary-deep)) 40%,rgb(var(--c-primary)) 100%)" }}
         >
           {/* Glow décoratif */}
           <div style={{
             position: "absolute", top: -40, left: "50%", transform: "translateX(-50%)",
             width: 220, height: 220, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(250,204,21,0.18) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgb(var(--c-accent) / 0.18) 0%, transparent 70%)",
             pointerEvents: "none",
           }}/>
           {/* Close */}
@@ -310,9 +312,9 @@ function PaymentModal({ onClose, price, isFree }) {
             padding: "4px 12px 4px 6px", border: "1px solid rgba(255,255,255,0.12)",
           }}>
             <span style={{
-              width: 20, height: 20, background: "#facc15", borderRadius: 6,
+              width: 20, height: 20, background: "rgb(var(--c-accent))", borderRadius: 6,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 9, fontWeight: 900, color: "#1e1b4b",
+              fontSize: 9, fontWeight: 900, color: "rgb(var(--c-primary-deep))",
             }}>DA</span>
             <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>{t("paiement")}</span>
           </div>
@@ -320,8 +322,8 @@ function PaymentModal({ onClose, price, isFree }) {
           <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, marginBottom: 4 }}>{t("montant_a_payer")}</p>
           <p style={{
             fontSize: isFree ? 32 : 42, fontWeight: 900, letterSpacing: "-0.02em",
-            color: "#facc15",
-            textShadow: "0 0 40px rgba(250,204,21,0.4)",
+            color: "rgb(var(--c-accent))",
+            textShadow: "0 0 40px rgb(var(--c-accent) / 0.4)",
             lineHeight: 1,
           }}>
             {isFree ? t("gratuit") : `${fmt(price)} FCFA`}
@@ -364,7 +366,7 @@ function PaymentModal({ onClose, price, isFree }) {
                           background: badge, borderRadius: 6, padding: "2px 7px",
                         }}>{code}</span>
                       </div>
-                      <p style={{ fontSize: 18, fontWeight: 900, color: "#1e1b4b", letterSpacing: "0.05em", fontFamily: "monospace" }}>
+                      <p style={{ fontSize: 18, fontWeight: 900, color: "rgb(var(--c-primary-deep))", letterSpacing: "0.05em", fontFamily: "monospace" }}>
                         {number}
                       </p>
                       <p style={{ fontSize: 10, color: "#9ca3af", marginTop: 2, fontStyle: "italic" }}>
@@ -408,7 +410,7 @@ function PaymentModal({ onClose, price, isFree }) {
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: i < 4 ? 8 : 0 }}>
                 <div style={{
                   width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                  background: "linear-gradient(135deg,#2d287f,#5653e1)",
+                  background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 10, fontWeight: 900, color: "white",
                 }}>{i + 1}</div>
@@ -435,10 +437,10 @@ function PaymentModal({ onClose, price, isFree }) {
         <div style={{ padding: "12px 20px 20px", flexShrink: 0 }}>
           <button onClick={onClose} style={{
             width: "100%", padding: "15px", borderRadius: 18,
-            background: "linear-gradient(135deg,#2d287f,#5653e1)",
+            background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
             border: "none", cursor: "pointer", color: "white",
             fontSize: 15, fontWeight: 900, letterSpacing: "0.01em",
-            boxShadow: "0 8px 24px rgba(45,40,127,0.35)",
+            boxShadow: "0 8px 24px rgb(var(--c-primary) / 0.35)",
             transition: "opacity 0.2s",
           }}>{t("fermer")}</button>
         </div>
@@ -466,6 +468,7 @@ export default function CourseDetails() {
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
   const { isUserEnrolled, isEnrollmentApproved, getEnrollmentStatus, enrollInCourse } = usePermissions();
+  const publicOffers = usePublicOffers();
 
   const [course,          setCourse]         = useState(null);
   const [loading,         setLoading]        = useState(true);
@@ -605,10 +608,10 @@ export default function CourseDetails() {
           <div className="flex gap-2">
             <button onClick={() => navigate("/student")}
               className="flex-1 py-2.5 rounded-xl font-bold text-white text-sm"
-              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{t("mon_espace")}</button>
+              style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>{t("mon_espace")}</button>
             <button onClick={() => navigate("/courses")}
               className="flex-1 py-2.5 rounded-xl font-bold text-sm border-2"
-              style={{ borderColor: "#2d287f", color: "#2d287f" }}>{t("catalogue")}</button>
+              style={{ borderColor: "rgb(var(--c-primary))", color: "rgb(var(--c-primary))" }}>{t("catalogue")}</button>
             <button onClick={() => window.location.reload()}
               className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition">{t("reessayer")}</button>
           </div>
@@ -673,7 +676,7 @@ export default function CourseDetails() {
                   <Globe className="w-3.5 h-3.5" /> {lang.flag} {lang.name}
                 </span>
                 {course.category_name && (
-                  <span className="px-3 py-1.5 rounded-full text-sm font-medium border" style={{ background: "#ede9fe", color: "#2d287f", borderColor: "#c4b5fd" }}>
+                  <span className="px-3 py-1.5 rounded-full text-sm font-medium border" style={{ background: "#ede9fe", color: "rgb(var(--c-primary))", borderColor: "#c4b5fd" }}>
                     {course.category_name}
                   </span>
                 )}
@@ -715,7 +718,7 @@ export default function CourseDetails() {
               {(course.first_name || course.last_name) && (
                 <div className="flex items-center gap-2 mt-4 text-sm text-gray-500">
                   <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                    style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                    style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                     {(course.first_name?.[0] || "") + (course.last_name?.[0] || "")}
                   </div>
                   <span>{t("presente_par")}{" "}<strong className="text-gray-800">{course.first_name} {course.last_name}</strong></span>
@@ -768,7 +771,7 @@ export default function CourseDetails() {
                         ? "text-white border-transparent rounded-t-xl"
                         : "text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300"
                       }`}
-                    style={activeTab === tid ? { background: "linear-gradient(135deg,#2d287f,#5653e1)" } : {}}>
+                    style={activeTab === tid ? { background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" } : {}}>
                     <Icon className="w-3.5 h-3.5" />
                     {label}
                   </button>
@@ -875,7 +878,7 @@ export default function CourseDetails() {
                           )}
                         </div>
                         {access.status !== "approved" && access.status !== "pending" && (
-                          <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#2d287f] bg-[#2d287f]/8 border border-[#2d287f]/20 px-3 py-1.5 rounded-full font-medium">
+                          <div className="hidden sm:flex items-center gap-1.5 text-xs text-primary bg-primary/8 border border-primary/20 px-3 py-1.5 rounded-full font-medium">
                             <Lock className="w-3 h-3" />
                             {isAuthenticated ? t("inscrivez_vous_pour_acceder") : t("connectez_vous_pour_acceder")}
                           </div>
@@ -901,7 +904,7 @@ export default function CourseDetails() {
                                 >
                                   <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0"
-                                      style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                                      style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                                       {mi + 1}
                                     </div>
                                     <div className="min-w-0">
@@ -970,7 +973,7 @@ export default function CourseDetails() {
                                             {canAccess ? (
                                               <button onClick={() => navigate(`/courses/${course.id}/learn`)}
                                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition hover:opacity-90"
-                                                style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                                                style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                                                 <PlayCircle className="w-3.5 h-3.5" />{" "}{t("continuer")}</button>
                                             ) : isPreview ? (
                                               <button onClick={() => navigate(`/courses/${course.id}/preview`)}
@@ -1008,21 +1011,21 @@ export default function CourseDetails() {
 
                       {/* ── Bannière CTA si non inscrit ── */}
                       {access.status !== "approved" && access.status !== "pending" && course.modules?.length > 0 && (
-                        <div className="mt-6 rounded-2xl overflow-hidden border border-[#2d287f]/20"
+                        <div className="mt-6 rounded-2xl overflow-hidden border border-primary/20"
                           style={{ background: "linear-gradient(135deg,#f8f7ff,#ede9fe)" }}>
                           <div className="flex flex-col sm:flex-row items-center gap-4 px-6 py-5">
                             <div className="flex-1 text-center sm:text-left">
-                              <p className="font-bold text-[#1f1b5a] text-sm">
+                              <p className="font-bold text-primary-dark text-sm">
                                 {isAuthenticated
                                   ? t("inscrivez_vous_pour_acceder_a_tout")
                                   : t("connectez_vous_pour_acceder_au_programme")}
                               </p>
-                              <p className="text-xs text-[#2d287f]/70 mt-0.5">{t("lecons_acces_a_vie_certificat_inclus", { totalLessons })}</p>
+                              <p className="text-xs text-primary/70 mt-0.5">{t("lecons_acces_a_vie_certificat_inclus", { totalLessons })}</p>
                             </div>
                             <button
                               onClick={handleEnroll}
                               className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                              style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                               {isAuthenticated ? t("s_inscrire_maintenant") : t("se_connecter")} →
                             </button>
                           </div>
@@ -1049,7 +1052,7 @@ export default function CourseDetails() {
                       <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-gray-200">
                         <div className="flex items-start gap-5">
                           <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-black text-white flex-shrink-0"
-                            style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                            style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                             {(course.first_name?.[0] || "") + (course.last_name?.[0] || "")}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1204,6 +1207,8 @@ export default function CourseDetails() {
                     )}
                   </div>
 
+                  <OfferBox offer={bestOfferFor(publicOffers, course)} />
+
                   {/* Infos clés */}
                   <div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
                     {[
@@ -1234,7 +1239,7 @@ export default function CourseDetails() {
                           <PlayCircle className="w-5 h-5" />{" "}{t("continuer_l_apprentissage")}</button>
                         <button onClick={() => navigate(`/courses/${course.id}/progress`)}
                           className="w-full py-3 rounded-2xl font-bold text-sm border-2 flex items-center justify-center gap-2 transition hover:bg-gray-50"
-                          style={{ borderColor: "#2d287f", color: "#2d287f" }}>
+                          style={{ borderColor: "rgb(var(--c-primary))", color: "rgb(var(--c-primary))" }}>
                           <BarChart className="w-4 h-4" />{" "}{t("voir_ma_progression")}</button>
                       </>
                     ) : access.status === "pending" ? (
@@ -1257,7 +1262,7 @@ export default function CourseDetails() {
                           onClick={handleEnroll}
                           disabled={enrolling}
                           className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 text-base hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-70"
-                          style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                          style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                           {enrolling ? <><Loader className="w-5 h-5 animate-spin" />{" "}{t("inscription")}</> : <><GraduationCap className="w-5 h-5" />{" "}{t("s_inscrire_maintenant")}</>}
                         </button>
                         <button onClick={() => setShowPayment(true)}
@@ -1291,7 +1296,7 @@ export default function CourseDetails() {
                     ].map(({ n, t, d }) => (
                       <li key={n} className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>{n}</div>
+                          style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>{n}</div>
                         <div>
                           <p className="text-sm font-bold text-gray-800">{t}</p>
                           <p className="text-xs text-gray-500">{d}</p>

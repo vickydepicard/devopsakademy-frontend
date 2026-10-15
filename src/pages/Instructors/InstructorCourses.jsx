@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import useFeedback, { apiError } from "../../components/Common/useFeedback";
+import CourseFeedbackModal from "./program/CourseFeedbackModal";
 
 const STATUS_BADGE = {
   draft: "bg-gray-100 text-gray-600",
@@ -32,6 +33,7 @@ export default function InstructorCourses() {
   const { ui: feedbackUi, notify, confirm } = useFeedback();
   const [rateModal, setRateModal] = useState(null);
   const [rateValue, setRateValue] = useState("");
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     document.title = t("mes_cours_devopsakademy");
@@ -107,6 +109,7 @@ export default function InstructorCourses() {
   return (
     <div className="space-y-6 max-w-7xl">
       {feedbackUi}
+      {feedback && <CourseFeedbackModal courseId={feedback.id} title={feedback.title} onClose={() => setFeedback(null)} />}
 
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -207,6 +210,9 @@ export default function InstructorCourses() {
                   </div>
                   {!course.is_published && course.review_status === "rejected" && course.review_note && (
                     <p className="mt-1.5 text-xs text-red-700 bg-red-50 rounded-lg px-2.5 py-1.5 line-clamp-2"><span className="font-medium">{t("motif_renvoi")}</span> {course.review_note}</p>
+                  )}
+                  {!course.is_published && ["rejected", "submitted"].includes(course.review_status) && (
+                    <button type="button" onClick={() => setFeedback({ id: course.id, title: course.title })} className="mt-1 text-xs font-semibold text-primary bg-transparent hover:underline">{i18n.t("instructorProgram:feedback_link")}</button>
                   )}
                 </div>
 

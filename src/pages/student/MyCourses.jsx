@@ -261,7 +261,7 @@ export default function MyCourses() {
                         <div className="flex items-center justify-between text-white text-xs mb-1.5">
                           <span className="font-medium">{t("progression")}</span>
                           <span className="font-bold text-sm px-1.5 py-0.5 rounded"
-                            style={{ background: progress>=100?"#5653e1":progress>=50?"#059669":"rgba(255,255,255,0.2)" }}>
+                            style={{ background: progress>=100?"rgb(var(--c-primary-light))":progress>=50?"#059669":"rgba(255,255,255,0.2)" }}>
                             {Math.round(progress)}%
                           </span>
                         </div>
@@ -271,10 +271,10 @@ export default function MyCourses() {
                             style={{
                               width: `${Math.max(progress, progress>0?3:0)}%`,
                               background: progress>=100
-                                ? "linear-gradient(90deg,#5653e1,#8b5cf6)"
+                                ? "linear-gradient(90deg,rgb(var(--c-primary-light)),#8b5cf6)"
                                 : progress>=80
                                 ? "linear-gradient(90deg,#059669,#10b981)"
-                                : "linear-gradient(90deg,#facc15,#fbbf24)",
+                                : "linear-gradient(90deg,rgb(var(--c-accent)),#fbbf24)",
                             }}
                           />
                         </div>
@@ -316,7 +316,7 @@ export default function MyCourses() {
                           <button
                             onClick={() => navigate(`/courses/${course.course_id || course.id}/learn`)}
                             className="w-full flex items-center justify-center gap-2 py-3 font-bold rounded-xl transition text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                            style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)", color:"#fff" }}
+                            style={{ background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))", color:"#fff" }}
                           >
                             <PlayCircle className="w-4 h-4" />
                             {progress >= 100 ? t("revoir_le_cours") : progress > 0 ? t("continuer") : t("commencer")}

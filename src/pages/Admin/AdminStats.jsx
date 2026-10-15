@@ -4,7 +4,7 @@ import { Users, BookOpen, TrendingUp, BarChart2, RefreshCw } from "lucide-react"
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 
-const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" };
+const C = { primary: "rgb(var(--c-primary))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))" };
 
 export default function AdminStats() {
   const { t } = useTranslation("adminStats");

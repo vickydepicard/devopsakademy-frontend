@@ -177,7 +177,7 @@ export default function UserProfile() {
 
       {/* ── Header profil ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
-        <div className="bg-gradient-to-r from-[#1e1b4b] to-[#4c1d95] px-4 sm:px-6 py-6 flex flex-wrap sm:flex-nowrap items-center gap-4">
+        <div className="bg-gradient-to-r from-primary-deep to-[#4c1d95] px-4 sm:px-6 py-6 flex flex-wrap sm:flex-nowrap items-center gap-4">
           {/* Avatar */}
           <div className="flex-shrink-0 relative">
             {avatar ? (
@@ -188,7 +188,7 @@ export default function UserProfile() {
                 {initials}
               </div>
             )}
-            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 rounded-full border-2 border-[#1e1b4b]" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 rounded-full border-2 border-primary-deep" />
           </div>
 
           <div className="flex-1 min-w-0">

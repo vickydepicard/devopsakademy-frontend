@@ -68,7 +68,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
     <div className={`group bg-white rounded-2xl border overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col ${isLive ? "border-red-300 shadow-red-100 shadow-md" : "border-gray-100"}`}>
 
       {/* Thumbnail */}
-      <div className="relative h-44 bg-gradient-to-br from-[#1f1b5a] to-[#5653e1] overflow-hidden shrink-0">
+      <div className="relative h-44 bg-gradient-to-br from-primary-dark to-primary-light overflow-hidden shrink-0">
         {b.thumbnail_url ? (
           <img src={b.thumbnail_url} alt={b.title}
             className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
@@ -104,7 +104,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
         {isEnded && b.replay_url && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
             <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
-              <Play className="w-6 h-6 text-[#2d287f]" fill="#2d287f" />
+              <Play className="w-6 h-6 text-primary" fill="rgb(var(--c-primary))" />
             </div>
           </div>
         )}
@@ -122,18 +122,18 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
         {b.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3">
             {b.tags.slice(0, 3).map(tag => (
-              <span key={tag} className="text-xs bg-[#2d287f]/8 text-[#2d287f] px-2 py-0.5 rounded-full font-medium">
+              <span key={tag} className="text-xs bg-primary/8 text-primary px-2 py-0.5 rounded-full font-medium">
                 {tag}
               </span>
             ))}
           </div>
         )}
 
-        <h3 className="font-bold text-[#1f1b5a] text-base leading-snug mb-1.5 line-clamp-2 group-hover:text-[#2d287f] transition-colors">
+        <h3 className="font-bold text-primary-dark text-base leading-snug mb-1.5 line-clamp-2 group-hover:text-primary transition-colors">
           {b.title}
         </h3>
 
-        <p className="text-xs text-[#5653e1] font-semibold mb-3">{t("par", { instructor_name: b.instructor_name })}</p>
+        <p className="text-xs text-primary-light font-semibold mb-3">{t("par", { instructor_name: b.instructor_name })}</p>
 
         {/* Méta */}
         <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-4">
@@ -168,7 +168,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
           {isEnded ? (
             b.replay_url ? (
               <a href={b.replay_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs font-bold text-[#2d287f] hover:gap-2.5 transition-all">
+                className="flex items-center gap-1.5 text-xs font-bold text-primary hover:gap-2.5 transition-all">
                 <Play className="w-3.5 h-3.5" />{" "}{t("voir_le_replay")}</a>
             ) : (
               <span className="text-xs text-gray-400 font-medium">{t("replay_indisponible")}</span>
@@ -199,7 +199,7 @@ function BootcampCard({ b, onRegister, registering, isRegistered = false }) {
               onClick={() => onRegister(b)}
               disabled={registering === b.id}
               className="flex items-center gap-1.5 text-xs font-bold text-white px-3 py-1.5 rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
               {registering === b.id
                 ? <Loader className="w-3.5 h-3.5 animate-spin" />
                 : t("s_inscrire")
@@ -290,7 +290,7 @@ export default function BootcampsPage() {
       {toast && (
         <div className={`fixed top-24 left-4 right-4 sm:left-auto sm:right-6 z-50 px-5 py-3.5 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-3 animate-in slide-in-from-right-4 transition-all ${
           toast.type === "error" ? "bg-red-600 text-white" :
-          toast.type === "info"  ? "bg-[#2d287f] text-white" :
+          toast.type === "info"  ? "bg-primary text-white" :
           "bg-emerald-600 text-white"
         }`}>
           {toast.msg}
@@ -299,15 +299,15 @@ export default function BootcampsPage() {
       )}
 
       {/* ── Hero ── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#1f1b5a] via-[#2d287f] to-[#3b3aab] text-white py-20">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-700 text-white py-20">
         <div className="absolute inset-0 pointer-events-none"
           style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px)`, backgroundSize: "56px 56px" }} />
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#facc15]/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-accent/8 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-5xl mx-auto px-6 text-center">
-          <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#facc15]/15 border border-[#facc15]/30 rounded-full text-[#facc15] text-sm font-bold mb-6">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-accent/15 border border-accent/30 rounded-full text-accent text-sm font-bold mb-6">
             <Radio className="w-4 h-4" />{" "}{t("sessions_live_formations_intensives")}</span>
-          <h1 className="text-4xl lg:text-5xl font-black mb-4">{t("bootcamps")}{" "}<span className="text-[#facc15]">{t("lives")}</span>
+          <h1 className="text-4xl lg:text-5xl font-black mb-4">{t("bootcamps")}{" "}<span className="text-accent">{t("lives")}</span>
           </h1>
           <p className="text-white/70 text-lg max-w-xl mx-auto mb-10">{t("rejoignez_des_sessions_live_animees_par")}</p>
 
@@ -336,8 +336,8 @@ export default function BootcampsPage() {
               onClick={() => setFilter(value)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
                 filter === value
-                  ? "bg-[#2d287f] text-white border-[#2d287f] shadow-md"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-[#2d287f]/40"
+                  ? "bg-primary text-white border-primary shadow-md"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-primary/40"
               }`}>
               {label}
               {counts[value] > 0 && (
@@ -386,7 +386,7 @@ export default function BootcampsPage() {
             </p>
             {filter !== "all" && (
               <button onClick={() => setFilter("all")}
-                className="px-5 py-2.5 bg-[#2d287f] text-white font-semibold rounded-xl text-sm hover:bg-[#3b3aab] transition">{t("voir_tous_les_bootcamps")}</button>
+                className="px-5 py-2.5 bg-primary text-white font-semibold rounded-xl text-sm hover:bg-primary-700 transition">{t("voir_tous_les_bootcamps")}</button>
             )}
           </div>
         ) : (
@@ -424,16 +424,16 @@ export default function BootcampsPage() {
         {/* CTA devenir instructeur */}
         {!loading && (
           <div className="mt-16 rounded-3xl overflow-hidden"
-            style={{ background: "linear-gradient(135deg,#1f1b5a,#2d287f)" }}>
+            style={{ background: "linear-gradient(135deg,rgb(var(--c-primary-dark)),rgb(var(--c-primary)))" }}>
             <div className="px-8 py-10 flex flex-col md:flex-row items-center gap-6">
               <div className="text-white flex-1">
-                <p className="text-[#facc15] text-sm font-bold uppercase tracking-wider mb-2">{t("vous_etes_expert_devops")}</p>
+                <p className="text-accent text-sm font-bold uppercase tracking-wider mb-2">{t("vous_etes_expert_devops")}</p>
                 <h3 className="text-2xl font-black mb-2">{t("animez_votre_propre_bootcamp")}</h3>
                 <p className="text-white/65 text-sm leading-relaxed">{t("partagez_votre_expertise_avec_notre_communaute")}</p>
               </div>
               <div className="flex gap-3 shrink-0">
                 <Link to="/become-instructor"
-                  className="flex items-center gap-2 bg-[#facc15] hover:bg-[#fde047] text-[#1f1b5a] font-black py-3 px-6 rounded-2xl transition hover:-translate-y-0.5 text-sm shadow-lg">{t("devenir_instructeur")}{" "}<ArrowRight className="w-4 h-4" />
+                  className="flex items-center gap-2 bg-accent hover:bg-accent-light text-primary-dark font-black py-3 px-6 rounded-2xl transition hover:-translate-y-0.5 text-sm shadow-lg">{t("devenir_instructeur")}{" "}<ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link to="/contact"
                   className="flex items-center gap-2 border border-white/30 hover:border-white text-white font-semibold py-3 px-5 rounded-2xl transition text-sm">{t("nous_contacter")}</Link>

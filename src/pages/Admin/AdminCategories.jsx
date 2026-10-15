@@ -16,7 +16,7 @@ const CategoryModal = ({ cat, onSave, onClose }) => {
     description: cat?.description || "",
     slug: cat?.slug || "",
     icon: cat?.icon || "",
-    color: cat?.color || "#3B3A82",
+    color: cat?.color || "#3b3a82",
     is_active: cat?.is_active ?? true,
   });
   const [saving, setSaving] = useState(false);
@@ -83,7 +83,7 @@ const CategoryModal = ({ cat, onSave, onClose }) => {
               <input type="color" value={form.color} onChange={(e) => setForm(p => ({ ...p, color: e.target.value }))}
                 className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer" />
               <input value={form.color} onChange={(e) => setForm(p => ({ ...p, color: e.target.value }))}
-                placeholder="#3B3A82"
+                placeholder="#3b3a82"
                 className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none" />
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function AdminCategories() {
 
               {/* Icône colorée */}
               <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-3 text-white font-bold"
-                style={{ backgroundColor: cat.color || "#3B3A82" }}>
+                style={{ backgroundColor: cat.color || "rgb(var(--c-primary-mid))" }}>
                 {cat.icon ? <CategoryIcon value={cat.icon} className="w-6 h-6" /> : cat.name?.[0]?.toUpperCase()}
               </div>
 

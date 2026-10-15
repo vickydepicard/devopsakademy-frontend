@@ -95,7 +95,7 @@ function UserModal({ user, onClose, onSaved }) {
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
         style={{ animation:"fadeIn .2s" }}>
         {/* Header */}
-        <div className="px-6 pt-6 pb-4" style={{ background:"linear-gradient(135deg,#1e1b4b,#2d287f)" }}>
+        <div className="px-6 pt-6 pb-4" style={{ background:"linear-gradient(135deg,rgb(var(--c-primary-deep)),rgb(var(--c-primary)))" }}>
           <div className="flex items-center justify-between">
             <h2 className="text-white font-black text-lg">
               {isEdit ? t("modifier_l_utilisateur") : t("nouvel_utilisateur")}
@@ -169,7 +169,7 @@ function UserModal({ user, onClose, onSaved }) {
               className="flex-1 py-3 border-2 border-gray-200 text-gray-600 rounded-2xl font-semibold text-sm hover:bg-gray-50 transition">{t("annuler")}</button>
             <button onClick={handle} disabled={saving}
               className="flex-[2] py-3 text-white rounded-2xl font-black text-sm transition hover:opacity-90 disabled:opacity-50"
-              style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)" }}>
+              style={{ background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
               {saving ? t("sauvegarde") : isEdit ? t("enregistrer") : t("creer_l_utilisateur")}
             </button>
           </div>
@@ -272,7 +272,7 @@ export default function AdminUsers() {
             <RefreshCw className="w-4 h-4" />{" "}{t("actualiser")}</button>
           <button onClick={() => setModal("create")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-            style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)" }}>
+            style={{ background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
             <Plus className="w-4 h-4" />{" "}{t("nouvel_utilisateur")}</button>
         </div>
       </div>
@@ -312,9 +312,9 @@ export default function AdminUsers() {
             <button key={v} onClick={() => setRole(v)}
               className="px-4 py-2 rounded-xl text-sm font-bold transition border-2"
               style={{
-                background: role === v ? "#2d287f" : "white",
+                background: role === v ? "rgb(var(--c-primary))" : "white",
                 color:      role === v ? "white"   : "#6b7280",
-                borderColor: role === v ? "#2d287f" : "#e5e7eb",
+                borderColor: role === v ? "rgb(var(--c-primary))" : "#e5e7eb",
               }}>
               {l} <span className="opacity-60 text-xs">({counts[v] ?? users.filter(u => u.role===v).length})</span>
             </button>

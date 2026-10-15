@@ -6,6 +6,7 @@ import api from "../../api/api";
 import useFeedback, { apiError } from "../../components/Common/useFeedback";
 import { formatMoney, formatDate, formatNumber } from "../../utils/format";
 import CourseTeamModal from "./CourseTeamModal";
+import { GridEditor, RoundsHistory, emptyGrid } from "./program/ReviewGrid";
 
 const TABS = ["submitted", "approved", "rejected", "draft", "all"];
 const BADGE = {
@@ -19,6 +20,7 @@ const btn = "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-
 
 export default function AdminCourseReviews() {
   const { t } = useTranslation("adminCourseReviews");
+  const { t: tp } = useTranslation("instructorProgram");
   const { ui, notify, confirm } = useFeedback();
   const [tab, setTab] = useState("submitted");
   const [q, setQ] = useState("");
@@ -32,6 +34,7 @@ export default function AdminCourseReviews() {
   const [reject, setReject] = useState(null);   // string
   const [teamOpen, setTeamOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [grid, setGrid] = useState([]);
 
   useEffect(() => { document.title = `${t("titre")} — DevOpsAkademy`; }, [t]);
 
@@ -51,6 +54,9 @@ export default function AdminCourseReviews() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { setDetail(null); if (openId) loadDetail(openId); }, [openId, loadDetail]);
+
+  useEffect(() => { if (detail) setGrid(emptyGrid(detail.review_criteria || [])); }, [detail?.course?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const gridPayload = () => grid.filter((g) => g.score || g.comment.trim());
 
   const close = () => { setOpenId(null); setApprove(null); setReject(null); };
   const refresh = () => { load(); if (openId) loadDetail(openId); };
@@ -79,12 +85,13 @@ export default function AdminCourseReviews() {
     const body = { commission_rate: rate };
     if (!detail.course.is_free && approve.price !== "") body.price = Number(approve.price);
     body.original_price = approve.original === "" ? null : Number(approve.original);
+    body.grid = gridPayload();
     act(() => api.post(`/admin/course-reviews/${openId}/approve`, body), t("cours_publie"), close);
   };
 
   const doReject = () => {
     if (reject.trim().length < 3) return notify(t("motif_obligatoire"));
-    act(() => api.post(`/admin/course-reviews/${openId}/reject`, { reason: reject.trim() }), t("cours_renvoye"), close);
+    act(() => api.post(`/admin/course-reviews/${openId}/reject`, { reason: reject.trim(), grid: gridPayload() }), t("cours_renvoye"), close);
   };
 
   const doUnpublish = async () => {
@@ -229,6 +236,15 @@ export default function AdminCourseReviews() {
                     {detail.team.assigned.map((a) => <li key={a.id} className="flex justify-between"><span>{a.first_name} {a.last_name}</span><span>{Number(a.commission_rate)} %</span></li>)}
                   </ul>
                 </section>
+
+                <RoundsHistory rounds={detail.rounds} />
+
+                {(approve || reject !== null) && (
+                  <section className="border border-gray-200 rounded-xl p-4 space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-900">{tp("grid_title")}</h3>
+                    <GridEditor grid={grid} onChange={setGrid} />
+                  </section>
+                )}
 
                 {approve && (
                   <section className="border border-gray-200 rounded-xl p-4 space-y-3">

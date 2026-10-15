@@ -55,7 +55,7 @@ function CourseCard({ course }) {
           </p>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <span style={{ fontWeight:900, fontSize:13,
-              color: course.is_free ? "#10b981" : "#2d287f" }}>
+              color: course.is_free ? "#10b981" : "rgb(var(--c-primary))" }}>
               {course.is_free ? t("gratuit") : `${fmt(course.price)} FCFA`}
             </span>
             <span style={{ fontSize:10, color:"#9ca3af", display:"flex", alignItems:"center", gap:3 }}>
@@ -84,7 +84,7 @@ export default function InstructorProfile() {
 
   if (loading) return (
     <div style={{ minHeight:"60vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ width:36, height:36, border:"3px solid #5653e1", borderTopColor:"transparent",
+      <div style={{ width:36, height:36, border:"3px solid rgb(var(--c-primary-light))", borderTopColor:"transparent",
         borderRadius:"50%", animation:"spin 1s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -94,7 +94,7 @@ export default function InstructorProfile() {
     <div style={{ minHeight:"60vh", display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", gap:12 }}>
       <p style={{ color:"#ef4444", fontWeight:600 }}>{error || t("instructeur_introuvable_2")}</p>
-      <Link to="/instructors" style={{ color:"#5653e1", fontWeight:700, textDecoration:"none",
+      <Link to="/instructors" style={{ color:"rgb(var(--c-primary-light))", fontWeight:700, textDecoration:"none",
         fontSize:14 }}>{t("retour_aux_instructeurs")}</Link>
     </div>
   );
@@ -111,7 +111,7 @@ export default function InstructorProfile() {
     <div style={{ minHeight:"100vh", background:"#f8f7ff" }}>
 
       {/* Header */}
-      <div style={{ background:"linear-gradient(135deg,#1e1b4b 0%,#2d287f 55%,#5653e1 100%)",
+      <div style={{ background:"linear-gradient(135deg,rgb(var(--c-primary-deep)) 0%,rgb(var(--c-primary)) 55%,rgb(var(--c-primary-light)) 100%)",
         padding:"24px 24px 72px" }}>
         <div style={{ maxWidth:900, margin:"0 auto" }}>
           <Link to="/instructors" style={{ display:"inline-flex", alignItems:"center", gap:6,
@@ -133,7 +133,7 @@ export default function InstructorProfile() {
                 {inst.name}
               </h1>
               {inst.job_title && (
-                <p style={{ fontSize:14, color:"#5653e1", fontWeight:700, margin:"0 0 6px" }}>
+                <p style={{ fontSize:14, color:"rgb(var(--c-primary-light))", fontWeight:700, margin:"0 0 6px" }}>
                   {inst.job_title}{inst.company && <span style={{ color:"#9ca3af", fontWeight:500 }}> · {inst.company}</span>}
                 </p>
               )}
@@ -157,8 +157,8 @@ export default function InstructorProfile() {
                 <div style={{ display:"flex", alignItems:"center", gap:3, marginTop:8 }}>
                   {[1,2,3,4,5].map(i => (
                     <Star key={i} size={13}
-                      fill={i <= Math.round(inst.avg_rating) ? "#facc15":"none"}
-                      color={i <= Math.round(inst.avg_rating) ? "#facc15":"#d1d5db"} />
+                      fill={i <= Math.round(inst.avg_rating) ? "rgb(var(--c-accent))":"none"}
+                      color={i <= Math.round(inst.avg_rating) ? "rgb(var(--c-accent))":"#d1d5db"} />
                   ))}
                   <span style={{ fontWeight:800, fontSize:13, color:"#111" }}>
                     {inst.avg_rating.toFixed(1)}
@@ -170,7 +170,7 @@ export default function InstructorProfile() {
             {/* Stats */}
             <div style={{ display:"flex", gap:12 }}>
               {[
-                { Icon:BookOpen, val:inst.course_count,  label:t("cours"),     c:"#5653e1", bg:"#f0efff" },
+                { Icon:BookOpen, val:inst.course_count,  label:t("cours"),     c:"rgb(var(--c-primary-light))", bg:"#f0efff" },
                 { Icon:Users,    val:inst.student_count, label:t("etudiants"), c:"#0369a1", bg:"#eff6ff" },
                 inst.avg_rating && { Icon:Award, val:inst.avg_rating.toFixed(1), label:t("note"), c:"#f59e0b", bg:"#fffbeb" },
               ].filter(Boolean).map(({ Icon, val, label, c, bg }) => (
@@ -226,7 +226,7 @@ export default function InstructorProfile() {
                 <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                   {skills.map(s => (
                     <span key={s} style={{ padding:"5px 12px", borderRadius:20, fontSize:12,
-                      fontWeight:700, background:"#f0efff", color:"#5653e1",
+                      fontWeight:700, background:"#f0efff", color:"rgb(var(--c-primary-light))",
                       border:"1px solid #e0e7ff" }}>{s}</span>
                   ))}
                 </div>
@@ -250,14 +250,14 @@ export default function InstructorProfile() {
           <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
 
             {/* CTA */}
-            <div style={{ background:"linear-gradient(135deg,#2d287f,#5653e1)",
+            <div style={{ background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))",
               borderRadius:20, padding:20, textAlign:"center" }}>
               <BookOpen size={24} color="rgba(255,255,255,0.8)"
                 style={{ margin:"0 auto 8px", display:"block" }} />
               <p style={{ color:"white", fontWeight:900, fontSize:15, margin:"0 0 4px" }}>{t("pret_a_apprendre")}</p>
               <p style={{ color:"rgba(255,255,255,0.6)", fontSize:12, margin:"0 0 12px" }}>{t("cours_disponibles", { course_count: inst.course_count })}</p>
               <Link to="/courses" style={{ display:"block", padding:"10px",
-                borderRadius:12, background:"#facc15", color:"#1e1b4b",
+                borderRadius:12, background:"rgb(var(--c-accent))", color:"rgb(var(--c-primary-deep))",
                 fontWeight:900, fontSize:13, textDecoration:"none" }}>{t("explorer_les_cours")}</Link>
             </div>
 

@@ -11,8 +11,9 @@ import { ProofButton } from "../payment/ProofViewer";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { getLocale } from "../../i18n";
+import { tint } from "../../utils/color";
 
-const C = { primary: "#2d287f", light: "#5653e1", accent: "#facc15" };
+const C = { primary: "rgb(var(--c-primary))", light: "rgb(var(--c-primary-light))", accent: "rgb(var(--c-accent))" };
 
 const STATUS = () => ({
   free:     { label: i18n.t("studentPayments:gratuit"),            bg: "bg-emerald-50",  tx: "text-emerald-700",  bd: "border-emerald-200",  icon: <CheckCircle className="w-4 h-4" /> },
@@ -112,7 +113,7 @@ export default function StudentPayments() {
             onClick={() => setFilter(s.key)}
             className={`rounded-2xl p-4 text-left border-2 transition-all hover:-translate-y-0.5
               ${filter === s.key ? "shadow-md" : "border-gray-100 bg-white hover:shadow-sm"}`}
-            style={filter === s.key ? { borderColor: s.color, background: s.color + "10" } : {}}>
+            style={filter === s.key ? { borderColor: s.color, background: tint(s.color, 6) } : {}}>
             <p className="text-2xl font-black" style={{ color: s.color }}>{s.val}</p>
             <p className="text-xs font-semibold text-gray-500 mt-0.5">{s.label}</p>
           </button>
@@ -268,7 +269,7 @@ export default function StudentPayments() {
                         </ul>
                         <button onClick={() => handleResubmit(e)}
                           className="mt-3 w-full py-2 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 hover:opacity-90 transition"
-                          style={{ background: "linear-gradient(135deg,#2d287f,#5653e1)" }}>
+                          style={{ background: "linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))" }}>
                           <Upload className="w-3.5 h-3.5" />{" "}{t("renvoyer_une_preuve_correcte")}</button>
                       </div>
                     )}

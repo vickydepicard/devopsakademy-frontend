@@ -63,7 +63,7 @@ export default function AdminLayout() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className={`flex items-center gap-3 px-5 py-5 border-b border-white/10 shrink-0 ${collapsed ? "justify-center" : ""}`}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 flex-shrink-0" style={{background:"linear-gradient(135deg,#2d287f,#5653e1)"}}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 flex-shrink-0" style={{background:"linear-gradient(135deg,rgb(var(--c-primary)),rgb(var(--c-primary-light)))"}}>
           <Shield className="w-5 h-5 text-white" />
         </div>
         {!collapsed && (
@@ -137,7 +137,7 @@ export default function AdminLayout() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{background:"#facc15",color:"#2d287f"}}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{background:"rgb(var(--c-accent))",color:"rgb(var(--c-primary))"}}>
                 {user?.first_name?.[0]}{user?.last_name?.[0]}
               </div>
               <div className="hidden sm:block text-sm">
