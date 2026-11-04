@@ -37,7 +37,9 @@ const normalizeUrl = (url) => {
     const u = new URL(url);
     if (u.hostname === "localhost" || u.hostname === "127.0.0.1") return u.pathname;
     if (KNOWN_DOMAINS.some(d => u.hostname.includes(d))) return url;
-    if (u.hostname.endsWith("devopsakademy.com") && !u.hostname.startsWith("videos.") && !u.hostname.startsWith("img.")) return url;
+    if (/devopsakademy\.(com|cloud)$/.test(u.hostname) && !u.hostname.startsWith("videos.") && !u.hostname.startsWith("img.")) {
+      return url; // garder l'URL absolue (le fichier est sur le serveur en ligne)
+    }
     return null; // domaine inaccessible
   } catch { return null; }
 };
